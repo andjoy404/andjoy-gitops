@@ -12,7 +12,7 @@
   <a href="https://shields.io"><img src="https://img.shields.io/badge/PostgreSQL-16-4169e1?logo=postgresql&logoColor=white" alt="PostgreSQL 16"></a>
   <a href="https://shields.io"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License Apache 2.0"></a>
 
-  [✨ Features](#key-features) · [🚀 Quick Start](#quick-start) · [📸 Screenshots](docs/gallery/) · [📖 Docs](docs/) · [🤝 Contributing](CONTRIBUTING.md)
+  [✨ Features](#key-features) · [🚀 Quick Start](#quick-start) · [📸 Screenshots](https://andjoy404.github.io/andjoy-gitops/docs/gallery/index.html) · [📖 Docs](https://github.com/andjoy404/andjoy-gitops/tree/main/docs) · [🤝 Contributing](CONTRIBUTING.md)
 </div>
 
 ---
