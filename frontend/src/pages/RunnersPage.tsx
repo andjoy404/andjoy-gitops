@@ -428,11 +428,11 @@ export default function RunnersPage() {
                 <thead>
                   <tr>
                     <th>Number</th>
+                    <th>Tags</th>
+                    <th>Status</th>
                     <th>Type</th>
                     <th>Group / Project</th>
                     <th>Address</th>
-                    <th>Status</th>
-                    <th>Tags</th>
                     <th>Jobs</th>
                   </tr>
                 </thead>
@@ -448,38 +448,6 @@ export default function RunnersPage() {
                     return (
                       <tr key={runner.id}>
                         <td><strong>#{runner.id}</strong></td>
-                        <td>{typeLabel}</td>
-                        <td>
-                          {runner.projects.length > 0 ? (
-                            <a
-                              href={`${selectedEnvBaseUrl || 'https://gitlab.appfuxion.com'}/${runner.projects[0].path_with_namespace}/-/runners`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              title="View runners for this project/group"
-                            >
-                              {scope}
-                            </a>
-                          ) : (
-                            <span title="View runners for this group">{scope}</span>
-                          )}
-                        </td>
-                        <td>
-                          {address ? (
-                            <span className={styles.addressTag}>{address}</span>
-                          ) : (
-                            <span className={styles.ipUnavailable}>Unavailable</span>
-                          )}
-                        </td>
-                        <td>
-                          <span
-                            className={`status-badge ${STATUS_BADGE_CLASS(status)}`}
-                            style={{
-                              '--runner-status-color': STATUS_COLORS[status] || '#8b9298',
-                            } as React.CSSProperties}
-                          >
-                            {status}
-                          </span>
-                        </td>
                         <td>
                           {tagList.length === 0 ? (
                             <span>-</span>
@@ -502,6 +470,38 @@ export default function RunnersPage() {
                                 </span>
                               ))}
                             </span>
+                          )}
+                        </td>
+                        <td>
+                          <span
+                            className={`status-badge ${STATUS_BADGE_CLASS(status)}`}
+                            style={{
+                              '--runner-status-color': STATUS_COLORS[status] || '#8b9298',
+                            } as React.CSSProperties}
+                          >
+                            {status}
+                          </span>
+                        </td>
+                        <td>{typeLabel}</td>
+                        <td>
+                          {runner.projects.length > 0 ? (
+                            <a
+                              href={`${selectedEnvBaseUrl || 'https://gitlab.appfuxion.com'}/${runner.projects[0].path_with_namespace}/-/runners`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="View runners for this project/group"
+                            >
+                              {scope}
+                            </a>
+                          ) : (
+                            <span title="View runners for this group">{scope}</span>
+                          )}
+                        </td>
+                        <td>
+                          {address ? (
+                            <span className={styles.addressTag}>{address}</span>
+                          ) : (
+                            <span className={styles.ipUnavailable}>Unavailable</span>
                           )}
                         </td>
                         <td>

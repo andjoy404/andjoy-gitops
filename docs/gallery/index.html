@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AndJoy GitOps — Screenshots Gallery</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --fg: #e4e6eb;
+      --accent: #7c3aed;
+      --dim: #555;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── Back link ── */
+    .back-bar {
+      width: 100%;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #222;
+      position: sticky; top: 0;
+      background: var(--bg);
+      z-index: 100;
+    }
+    .back-bar a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      display: flex; align-items: center; gap: 6px;
+      transition: opacity .2s;
+    }
+    .back-bar a:hover { opacity: .7; }
+    .back-bar h1 { font-size: 16px; font-weight: 500; }
+
+    /* ── Gallery grid (all images) ── */
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 16px;
+      padding: 24px;
+      width: 100%;
+      max-width: 1400px;
+    }
+    .gallery-item {
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #222;
+      transition: transform .2s, box-shadow .2s;
+      cursor: pointer;
+    }
+    .gallery-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(124,58,237,.15);
+    }
+    .gallery-item img {
+      width: 100%; height: auto;
+      display: block;
+    }
+    .gallery-item .caption {
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #999;
+      display: flex; justify-content: space-between;
+    }
+    .gallery-item .caption span:first-child {
+      color: var(--fg); font-weight: 500;
+    }
+
+    /* ── Full-screen viewer ── */
+    .viewer {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.92);
+      z-index: 999;
+      align-items: center; justify-content: center;
+      flex-direction: column;
+    }
+    .viewer.active { display: flex; }
+    .viewer img {
+      max-width: 92vw; max-height: 82vh;
+      border-radius: 8px;
+      object-fit: contain;
+    }
+    .viewer .title {
+      margin-top: 12px; font-size: 15px; color: #ccc;
+    }
+    .viewer .close-btn {
+      position: absolute; top: 18px; right: 22px;
+      background: none; border: none;
+      color: #aaa; font-size: 28px; cursor: pointer;
+      transition: color .2s;
+    }
+    .viewer .close-btn:hover { color: #fff; }
+
+    .viewer .nav {
+      position: absolute;
+      top: 50%; transform: translateY(-50%);
+      background: rgba(255,255,255,.08);
+      border: 1px solid #333;
+      color: #fff;
+      font-size: 22px;
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .2s;
+    }
+    .viewer .nav:hover { background: rgba(255,255,255,.15); }
+    .viewer .nav.prev { left: 18px; }
+    .viewer .nav.next { right: 18px; }
+
+    /* ── Counter ── */
+    .viewer .counter {
+      position: absolute; bottom: 18px; right: 22px;
+      font-size: 13px; color: #777;
+    }
+
+    @media (max-width: 600px) {
+      .gallery { grid-template-columns: 1fr; padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="back-bar">
+    <a href="../..">← Back to AndJoy GitOps</a>
+    <h1>📸 Screenshots</h1>
+  </div>
+
+  <div class="gallery" id="gallery">
+    <!-- Filled by JS -->
+  </div>
+
+  <!-- Full-screen viewer -->
+  <div class="viewer" id="viewer">
+    <button class="close-btn" onclick="closeViewer()" aria-label="Close">&times;</button>
+    <button class="nav prev" onclick="walk(-1)">&#8249;</button>
+    <button class="nav next" onclick="walk(1)">&#8250;</button>
+    <img id="viewer-img" src="" alt="">
+    <div class="title" id="viewer-title"></div>
+    <div class="counter" id="viewer-counter"></div>
+  </div>
+
+<script>
+const SCREENSHOTS = [
+  { id: '01-dashboard-pipeline-analytics', file: '01-dashboard-pipeline-analytics.png', desc: 'Dashboard — Pipeline Analytics' },
+  { id: '02-dashboard-user-analytics', file: '02-dashboard-user-analytics.png', desc: 'Dashboard — User Analytics' },
+  { id: '03-pipelines', file: '03-pipelines.png', desc: 'Pipeline List' },
+  { id: '04-pipeline-detail', file: '04-pipeline-detail.png', desc: 'Pipeline Detail' },
+  { id: '05-runners', file: '05-runners.png', desc: 'Runner Fleet' },
+  { id: '06-user-analytics', file: '06-user-analytics.png', desc: 'User Analytics' },
+  { id: '07-relations-map', file: '07-relations-map.png', desc: 'Relations Map' },
+];
+
+const BASE = 'screenshots/';
+
+// Build gallery grid
+const gallery = document.getElementById('gallery');
+SCREENSHOTS.forEach((s, i) => {
+  const item = document.createElement('div');
+  item.className = 'gallery-item';
+  item.onclick = () => openViewer(i);
+  item.innerHTML = `
+    <img src="${BASE}${s.file}" alt="${s.desc}">
+    <div class="caption"><span>${s.desc}</span><span>${i + 1} / ${SCREENSHOTS.length}</span></div>
+  `;
+  gallery.appendChild(item);
+});
+
+// Viewer
+const viewer    = document.getElementById('viewer');
+const vImg      = document.getElementById('viewer-img');
+const vTitle    = document.getElementById('viewer-title');
+const vCounter  = document.getElementById('viewer-counter');
+let currentIdx  = 0;
+
+function openViewer(idx) {
+  currentIdx = idx;
+  updateViewer();
+  viewer.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function closeViewer() {
+  viewer.classList.remove('active');
+  document.body.style.overflow = '';
+}
+function walk(dir) {
+  currentIdx = (currentIdx + dir + SCREENSHOTS.length) % SCREENSHOTS.length;
+  updateViewer();
+}
+function updateViewer() {
+  const s = SCREENSHOTS[currentIdx];
+  vImg.src = BASE + s.file;
+  vImg.alt = s.desc;
+  vTitle.textContent = s.desc;
+  vCounter.textContent = (currentIdx + 1) + ' / ' + SCREENSHOTS.length;
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', e => {
+  if (!viewer.classList.contains('active')) return;
+  if (e.key === 'ArrowLeft')  walk(-1);
+  if (e.key === 'ArrowRight') walk(1);
+  if (e.key === 'Escape')     closeViewer();
+});
+
+// Swipe support
+let touchStartX = 0;
+viewer.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; });
+viewer.addEventListener('touchend',   e => {
+  const dx = e.changedTouches[0].screenX - touchStartX;
+  if (Math.abs(dx) > 50) walk(dx < 0 ? 1 : -1);
+});
+</script>
+
+</body>
+</html>

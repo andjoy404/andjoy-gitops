@@ -1,185 +1,99 @@
 <div align="center">
-  <img src="docs/assets/andjoy-gitops-logo.svg" alt="AndJoy GitOps" width="120" height="120">
+  <img src="docs/assets/andjoy-gitops-logo.png" width="120" height="120" alt="AndJoy GitOps">
 
   # AndJoy GitOps
 
-  **The modern, self-hosted operations dashboard for GitLab delivery, pipeline observability, and team analytics.**
+  **A polished, self-hosted operations dashboard for GitLab delivery, pipeline observability, and team analytics.**
 
-  [![CI](https://github.com/andjoy404/anjoy-gitops/actions/workflows/ci.yml/badge.svg)](https://github.com/andjoy404/anjoy-gitops/actions/workflows/ci.yml)
-  [![Java 21](https://img.shields.io/badge/Java-21-5c2d91?logo=openjdk&logoColor=white)](backend/pom.xml)
-  [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.4-6db33f?logo=springboot&logoColor=white)](backend/pom.xml)
-  [![React 19](https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white)](frontend/package.json)
-  [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178c6?logo=typescript&logoColor=white)](frontend/package.json)
-  [![PostgreSQL 16](https://img.shields.io/badge/PostgreSQL-16-4169e1?logo=postgresql&logoColor=white)](docker-compose.yml)
-  [![Docker](https://img.shields.io/badge/Docker-Compose-2496ed?logo=docker&logoColor=white)](docker-compose.yml)
-  [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+  <a href="https://github.com/andjoy404/anjoy-gitops/actions/workflows/ci.yml"><img src="https://github.com/andjoy404/anjoy-gitops/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://shields.io"><img src="https://img.shields.io/badge/Java-21-5c2d91?logo=openjdk&logoColor=white" alt="Java 21"></a>
+  <a href="https://shields.io"><img src="https://img.shields.io/badge/Spring_Boot-3.4-6db33f?logo=springboot&logoColor=white" alt="Spring Boot"></a>
+  <a href="https://shields.io"><img src="https://img.shields.io/badge/Node.js-22-339933?logo=node.js&logoColor=white" alt="Node 22"></a>
+  <a href="https://shields.io"><img src="https://img.shields.io/badge/PostgreSQL-16-4169e1?logo=postgresql&logoColor=white" alt="PostgreSQL 16"></a>
+  <a href="https://shields.io"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License Apache 2.0"></a>
 
-  [✨ Features](#-key-features) • [🚀 Quick Start](#-quick-start) • [🏛 Architecture](#-architecture) • [📖 Documentation](#-documentation) • [🤝 Contributing](CONTRIBUTING.md)
+  [✨ Features](#key-features) · [🚀 Quick Start](#quick-start) · [📸 Screenshots](docs/gallery/) · [📖 Docs](docs/) · [🤝 Contributing](CONTRIBUTING.md)
 </div>
 
 ---
 
-## 🌟 Key Features
-
-**AndJoy GitOps** unifies delivery metrics across multiple GitLab instances into an ultra-fast, theme-aware operations control plane. Monitor deployment velocity, runner availability, contributor activity, and project dependencies in real-time.
+## ✨ Key Features
 
 | Feature | Description |
-|---|---|
-| 📊 **Unified Analytics** | Aggregated pipeline volume, success/failure ratios, durations, and delivery trends across monitored groups. |
-| ⚡ **Pipeline Operations** | Full pipeline runs history, stage-level job DAG graphs, execution logs, artifact downloads, and retry/cancel actions. |
-| 🏃 **Runner Fleet Management** | Real-time availability tracking, active job assignments, executor tags, and version inventories. |
-| 👥 **User Contribution Analytics** | Leaderboards for pushes, merge requests, review comments, and issue interactions with CSV exports. |
-| 🕸 **Relations Map** | Interactive force-directed Cytoscape graph tracing entity relationships from groups and projects to branches, pipelines, and jobs. |
-| 🛡 **Multi-Tenant Isolation** | Namespace-isolated configuration routing, encrypted GitLab access tokens (AES-GCM-256), and session-based RBAC. |
+| --- | --- |
+| Unified Analytics | Aggregated pipeline volume, success/failure ratios, durations, and delivery trends across all monitored groups |
+| Pipeline Operations | Full pipeline history, stage-level DAG graphs, execution logs, artifact downloads, and retry/cancel actions |
+| Runner Fleet | Real-time availability tracking, active job assignments, executor tags, and version inventories |
+| User Analytics | Leaderboards for pushes, merge requests, review comments, and issue interactions with CSV exports |
+| Relations Map | Interactive force-directed graph tracing entity relationships from groups and projects to branches, pipelines, and jobs |
+| Multi-Tenant | Namespace-isolated GitLab instance routing, encrypted credentials (AES-GCM-256), and session-based RBAC |
 
 ---
 
-## 🏛 Architecture
+## 📸 Screenshots
 
-```mermaid
-flowchart TD
-    subgraph Client ["Client Tier"]
-        UI["React 19 + TypeScript + Ant Design<br/>Vite • TanStack Query • Cytoscape.js"]
-    end
+See the full interactive gallery: [**docs/gallery/index.html**](docs/gallery/index.html)
 
-    subgraph Service ["AndJoy GitOps Backend (Port 8090)"]
-        API["Spring Boot 3.4 REST API & Actuator"]
-        Sync["Background Sync Engine<br/>Rate-limited • Scoped Pollers"]
-        Sec["Spring Security<br/>CSRF • AES-GCM Encryption • Sessions"]
-    end
+- **Dashboard — Pipeline Analytics** — summary metrics, trend charts, and active runner fleet
+- **Dashboard — User Analytics** — contribution leaderboards and activity breakdowns
+- **Pipeline List** — paginated pipeline runs with status badges and quick actions
+- **Pipeline Detail** — stage-level DAG visualization with job logs
+- **Runner Fleet** — real-time runner availability, active jobs, and executor inventories
+- **Relations Map** — force-directed graph of group → project → pipeline → job relationships
 
-    subgraph Storage ["Persistence"]
-        DB[("PostgreSQL 16<br/>Flyway Migrations • jOOQ")]
-    end
-
-    subgraph External ["Target Infrastructure"]
-        GL1["GitLab Instance A<br/>(Cloud / Enterprise)"]
-        GL2["GitLab Instance B<br/>(Self-Hosted)"]
-    end
-
-    UI <-->|Same-Origin REST + CSRF| API
-    API <--> DB
-    Sync <--> DB
-    Sync -->|REST API with Encrypted Token| GL1
-    Sync -->|REST API with Encrypted Token| GL2
-```
+👉 [**Open full gallery**](docs/gallery/index.html) — click any thumbnail for full-size view with keyboard navigation (←/→ arrows, Esc to close).
 
 ---
 
 ## 🚀 Quick Start
 
-### Prerequisites
-
-- **Docker Engine** & **Docker Compose v2**
-- A **GitLab Personal / Project Access Token** with `read_api` permission (or `api` if triggering pipeline actions)
-
-### 1. Clone & Configure
-
 ```bash
 git clone https://github.com/andjoy404/anjoy-gitops.git
 cd andjoy-gitops
-
-# Create production environment configuration
 cp .env.example .env
-
-# Generate a 64-character hex key for token encryption
-openssl rand -hex 32
 ```
 
-Update `.env` with your secure credentials:
+Edit `.env` with your database password and encryption key:
+
 ```env
 DB_PASSWORD=your_secure_db_password
-ENVIRONMENT_TOKEN_ENCRYPTION_KEY=your_generated_64_hex_character_key
+ENVIRONMENT_TOKEN_ENCRYPTION_KEY=your-generated-64-hex-character-key
 ```
 
-### 2. Start Services
+Then start:
 
 ```bash
-# Using the helper script
-./run.sh up
-
-# Or directly with Docker Compose
-docker compose up --build -d
+docker compose up -d
 ```
 
-Open [http://localhost:8090](http://localhost:8090) in your browser.
-
-> [!NOTE]
-> **Initial Login**: Sign in with `admin` / `admin`. You will be prompted to set a new password on your first sign-in.
-
-### 3. Connect a GitLab Environment
-
-1. Navigate to **Settings → Environments** in the sidebar.
-2. Click **Add Environment**.
-3. Provide your GitLab instance base URL (e.g. `https://gitlab.com`), access token, and group IDs to track.
-4. Select the environment in the sidebar to begin automated analytics synchronization.
+Open [http://localhost:8090](http://localhost:8090) and sign in with `admin` / `admin`.
 
 ---
 
-## 🛠 Management & CLI
+## ⚙️ Configuration
 
-The included `run.sh` script provides shortcuts for common lifecycle tasks:
-
-```bash
-./run.sh up         # Build and start services in the background
-./run.sh logs       # Tail application container logs
-./run.sh status     # Check container status and health
-./run.sh restart    # Rebuild and restart application containers
-./run.sh down       # Gracefully stop containers (preserves DB volume)
-./run.sh clean      # Purge stopped containers, dangling images, and volumes
-```
-
----
-
-## ⚙️ Key Configuration Parameters
-
-All runtime settings are configurable via environment variables in `.env`:
+All runtime settings are configurable via `.env`:
 
 | Variable | Default | Purpose |
-|---|---|---|
-| `APP_PORT` | `8090` | Web dashboard & API listening port |
-| `DB_NAME` | `gitlab_ops` | PostgreSQL database name |
-| `ENVIRONMENT_TOKEN_ENCRYPTION_KEY` | *Required* | 256-bit AES hex key for GitLab token encryption |
-| `SESSION_SECURE` | `false` | Set to `true` when serving behind HTTPS |
-| `ANALYTICS_SYNC_INTERVAL_SECONDS` | `60` | Cadence for background GitLab data sync |
-| `ANALYTICS_RETENTION_DAYS` | `30` | Data retention cutoff for user events |
-| `PIPELINE_HISTORY_DAYS` | `90` | Days of pipeline history collected on first sync |
+| --- | --- | --- |
+| `APP_PORT` | `8090` | Web dashboard & API port |
+| `DB_PASSWORD` | *Required* | PostgreSQL password |
+| `ENVIRONMENT_TOKEN_ENCRYPTION_KEY` | *Required* | 256-bit hex key for GitLab token encryption |
+| `SESSION_SECURE` | `false` | Set `true` behind HTTPS |
+| `ANALYTICS_SYNC_INTERVAL_SECONDS` | `60` | Background sync cadence |
+| `ANALYTICS_RETENTION_DAYS` | `30` | Data retention cutoff |
+| `PIPELINE_HISTORY_DAYS` | `90` | First-sync pipeline history window |
 
-See the full [Configuration Reference](docs/reference/configuration.md) for advanced tuning.
-
----
-
-## 🧪 Development & Testing
-
-### Local Toolchain
-
-- **Backend**: Java 21 LTS, Maven 3.9+, PostgreSQL 16
-- **Frontend**: Node.js 22 LTS, npm
-
-```bash
-# Frontend development
-cd frontend
-npm ci
-npm run dev        # Dev server with proxy to backend
-
-# Run frontend tests
-npm test
-
-# Backend tests
-mvn -f backend/pom.xml test
-```
-
-For complete local setup, see the [Development Guide](docs/development.md).
+See the full [Configuration Reference](docs/reference/configuration.md).
 
 ---
 
-## 📖 Documentation Index
+## 📖 Documentation
 
 - [Architecture Overview](docs/architecture/overview.md)
 - [Code Map](docs/architecture/code-map.md)
-- [GitLab Integration Details](docs/architecture/gitlab-integration.md)
-- [Operations & Monitoring](docs/operations/monitoring.md)
-- [Backup & Disaster Recovery](docs/operations/backup-restore.md)
+- [Database Schema](docs/architecture/database.md)
+- [Deployment Guide](docs/architecture/deployment.md)
 - [Security Operations](docs/operations/security.md)
 - [Troubleshooting Runbook](docs/operations/troubleshooting.md)
 
