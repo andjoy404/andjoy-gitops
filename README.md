@@ -34,16 +34,8 @@
 
 [![AndJoy GitOps Dashboard](https://raw.githubusercontent.com/andjoy404/andjoy-gitops/main/docs/images/screenshots/01-dashboard-pipeline-analytics.png)](https://andjoy404.github.io/andjoy-gitops/docs/gallery/index.html?utm_source=readme)
 
-<div align="center">
+👉 [**Open full gallery**](https://andjoy404.github.io/andjoy-gitops/docs/gallery/index.html?utm_source/readme) for the full collection.
 
-| | | |
-|:---:|:---:|:---:|
-| [![Dashboard](https://raw.githubusercontent.com/andjoy404/andjoy-gitops/main/docs/images/screenshots/01-dashboard-pipeline-analytics.png)](https://andjoy404.github.io/andjoy-gitops/docs/gallery/index.html?utm_source=readme) | [![Pipeline](https://raw.githubusercontent.com/andjoy404/andjoy-gitops/main/docs/images/screenshots/03-pipelines.png)](https://andjoy404.github.io/andjoy-gitops/docs/gallery/index.html?utm_source=readme) | [![Runners](https://raw.githubusercontent.com/andjoy404/andjoy-gitops/main/docs/images/screenshots/05-runners.png)](https://andjoy404.github.io/andjoy-gitops/docs/gallery/index.html?utm_source=readme) |
-| *[Dashboard](https://andjoy404.github.io/andjoy-gitops/docs/gallery/index.html?utm_source=readme)* | *[Pipeline](https://andjoy404.github.io/andjoy-gitops/docs/gallery/index.html?utm_source=readme)* | *[Runners](https://andjoy404.github.io/andjoy-gitops/docs/gallery/index.html?utm_source=readme)* |
-
-</div>
-
-👉 [**Open full gallery**](https://andjoy404.github.io/andjoy-gitops/docs/gallery/index.html?utm_source=readme) — click any thumbnail for full-size view with keyboard navigation (←/→ arrows, Esc to close).
 
 ---
 
