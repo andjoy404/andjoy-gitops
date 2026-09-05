@@ -45,10 +45,10 @@
     .back-bar a:hover { opacity: .7; }
     .back-bar h1 { font-size: 16px; font-weight: 500; }
 
-    /* ── Gallery grid (all images) ── */
+    /* ── Gallery scroll (vertical) ── */
     .gallery {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      flex-direction: column;
+      display: flex;
       gap: 16px;
       padding: 24px;
       width: 100%;
@@ -60,6 +60,7 @@
       border: 1px solid #222;
       transition: transform .2s, box-shadow .2s;
       cursor: pointer;
+      width: 100%;
     }
     .gallery-item:hover {
       transform: translateY(-2px);
@@ -73,7 +74,6 @@
       padding: 10px 14px;
       font-size: 13px;
       color: #999;
-      display: flex; justify-content: space-between;
     }
     .gallery-item .caption span:first-child {
       color: var(--fg); font-weight: 500;
