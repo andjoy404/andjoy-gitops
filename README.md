@@ -21,12 +21,44 @@
 
 | Feature | Description |
 | --- | --- |
-| Unified Analytics | Aggregated pipeline volume, success/failure ratios, durations, and delivery trends across all monitored groups |
-| Pipeline Operations | Full pipeline history, stage-level DAG graphs, execution logs, artifact downloads, and retry/cancel actions |
-| Runner Fleet | Real-time availability tracking, active job assignments, executor tags, and version inventories |
-| User Analytics | Leaderboards for pushes, merge requests, review comments, and issue interactions with CSV exports |
-| Relations Map | Interactive force-directed graph tracing entity relationships from groups and projects to branches, pipelines, and jobs |
-| Multi-Tenant | Namespace-isolated GitLab instance routing, encrypted credentials (AES-GCM-256), and session-based RBAC |
+| 📊 **Unified Analytics** | Aggregated pipeline volume, success/failure ratios, durations, and delivery trends across all monitored groups |
+| ⚡ **Pipeline Operations** | Full pipeline history, stage-level DAG graphs, execution logs, artifact downloads, and retry/cancel actions |
+| 🏃 **Runner Fleet** | Real-time availability tracking, active job assignments, executor tags, and version inventories |
+| 👥 **User Analytics** | Leaderboards for pushes, merge requests, review comments, and issue interactions with CSV exports |
+| 🕸 **Relations Map** | Interactive force-directed graph tracing entity relationships from groups and projects to branches, pipelines, and jobs |
+| 🛡 **Multi-Tenant** | Namespace-isolated GitLab instance routing, encrypted credentials (AES-GCM-256), and session-based RBAC |
+
+---
+
+## 🏛 Architecture
+
+```mermaid
+flowchart TD
+    subgraph Client ["Client Tier"]
+        UI["React 19 + TypeScript + Ant Design<br/>Vite • TanStack Query • Cytoscape.js"]
+    end
+
+    subgraph Service ["AndJoy GitOps Backend (Port 8090)"]
+        API["Spring Boot 3.4 REST API & Actuator"]
+        Sync["Background Sync Engine<br/>Rate-limited • Scoped Pollers"]
+        Sec["Spring Security<br/>CSRF • AES-GCM Encryption • Sessions"]
+    end
+
+    subgraph Storage ["Persistence"]
+        DB[("PostgreSQL 16<br/>Flyway Migrations • jOOQ")]
+    end
+
+    subgraph External ["Target Infrastructure"]
+        GL1["GitLab Instance A<br/>(Cloud / Enterprise)"]
+        GL2["GitLab Instance B<br/>(Self-Hosted)"]
+    end
+
+    UI <-->|Same-Origin REST + CSRF| API
+    API <--> DB
+    Sync <--> DB
+    Sync -->|REST API with Encrypted Token| GL1
+    Sync -->|REST API with Encrypted Token| GL2
+```
 
 ---
 
