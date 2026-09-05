@@ -34,12 +34,14 @@
 
 [![AndJoy GitOps Dashboard](https://raw.githubusercontent.com/andjoy404/andjoy-gitops/main/docs/images/screenshots/01-dashboard-pipeline-analytics.png)](https://andjoy404.github.io/andjoy-gitops/docs/gallery/index.html?utm_source=readme)
 
-- **Dashboard — Pipeline Analytics** — summary metrics, trend charts, and active runner fleet
-- **Dashboard — User Analytics** — contribution leaderboards and activity breakdowns
-- **Pipeline List** — paginated pipeline runs with status badges and quick actions
-- **Pipeline Detail** — stage-level DAG visualization with job logs
-- **Runner Fleet** — real-time runner availability, active jobs, and executor inventories
-- **Relations Map** — force-directed graph of group → project → pipeline → job relationships
+<div align="center">
+
+| | | |
+|:---:|:---:|:---:|
+| [![Dashboard](https://raw.githubusercontent.com/andjoy404/andjoy-gitops/main/docs/images/screenshots/01-dashboard-pipeline-analytics.png)](https://andjoy404.github.io/andjoy-gitops/docs/gallery/index.html?utm_source=readme) | [![Pipeline](https://raw.githubusercontent.com/andjoy404/andjoy-gitops/main/docs/images/screensshots/03-pipelines.png)](https://andjoy404.github.io/andjoy-gitops/docs/gallery/index.html?utm_source=readme) | [![Runners](https://raw.githubusercontent.com/andjoy404/andjoy-gitops/main/docs/images/screenshots/05-runners.png)](https://andjoy404.github.io/andjoy-gitops/docs/gallery/index.html?utm_source=readme) |
+| *[Dashboard](https://andjoy404.github.io/andjoy-gitops/docs/gallery/index.html?utm_source=readme)* | *[Pipeline](https://andjoy404.github.io/andjoy-gitops/docs/gallery/index.html?utm_source=readme)* | *[Runners](https://andjoy404.github.io/andjoy-gitops/docs/gallery/index.html?utm_source=readme)* |
+
+</div>
 
 👉 [**Open full gallery**](https://andjoy404.github.io/andjoy-gitops/docs/gallery/index.html?utm_source=readme) — click any thumbnail for full-size view with keyboard navigation (←/→ arrows, Esc to close).
 
