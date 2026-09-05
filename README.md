@@ -41,7 +41,7 @@
 - **Runner Fleet** — real-time runner availability, active jobs, and executor inventories
 - **Relations Map** — force-directed graph of group → project → pipeline → job relationships
 
-👉 [**Open full gallery**](docs/gallery/index.html?utm_source=readme) — click any thumbnail for full-size view with keyboard navigation (←/→ arrows, Esc to close).
+👉 [**Open full gallery**](https://andjoy404.github.io/andjoy-gitops/gallery/index.html?utm_source=readme) — click any thumbnail for full-size view with keyboard navigation (←/→ arrows, Esc to close).
 
 ---
 
