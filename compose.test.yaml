@@ -1,0 +1,61 @@
+# AndJoy GitOps — Test-only Docker Compose
+# Used for runtime validation only.
+# NEVER modify docker-compose.yml; this file is test-only.
+
+services:
+  postgres-test:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: gitlab_ops_test
+      POSTGRES_USER: gitlab_ops_test
+      POSTGRES_PASSWORD: test-only-password
+    volumes:
+      - ./test/fixtures/init-test-db.sql:/docker-entrypoint-initdb.d/000-init.sql
+    ports:
+      - "15432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gitlab_ops_test -d gitlab_ops_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  andjoy-gitops-test:
+    image: ghcr.io/andjoy404/anjoy-gitops:latest
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: production
+      APP_PORT: "8090"
+      DB_HOST: postgres-test
+      DB_PORT: "5432"
+      DB_NAME: gitlab_ops_test
+      DB_USER: gitlab_ops_test
+      DB_PASSWORD: test-only-password
+      ENVIRONMENT_TOKEN_ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"
+      SESSION_SECURE: "false"
+      READ_ONLY: "true"
+      HIDE_WRITE_ACTIONS: "false"
+      DEFAULT_PAGE_SIZE: "10"
+      PAGE_SIZE_OPTIONS: "10,20,30,40,50"
+      ANALYTICS_ENABLED: "true"
+      ANALYTICS_SYNC_ENABLED: "false"
+      ANALYTICS_SYNC_INTERVAL_SECONDS: "60"
+      ANALYTICS_RETENTION_DAYS: "30"
+      PIPELINE_HISTORY_DAYS: "90"
+      GITLAB_API_BASE_URL: "https://gitlab.com"
+      GITLAB_REQUEST_TIMEOUT_SECONDS: "30"
+      GITLAB_MAX_CONCURRENT_REQUESTS: "8"
+      GITLAB_MAX_RETRIES: "4"
+      LOG_LEVEL: "INFO"
+    ports:
+      - "18090:8090"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8090/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped

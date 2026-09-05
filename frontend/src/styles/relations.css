@@ -1,0 +1,470 @@
+/* Relations Map — page scaffolding (mirrors Pipelines/Runners card rhythm). */
+
+/* Mirrors .app-content + .pipeline-page: same height the other menus use.
+   Padding is 0 so the summary bar and workspace sit in the shell-body's 12px
+   gutter — flush with the left menu and top header, exactly like Pipelines
+   and Runners (whose .pipeline-page overrides .app-content's 1.5rem). */
+.relations-content {
+  min-width: 0;
+  min-height: calc(100vh - 94px);
+  padding: 0;
+  color: var(--dashboard-text);
+  background: transparent;
+}
+
+.relations-page {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: inherit;
+  min-width: 0;
+}
+
+.relations-page .summary-bar {
+  grid-template-columns: max-content minmax(0, 1fr);
+}
+
+/* The workspace is the single bordered card (mirrors Pipelines/Runners):
+   the drill-down toolbar sits on top, the graph row fills the rest below. */
+.relations-workspace {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 12px;
+  background: var(--dashboard-surface);
+  box-shadow: var(--dashboard-shadow);
+}
+
+/* Drill-down toolbar — an inner row of the card, separated from the graph by
+   a border-bottom (same rhythm as the toolbar in Pipelines/Runners). The entry
+   searchbox + each drill-down level flow left → right; a new box only appears
+   once the one to its left has a pick. */
+.drill-chain {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--dashboard-border);
+  flex-shrink: 0;
+  /* Height is effectively permanent: the "Start point" box (a fixed
+     label-above-select unit) is always rendered, so adding/removing the
+     drill levels only changes the width of the single row, never its height. */
+}
+
+/* Graph + detail panel laid out side by side, filling the card below the
+   toolbar. */
+.relations-graph-row {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.relations-graph {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Drill-down entry (root "Start point" + Range + Reset) ── */
+
+/* Start-point picker is a label-above-select unit identical to the drill
+   level boxes, so it shares their fixed height and the toolbar stays stable. */
+.drill-start {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 100px;
+}
+
+.drill-start .drill-row-label {
+  margin: 0;
+}
+
+.drill-start .ant-select {
+  width: 100%;
+  min-width: 0;
+  border-color: var(--dashboard-border) !important;
+  border-width: 1px !important;
+  border-radius: 6px !important;
+  border-style: solid !important;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.drill-start .ant-select:focus .ant-select-selector,
+.drill-start .ant-select.ant-select-focused .ant-select-selector,
+.drill-start .ant-select:hover .ant-select-selector {
+  border-color: var(--dashboard-accent) !important;
+  box-shadow: 0 0 0 2px var(--dashboard-accent-soft) !important;
+}
+
+.drill-start-active .ant-select,
+.drill-start-active .ant-select.ant-select-focused .ant-select-selector {
+  border-color: var(--dashboard-accent) !important;
+  box-shadow: 0 0 0 2px var(--dashboard-accent-soft) !important;
+}
+
+.drill-start .ant-select .ant-select-selector {
+  background: transparent !important;
+  border-color: transparent !important;
+  min-height: 30px !important;
+  border-width: 1px !important;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.drill-start-active .ant-select .ant-select-selector,
+.drill-start-active .ant-select:hover .ant-select .ant-select-selector {
+  border-color: var(--dashboard-accent) !important;
+}
+
+.drill-start .ant-select-focused .ant-select-selector,
+.drill-start .ant-select.ant-select-focused .ant-select-selector {
+  border-color: var(--dashboard-accent) !important;
+  box-shadow: 0 0 0 2px var(--dashboard-accent-soft) !important;
+}
+
+.drill-start .ant-select .ant-select-selection-placeholder {
+  color: var(--dashboard-muted) !important;
+  font-size: var(--gitops-table-cell-font-size);
+}
+
+.drill-range-control {
+  display: flex;
+  height: 30px;
+  box-sizing: border-box;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 6px;
+  margin-bottom: 0;
+}
+
+.drill-range-control > span {
+  padding: 0 10px;
+  color: var(--dashboard-muted);
+  font-size: var(--gitops-table-cell-font-size);
+  font-weight: var(--gitops-table-cell-font-weight);
+}
+
+.drill-range-control .ant-select {
+  min-width: 132px;
+  height: 100%;
+}
+
+.drill-range-control .ant-select-selector {
+  background: transparent !important;
+  border: 0 !important;
+  border-left: 1px solid var(--dashboard-border) !important;
+  border-radius: 0 !important;
+  min-height: 30px !important;
+  height: 30px !important;
+}
+
+.drill-range-control .ant-select-selection-item {
+  line-height: 28px !important;
+  font-size: var(--gitops-table-cell-font-size);
+  font-weight: var(--gitops-table-cell-font-weight);
+}
+
+/* Range (right, beside Reset) + Reset (far right). */
+.drill-range-control,
+.drill-reset {
+  margin-left: auto;
+}
+
+.drill-reset {
+  margin-left: 0;
+}
+
+/* Slightly smaller button text for the "Reset positions" control. */
+.drill-reset.ant-btn {
+  font-size: 12px;
+}
+
+/* ── Drill-down level boxes (multi-select dropdowns) ── */
+/* Each level is a compact unit: a small label above a multi-select, so the
+   boxes stay tidy as they chain to the right. */
+
+.drill-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 200px;
+}
+
+.drill-row-label {
+  font-size: 11px;
+  font-weight: var(--gitops-table-cell-font-weight);
+  color: var(--dashboard-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+/* The multi-select fills the box width. */
+.drill-row .ant-select {
+  width: 100%;
+  min-width: 0;
+  border-color: var(--dashboard-accent) !important;
+  border-width: 1px !important;
+  border-radius: 6px !important;
+  border-style: solid !important;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.drill-row .ant-select .ant-select-selector {
+  background: transparent !important;
+  border-color: transparent !important;
+  min-height: 30px !important;
+}
+
+.drill-row .ant-select .ant-select-selection-placeholder {
+  color: var(--dashboard-muted) !important;
+  font-size: var(--gitops-table-cell-font-size);
+}
+
+.drill-row .ant-select .ant-select-selection-item {
+  background: var(--dashboard-surface) !important;
+  border: 1px solid var(--dashboard-border) !important;
+  color: var(--dashboard-text) !important;
+  font-size: var(--gitops-table-cell-font-size);
+  border-radius: 6px;
+}
+
+.drill-row .ant-select .ant-select-selection-item .ant-select-selection-item-remove {
+  color: var(--dashboard-muted) !important;
+}
+
+.drill-row .ant-select.ant-select-multiple .ant-select-selection-item .ant-select-selection-item-content,
+.drill-row .ant-select .ant-select-selection-search {
+  font-size: var(--gitops-table-cell-font-size);
+}
+
+.drill-row .ant-select:focus .ant-select-selector,
+.drill-row .ant-select.ant-select-focused .ant-select-selector {
+  border-color: var(--dashboard-accent) !important;
+  box-shadow: 0 0 0 2px var(--dashboard-accent-soft) !important;
+}
+
+/* Root/range Segmented follows the theme. */
+.drill-root-segmented .ant-segmented-item {
+  color: var(--dashboard-muted);
+  font-size: var(--gitops-table-cell-font-size);
+}
+
+.drill-root-segmented .ant-segmented-item-selected {
+  color: var(--dashboard-text);
+}
+
+.drill-root-segmented .ant-segmented-item-label {
+  line-height: 28px;
+}
+
+/* ── Graph empty / loading / error states ── */
+
+.relations-graph-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 320px;
+  color: var(--dashboard-muted);
+  text-align: center;
+  gap: 0.5rem;
+  padding: 0 1.5rem;
+  font-size: var(--gitops-table-cell-font-size);
+}
+
+.relations-graph-empty .empty-icon {
+  color: var(--dashboard-muted);
+  font-size: 2rem;
+}
+
+.relations-graph-empty strong {
+  color: var(--dashboard-text);
+  font-weight: 600;
+  font-size: var(--gitops-table-cell-font-size);
+}
+
+.relations-graph-empty span {
+  color: var(--dashboard-muted);
+  font-size: var(--gitops-table-cell-font-size);
+  max-width: 320px;
+}
+
+.relations-graph-empty p {
+  margin: 0.25rem 0 0;
+}
+
+.relations-graph-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--dashboard-danger);
+  text-align: center;
+  padding: 0 1.5rem;
+}
+
+/* ── Detail panel ── */
+
+/*
+ * Uniform smooth timing for both expand and collapse.
+ * cubic-bezier(0.22, 1, 0.36, 1) = ease-out-expo: fast start,
+ * long soft settle — no jarring snap in either direction.
+ */
+
+.relations-detail {
+  width: 300px;
+  flex: 0 0 300px;
+  border-left: 1px solid var(--dashboard-border);
+  background: var(--dashboard-surface);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transform: translate3d(0, 0, 0);
+  will-change: width;
+  transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              flex-basis 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.relations-detail-collapsed {
+  width: 48px !important;
+  flex: 0 0 48px !important;
+  min-width: 48px !important;
+  overflow: hidden !important;
+  transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              flex-basis 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              min-width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Wrapper height animation — same smooth easing */
+.relations-detail-body-wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  overflow: hidden;
+  transition: grid-template-rows 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.relations-detail:not(.relations-detail-collapsed) .relations-detail-body-wrap {
+  grid-template-rows: 1fr;
+}
+
+.relations-detail-body {
+  overflow: hidden;
+  padding: 1rem;
+  transition: opacity 0.2s ease;
+}
+
+/* Smooth content swap when node changes — fade out/in via key */
+.relations-detail-content {
+  display: flex;
+  flex-direction: column;
+  animation: relations-content-swap 0.25s ease both;
+}
+@keyframes relations-content-swap {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Head section transitions smoothly */
+.relations-detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 1rem 1rem 0.75rem;
+  border-bottom: 1px solid var(--dashboard-border);
+  transition: padding 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              flex-direction 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.relations-detail-collapsed .relations-detail-head {
+  flex-direction: column;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: none;
+}
+
+/* In collapsed state, hide the title span and entire body — keep only toggle visible */
+.relations-detail-collapsed .relations-detail-title {
+  display: none !important;
+}
+.relations-detail-collapsed .relations-detail-body-wrap {
+  display: none !important;
+}
+
+.relations-detail-toggle {
+  flex: 0 0 auto;
+  color: var(--dashboard-muted);
+  transition: color 150ms ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.relations-detail-toggle:hover {
+  color: var(--dashboard-accent);
+}
+
+/* Toggle icon rotation for smoother state change */
+.relations-detail-toggle svg {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── Detail items ── */
+
+.relations-detail-item {
+  margin-bottom: 0.5rem;
+  transition: opacity 0.2s ease;
+}
+
+.relations-detail-key {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--dashboard-muted);
+}
+
+.relations-detail-value {
+  margin: 0;
+  font-size: var(--gitops-table-cell-font-size);
+  font-weight: var(--gitops-table-cell-font-weight);
+  color: var(--dashboard-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.relations-detail-link {
+  color: var(--dashboard-accent);
+  text-decoration: none;
+}
+
+.relations-detail-link:hover {
+  color: color-mix(in srgb, var(--dashboard-accent) 78%, var(--dashboard-text));
+  text-decoration: underline;
+}
+
+.relations-detail-link:focus-visible {
+  border-radius: 3px;
+  outline: 2px solid var(--dashboard-accent);
+  outline-offset: 2px;
+}
+
+/* Remove focus outline from drill-chain Select components */
+.drill-chain .ant-select-selector {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.drill-chain .ant-select-selector:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.drill-chain .ant-select-selector:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+

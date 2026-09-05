@@ -1,0 +1,53 @@
+# Git
+.git
+*.iml
+.idea/
+.vscode/
+.kilo/
+*.swp
+*.swo
+*~
+.classpath
+.project
+.settings/
+
+# Java / Maven
+backend/target/
+!backend/target/generated-sources/
+backend/*.log
+backend/.metadata/
+.mvn/
+
+# Node / Vite
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+coverage/
+playwright-report/
+blob-report/
+*.local
+*.tsbuildinfo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Build
+.Dockerfile
+
+# Local diagnostics and test output
+/diag3.js
+/test-results.txt
+/test-results-*.txt
+
+# Internal rewrite/migration working notes are not part of the public source release
+/docs/migration/
+
+# Local agent configuration
+AGENTS.md

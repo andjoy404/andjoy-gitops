@@ -1,0 +1,34 @@
+# Build outputs
+node_modules/
+backend/target/
+frontend/dist/
+frontend/node_modules/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+.kilo/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+test-results*.txt
+diag3.js
+
+# Migration reports
+docs/migration/reports/
+
+# Environment files
+.env
+!.env.example
+
+# SDK
+.sdkman/

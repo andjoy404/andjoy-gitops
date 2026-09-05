@@ -1,0 +1,33 @@
+/* ── Shared summary bar ──
+   Total (left), compact status legend (middle), and one proportional
+   segmented distribution bar (right). Used by Pipelines and Runners. */
+.summary-bar {
+  display: grid;
+  grid-template-columns: max-content 110px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 12px;
+  background: var(--dashboard-surface);
+  box-shadow: var(--dashboard-shadow);
+}
+
+.summary-bar-title { display: flex; align-items: center; gap: 0.8rem; min-width: 0; }
+.summary-bar-title .page-header-copy span { color: var(--dashboard-accent); font-size: .72rem; font-weight: 800; letter-spacing: .06em; }
+.summary-bar-title .page-header-copy strong { display:block; color: var(--dashboard-text); font-size: 1.5rem; line-height: 1.1; max-height: 1.65em; overflow: hidden; text-overflow: ellipsis; }
+.summary-bar-title .page-header-copy small { color: var(--dashboard-muted); white-space: nowrap; }
+
+.summary-bar-legend { display: flex; flex-direction: column; justify-content: center; gap: 7px; color: var(--dashboard-muted); font-size: .72rem; }
+.summary-bar-legend span { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+.summary-bar-legend i { width: 8px; height: 8px; border-radius: 50%; background: var(--summary-color); }
+
+.summary-bar-segments { display: flex; min-width: 0; min-height: 28px; overflow: hidden; align-self: center; border-radius: 5px; }
+.summary-bar-segments > span { display: block; min-width: 3px; border: 1px solid var(--summary-color); background: linear-gradient(145deg, color-mix(in srgb, var(--summary-color) 40%, var(--dashboard-surface)), color-mix(in srgb, var(--summary-color) 22%, var(--dashboard-surface))); box-shadow: inset 0 0 16px color-mix(in srgb, var(--summary-color) 22%, transparent); }
+.summary-bar-segments > span:first-child { border-radius: 5px 0 0 5px; }
+.summary-bar-segments > span:last-child { border-radius: 0 5px 5px 0; }
+
+@media (max-width: 1200px) {
+  .summary-bar { grid-template-columns: 1fr; }
+  .summary-bar-legend { flex-direction: row; flex-wrap: wrap; }
+}

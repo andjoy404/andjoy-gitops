@@ -1,0 +1,490 @@
+/* ── Shell layout ── */
+.shell-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--dashboard-surface-subtle);
+}
+
+.shell-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  gap: 8px;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.shell-sidebar {
+  width: 180px;
+  background: var(--dashboard-surface);
+  border: 1px solid var(--dashboard-border);
+  border-radius: 12px;
+  box-shadow: var(--dashboard-shadow);
+  padding: 1rem;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+  transition: width 180ms ease, padding 180ms ease;
+}
+
+.sidebar-brand {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  color: var(--dashboard-text);
+}
+
+.sidebar-pin.ant-btn {
+  display:grid;
+  width:28px;
+  min-width:28px;
+  height:28px;
+  min-height:28px;
+  aspect-ratio:1/1;
+  margin-left:auto;
+  flex:0 0 auto;
+  padding:0;
+  place-items:center;
+  color:var(--dashboard-accent);
+  border-radius:6px;
+  font-size:14px;
+}
+
+/* Outline (unpinned) pin: muted icon in every temporary collapsed state. The
+   filled pin keeps the accent (violet) selected color from the base rule. */
+.sidebar-pin.sidebar-pin--unpinned.ant-btn {
+  color: var(--dashboard-muted);
+}
+
+.sidebar-pin.ant-btn:hover,
+.sidebar-pin.ant-btn:focus-visible {
+  color:color-mix(in srgb,var(--dashboard-accent) 80%,var(--dashboard-text)) !important;
+  border-color:transparent !important;
+  background:var(--dashboard-accent-soft) !important;
+}
+
+.shell-sidebar-collapsed {
+  width:64px;
+  padding:10px 8px;
+  gap:12px;
+  overflow-x:hidden;
+}
+
+/* Collapsed: the logo is the only visible brand control and expands the sidebar. */
+.shell-sidebar-collapsed .sidebar-brand { justify-content:center; gap:0; }
+.shell-sidebar-collapsed .sidebar-section { align-items:center; }
+.shell-sidebar-collapsed .sidebar-section .ant-btn {
+  width:40px;
+  min-width:40px;
+  padding-inline:0 !important;
+  justify-content:center !important;
+}
+.shell-sidebar-collapsed .sidebar-section .ant-btn .anticon { margin-inline-end:0; font-size:16px; }
+
+/* Settings children expand downward when sidebar is collapsed */
+.shell-sidebar-collapsed .sidebar-section {
+  position: relative;
+}
+.shell-sidebar-collapsed .settings-children {
+  display: grid;
+  grid-template-rows: 0fr;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 4px;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  min-width: 40px;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+.shell-sidebar-collapsed .sidebar-section:has(.sidebar-section-toggle[aria-expanded="true"]) .settings-children {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition: grid-template-rows 220ms cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 180ms ease 40ms;
+}
+.shell-sidebar-collapsed .settings-children .ant-btn {
+  width: 40px;
+  min-width: 40px;
+  padding-inline: 0 !important;
+  justify-content: center !important;
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  margin: 0 !important;
+}
+.shell-sidebar-collapsed .settings-children .ant-btn:hover {
+  background: var(--dashboard-surface-hover) !important;
+}
+.shell-sidebar-collapsed .settings-children .ant-btn:active {
+  background: var(--dashboard-surface-active) !important;
+}
+.shell-sidebar-collapsed .settings-children .ant-btn .ant-btn-icon {
+  border: none !important;
+}
+.shell-sidebar-collapsed .settings-children .ant-btn .anticon {
+  margin-inline-end: 0;
+  font-size: 16px;
+}
+.shell-sidebar-collapsed .settings-children-inner {
+  overflow: hidden;
+  background: transparent !important;
+}
+
+.sidebar-theme-title,
+.sidebar-brand .ant-typography {
+  color: var(--dashboard-text) !important;
+}
+
+/* Brand wordmark: a flexible single-line item (min-width: 0) so the banner
+   stays one horizontal row and never wraps or shifts during the 180ms
+   sidebar width transition, even when the panel is mid-animation. */
+.sidebar-theme-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sidebar-section-label,
+.sidebar-section .sidebar-section-label.ant-typography {
+  color: var(--dashboard-muted) !important;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.035em;
+}
+
+.sidebar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+/* SETTINGS is the only expandable section; its header toggles children. */
+.sidebar-section-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--dashboard-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.035em;
+  cursor: pointer;
+  transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.sidebar-section-toggle:hover {
+  color: color-mix(in srgb, var(--dashboard-accent) 72%, var(--dashboard-text));
+  border-color: color-mix(in srgb, var(--dashboard-accent) 30%, var(--dashboard-border));
+  background: color-mix(in srgb, var(--dashboard-accent) 10%, var(--dashboard-surface));
+}
+
+.sidebar-section-toggle:focus-visible {
+  outline: 2px solid var(--dashboard-accent);
+  outline-offset: 1px;
+  color: color-mix(in srgb, var(--dashboard-accent) 72%, var(--dashboard-text));
+}
+
+.sidebar-section-chevron {
+  flex: none;
+  margin-left: auto;
+  font-size: 0.7rem;
+  transform: rotate(0deg);
+  transition: transform 160ms ease;
+}
+
+.sidebar-section-toggle[aria-expanded="true"] .sidebar-section-chevron {
+  transform: rotate(90deg);
+}
+
+.shell-sidebar-collapsed .sidebar-section-toggle {
+  width: 40px;
+  min-width: 40px;
+  padding: 6px 0;
+  justify-content: center;
+}
+
+.shell-sidebar-collapsed .sidebar-section-chevron {
+  margin-left: 0;
+}
+
+/* Global sidebar interaction palette. Keep navigation consistent with the
+   purple metric cards used by Runners and User Activity. */
+.shell-sidebar .ant-btn {
+  min-height: 34px;
+  color: var(--dashboard-text);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  box-shadow: none;
+  font-size: var(--gitops-table-cell-font-size);
+  transition: color 140ms ease, border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+}
+.shell-sidebar .ant-btn > svg:not(.anticon) {
+  width: 16px;
+  height: 16px;
+  margin-inline-end: 8px;
+}
+/* Keep antd icon glyphs on the same 16px footing as the custom SVG marks so
+   every sidebar label starts at the same x position. Antd already pads
+   button icons by 8px, so only the font size is overridden here. */
+.shell-sidebar .ant-btn .anticon {
+  font-size: 16px;
+}
+
+.shell-sidebar .sidebar-pin.ant-btn .anticon,
+.shell-sidebar .sidebar-brand-expand.ant-btn .anticon {
+  font-size: 12px;
+}
+
+.shell-sidebar .ant-btn-text:not(:disabled):hover {
+  color: color-mix(in srgb, var(--dashboard-accent) 72%, var(--dashboard-text)) !important;
+  border-color: color-mix(in srgb, var(--dashboard-accent) 30%, var(--dashboard-border)) !important;
+  background: color-mix(in srgb, var(--dashboard-accent) 10%, var(--dashboard-surface)) !important;
+}
+
+.shell-sidebar .ant-btn-primary,
+.shell-sidebar .ant-btn-primary:not(:disabled):hover,
+.shell-sidebar .ant-btn-primary:not(:disabled):active {
+  color: color-mix(in srgb, var(--dashboard-accent) 24%, var(--dashboard-text)) !important;
+  border-color: color-mix(in srgb, var(--dashboard-accent) 72%, var(--dashboard-border)) !important;
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--dashboard-accent) 28%, var(--dashboard-surface)),
+    color-mix(in srgb, var(--dashboard-accent) 14%, var(--dashboard-surface))
+  ) !important;
+  box-shadow: inset 3px 0 0 var(--dashboard-accent), 0 0 14px color-mix(in srgb, var(--dashboard-accent) 12%, transparent) !important;
+}
+
+/* Light theme needs a darker foreground and a clearer lavender selection;
+   mixing the accent toward white made the active label nearly disappear. */
+html:not(.dark-theme) .shell-sidebar .ant-btn-primary,
+html:not(.dark-theme) .shell-sidebar .ant-btn-primary:not(:disabled):hover,
+html:not(.dark-theme) .shell-sidebar .ant-btn-primary:not(:disabled):active {
+  color: #4b2f6e !important;
+  border-color: #a78bd4 !important;
+  background: linear-gradient(145deg, #eee8f8, #ddd1f0) !important;
+  box-shadow: inset 3px 0 0 #7c5ac7, 0 2px 8px rgb(76 47 110 / 12%) !important;
+}
+
+html:not(.dark-theme) .shell-sidebar .ant-btn-primary .anticon {
+  color: #6542aa !important;
+}
+
+/* ── SETTINGS expand/collapse animation ── */
+
+.settings-children {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  opacity: 0;
+}
+
+.settings-children-inner {
+  overflow: hidden;
+}
+
+/* When SETTINGS is expanded, rows expand to 1fr and content fades in */
+.sidebar-section:has(.sidebar-section-toggle[aria-expanded="true"]) .settings-children {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition: grid-template-rows 220ms cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 180ms ease 40ms;
+}
+
+/* First-run cue: gently draw attention to Settings > Environments without
+   flashing or changing the navigation layout. */
+.shell-sidebar .sidebar-environment-onboarding {
+  border-color: color-mix(in srgb, var(--dashboard-accent) 38%, var(--dashboard-border));
+  animation: environment-menu-cue 1.9s ease-in-out infinite;
+}
+
+@keyframes environment-menu-cue {
+  0%, 100% {
+    background: color-mix(in srgb, var(--dashboard-accent) 5%, transparent);
+    box-shadow: 0 0 0 0 transparent;
+  }
+  50% {
+    background: color-mix(in srgb, var(--dashboard-accent) 14%, var(--dashboard-surface));
+    box-shadow: 0 0 12px color-mix(in srgb, var(--dashboard-accent) 22%, transparent);
+  }
+}
+
+.environment-onboarding-popover .ant-popover-inner {
+  max-width: 260px;
+  padding: 0.7rem 0.8rem;
+  border-radius: 9px;
+}
+
+.environment-onboarding-popover .ant-popover-title {
+  min-width: 0;
+  margin-bottom: 0.2rem;
+  color: var(--dashboard-text);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.environment-onboarding-popover .ant-popover-inner-content {
+  color: var(--dashboard-muted);
+  font-size: var(--gitops-table-cell-font-size);
+  line-height: 1.45;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell-sidebar .sidebar-environment-onboarding {
+    animation: none;
+    background: color-mix(in srgb, var(--dashboard-accent) 10%, var(--dashboard-surface));
+  }
+}
+
+/* Collapsed logo button: the full brand area is the expand control. */
+.sidebar-brand-expand.ant-btn {
+  display: grid;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.sidebar-brand-expand.ant-btn:hover,
+.sidebar-brand-expand.ant-btn:focus-visible {
+  color: color-mix(in srgb, var(--dashboard-accent) 80%, var(--dashboard-text)) !important;
+  border-color: transparent !important;
+  background: var(--dashboard-accent-soft) !important;
+}
+
+.sidebar-brand-expand img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+/* Temporary overlay brand control: wordmark on one vertically centered row,
+   stretching across the
+   banner so the whole row permanently expands the sidebar; the pin button
+   sits at the far right as an independent sibling control. */
+.sidebar-brand-expand--overlay.ant-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 34px;
+  height: 30px;
+  padding: 0 6px;
+  gap: 0.45rem;
+  white-space: nowrap;
+}
+
+/* ── Temporary sidebar overlay (collapsed rail hover/focus expansion) ──
+   The narrow rail stays in normal flow at its collapsed width; the expanded
+   sidebar is an absolutely positioned duplicate that slides over the page
+   content. The main content is never reflowed, moved, or resized. */
+.shell-sidebar-slot {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-self: stretch;
+}
+
+.shell-sidebar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 900;
+  transform: translateX(-104%);
+  visibility: hidden;
+  pointer-events: none;
+  overflow-x: hidden;
+  background: color-mix(in srgb, var(--dashboard-surface) 92%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0);
+  transition: transform 190ms ease, box-shadow 190ms ease, visibility 0s linear 190ms;
+}
+
+.shell-sidebar-overlay.is-open {
+  transform: translateX(0);
+  visibility: visible;
+  pointer-events: auto;
+  box-shadow: var(--sidebar-overlay-shadow);
+  transition: transform 190ms ease, box-shadow 190ms ease, visibility 0s;
+}
+
+/* Labels fade in only once the overlay has reached its full width. */
+.shell-sidebar-overlay .sidebar-item-label,
+.shell-sidebar-overlay .sidebar-section-label,
+.shell-sidebar-overlay .sidebar-section-toggle-label {
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.shell-sidebar-overlay.is-open .sidebar-item-label,
+.shell-sidebar-overlay.is-open .sidebar-section-label,
+.shell-sidebar-overlay.is-open .sidebar-section-toggle-label {
+  opacity: 1;
+  transition: opacity 140ms ease 90ms;
+}
+
+/* Mobile / narrow layouts keep the existing behavior: no hover overlay. */
+@media (max-width: 800px) {
+  .shell-sidebar-overlay {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell-sidebar-overlay,
+  .shell-sidebar-overlay .sidebar-item-label,
+  .shell-sidebar-overlay .sidebar-section-label,
+  .shell-sidebar-overlay .sidebar-section-toggle-label {
+    transition: none;
+  }
+}
+
+.shell-sidebar-overlay.is-reduced-motion,
+.shell-sidebar-overlay.is-reduced-motion .sidebar-item-label,
+.shell-sidebar-overlay.is-reduced-motion .sidebar-section-label,
+.shell-sidebar-overlay.is-reduced-motion .sidebar-section-toggle-label {
+  transition: none;
+}
+
+.shell-content {
+  flex: 1;
+  padding: 0;
+  background: transparent;
+  color: var(--dashboard-text);
+  overflow-y: auto;
+  min-width: 0;
+}
+
+@media (max-width: 800px) {
+  .shell-body { gap: 6px; padding: 8px; }
+  .shell-sidebar { width: 200px; border-radius: 10px; }
+  .shell-sidebar.shell-sidebar-collapsed { width: 60px; }
+}
+
+/* ── Environment form modal ── */
+.ant-modal-body .ant-form-item-label > label {
+  font-size: 0.875rem;
+}

@@ -1,0 +1,32 @@
+# AndJoy GitOps — Backend Test Runner
+# Runs Maven tests inside Docker against postgres-test
+
+services:
+  test-runner:
+    image: maven:3.9-eclipse-temurin-21
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    working_dir: /app/backend
+    volumes:
+      - .:/app
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-test:5432/gitlab_ops_test
+      SPRING_DATASOURCE_USERNAME: gitlab_ops_test
+      SPRING_DATASOURCE_PASSWORD: test-only-password
+    command: mvn -f /app/backend/pom.xml test -q
+
+  postgres-test:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: gitlab_ops_test
+      POSTGRES_USER: gitlab_ops_test
+      POSTGRES_PASSWORD: test-only-password
+    volumes:
+      - ./test/fixtures/init-test-db.sql:/docker-entrypoint-initdb.d/000-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gitlab_ops_test -d gitlab_ops_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s

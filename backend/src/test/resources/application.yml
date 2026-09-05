@@ -1,0 +1,33 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
+  jackson:
+    default-property-inclusion: non_null
+  flyway:
+    enabled: false
+
+database:
+  max_connections: 10
+
+security:
+  encryption-key: "0000000000000000000000000000000000000000000000000000000000000000"
+
+analytics:
+  enabled: false
+  sync-interval-seconds: 60
+  retention-days: 30
+
+gitlab:
+  api-base-url: https://gitlab.com
+  api-timeout-seconds: 30
+
+ui:
+  read-only: true
+  hide-write-actions: false
+
+logging:
+  level:
+    com.gitlabops: DEBUG

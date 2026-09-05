@@ -1,0 +1,41 @@
+server:
+  port: 8090
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:gitlab_ops}
+    username: ${DB_USER:gitlab_ops_user}
+    password: ${DB_PASSWORD:gitlab_ops_user}
+    hikari:
+      maximum-pool-size: 5
+
+  jackson:
+    default-property-inclusion: non_null
+
+database:
+  max_connections: 5
+
+security:
+  encryption-key: 0000000000000000000000000000000000000000000000000000000000000000
+
+analytics:
+  enabled: false
+  sync-interval-seconds: 60
+  retention-days: 30
+
+gitlab:
+  api-timeout-seconds: 30
+
+ui:
+  read-only: false
+  hide-write-actions: false
+  page-size-options:
+    - 10
+    - 25
+    - 50
+  default-page-size: 25
+
+logging:
+  level:
+    com.gitlabops: DEBUG
+    org.springframework.security: WARN

@@ -1,0 +1,229 @@
+.runnersPage {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  min-height: calc(100vh - 94px);
+  flex: 1;
+  color: var(--dashboard-text);
+}
+
+.runnersPage :global(.summary-bar) { grid-template-columns: max-content minmax(0, 1fr); }
+.runnersPage :global(.analytics-loading-gate) { display: flex; min-height: 0; flex: 1; flex-direction: column; }
+.runnersPage :global(.analytics-loading-gate__content) { display: flex; min-height: 0; flex: 1; flex-direction: column; gap: 10px; }
+
+.pipelineToolbar {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--dashboard-border);
+  background: var(--dashboard-surface);
+  border-radius: var(--dashboard-radius-lg) var(--dashboard-radius-lg) 0 0;
+  box-shadow: var(--dashboard-shadow-sm);
+  transition: var(--dashboard-transition);
+}
+
+.pipelineToolbar:hover {
+  box-shadow: var(--dashboard-shadow-md);
+}
+
+.toolbarContent {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.searchControl {
+  flex: 0 1 420px;
+  min-width: 260px;
+}
+
+.runnerCount {
+  color: var(--dashboard-muted);
+  font-size: var(--gitops-table-cell-font-size);
+  white-space: nowrap;
+}
+
+/* Runner page overrides — allow vertical scrolling for the table */
+:global(.runnersPage .data-workspace) {
+  overflow: auto;
+}
+:global(.gitops-data-table.runner-table .ant-table) {
+  table-layout: auto !important;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0.65rem 1rem;
+  border-top: 1px solid var(--dashboard-border);
+  background: var(--dashboard-surface);
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+:global(.runner-table) th {
+  padding: 10px 12px;
+  background: var(--dashboard-surface) !important;
+  color: var(--dashboard-muted) !important;
+  font-size: var(--gitops-table-header-font-size);
+  font-weight: var(--gitops-table-header-font-weight);
+  line-height: var(--gitops-table-header-line-height);
+  letter-spacing: var(--gitops-table-header-letter-spacing);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--dashboard-border) !important;
+  min-height: var(--gitops-table-row-min-height);
+  text-align: left;
+}
+
+:global(.runner-table) th:not(:last-child) {
+  border-right: 1px solid var(--dashboard-border);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 320px;
+  color: var(--dashboard-muted);
+  text-align: center;
+  gap: 0.5rem;
+  padding: 0 1.5rem;
+  font-size: var(--gitops-table-cell-font-size);
+  border-radius: var(--dashboard-radius-md);
+  background: var(--dashboard-surface-subtle);
+  border: 1px dashed var(--dashboard-border);
+  transition: var(--dashboard-transition);
+}
+
+.emptyState:hover {
+  border-color: color-mix(in srgb, var(--dashboard-accent) 40%, var(--dashboard-border));
+  background: var(--dashboard-surface-hover);
+}
+
+.emptyState strong {
+  color: var(--dashboard-text);
+  font-weight: 600;
+  font-size: var(--gitops-table-cell-font-size);
+}
+
+.emptyState p {
+  margin: 0.25rem 0 0;
+  color: var(--dashboard-muted);
+  max-width: 320px;
+}
+
+.emptyIcon {
+  color: var(--dashboard-muted);
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
+}
+
+.addressTag:global(.ant-tag) {
+  margin: 0;
+  border-color: color-mix(in srgb, var(--dashboard-accent) 68%, var(--dashboard-border)) !important;
+  background: color-mix(in srgb, var(--dashboard-accent) 14%, var(--dashboard-surface)) !important;
+  color: color-mix(in srgb, var(--dashboard-accent) 76%, var(--dashboard-text)) !important;
+}
+
+.ipUnavailable {
+  color: var(--dashboard-muted);
+  font-style: italic;
+  font-size: var(--gitops-table-cell-font-size);
+}
+
+.noJob {
+  color: var(--dashboard-muted);
+  font-size: 0.85rem;
+}
+
+.jobList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+/* Runner JOBS column — grow with content */
+:global(.runner-table) th:nth-child(7),
+:global(.runner-table) td:nth-child(7) {
+  min-width: 150px;
+}
+
+/* Runner job badges — match PIPELINES style */
+.runnerJobBadges {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.25rem;
+}
+
+.runnerJobBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--dashboard-radius-sm);
+  font-size: 0.82em;
+  font-weight: 500;
+  cursor: default;
+  color: color-mix(in srgb, var(--job-color) 76%, var(--dashboard-text));
+  border-color: color-mix(in srgb, var(--job-color) 70%, var(--dashboard-border));
+  background: color-mix(in srgb, var(--job-color) 14%, var(--dashboard-surface));
+  transition: var(--dashboard-transition);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--job-color) 20%, transparent);
+}
+
+.runnerJobBadge:hover {
+  color: color-mix(in srgb, var(--job-color) 82%, var(--dashboard-text));
+  background: color-mix(in srgb, var(--job-color) 22%, var(--dashboard-surface));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--job-color) 35%, transparent);
+  transform: translateY(-1px);
+}
+
+.runnerJobMore {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.82em;
+  color: var(--dashboard-muted);
+  border: 1px solid var(--dashboard-border);
+  background: transparent;
+}
+
+.jobList :global(.ant-tag) {
+  margin: 0;
+  border-color: color-mix(in srgb, var(--dashboard-info) 68%, var(--dashboard-border));
+  background: color-mix(in srgb, var(--dashboard-info) 14%, var(--dashboard-surface));
+  color: color-mix(in srgb, var(--dashboard-info) 76%, var(--dashboard-text));
+}
+
+.jobList a {
+  display: inline-block;
+}
+
+@media (max-width: 850px) {
+  .tableWrapper {
+    overflow-x: auto;
+  }
+
+  .pagination {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbarContent {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .searchControl {
+    width: 100%;
+    flex-basis: auto;
+  }
+
+  .refreshButton {
+    margin-left: 0;
+  }
+}

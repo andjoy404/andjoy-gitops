@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1254" height="1254" viewBox="0 0 1254 1254">
+  <defs>
+    <path id="innerPath" d="M627 230 C660 230 680 250 708 278 L977 547 C1027 597 1027 657 977 707 L708 976 C658 1026 596 1026 546 976 L277 707 C227 657 227 597 277 547 L546 278 C574 250 594 230 627 230 Z"/>
+    <path id="routePath" d="M398 705 H548 L686 568 H820"/>
+    <linearGradient id="orangeNode" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffb000"/><stop offset="1" stop-color="#ff6a00"/>
+    </linearGradient>
+    <linearGradient id="routeViolet" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8b12ff"/><stop offset="1" stop-color="#7510fb"/>
+    </linearGradient>
+    <mask id="innerOnly">
+      <rect width="1254" height="1254" fill="black"/>
+      <use href="#innerPath" fill="white"/>
+    </mask>
+    <mask id="outerReveal">
+      <rect width="1254" height="1254" fill="black"/>
+      <rect x="0" y="105" width="1254" height="__OUTER_HEIGHT__" fill="white"/>
+      <use href="#innerPath" fill="black"/>
+    </mask>
+    <mask id="routeReveal">
+      <rect width="1254" height="1254" fill="black"/>
+      <use href="#routePath" fill="none" stroke="white" stroke-width="92" stroke-linecap="round" stroke-linejoin="round" pathLength="1000" stroke-dasharray="__ROUTE_VISIBLE__ 1000"/>
+      <rect x="748" y="482" width="150" height="160" rx="42" fill="black"/>
+      <rect x="__NODE_X__" y="__NODE_Y__" width="125" height="130" rx="32" fill="black"/>
+    </mask>
+  </defs>
+  <image href="__CLEAN_SOURCE__" width="1254" height="1254" mask="url(#innerOnly)"/>
+  <image href="__SOURCE__" width="1254" height="1254" mask="url(#outerReveal)"/>
+  <use href="#routePath" fill="none" stroke="url(#routeViolet)" stroke-width="74" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="__ROUTE_VISIBLE__ 1000"/>
+  <rect x="__NODE_X__" y="__NODE_Y__" width="125" height="130" rx="32" fill="url(#orangeNode)" opacity="__NODE_OPACITY__"/>
+  <image href="__SOURCE__" width="1254" height="1254" opacity="__FINAL_OPACITY__"/>
+</svg>

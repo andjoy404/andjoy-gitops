@@ -1,0 +1,329 @@
+/* Login page — dark presentation (always dark, both themes) */
+
+.login-page {
+  --login-bg: #07060b;
+  --login-panel-top: #0e0c15;
+  --login-panel-mid: #0a0910;
+  --login-seam: rgb(0 0 0 / 0.5);
+  --login-seam-hi: rgb(169 112 255 / 0.055);
+  --login-glow: rgb(124 90 199 / 0.16);
+  --login-text: #f2eff9;
+  --login-title: #f5f3fb;
+  --login-muted: #9b93ad;
+  --login-label: #cfc9de;
+  --login-placeholder: #7a7292;
+  --login-icon: #8d82ab;
+  --login-accent: #a970ff;
+  --login-accent-deep: #7c5ac7;
+  --login-danger: #f2495c;
+  --login-card-border: rgb(169 112 255 / 0.1);
+  --login-input-bg: rgb(9 7 15 / 0.78);
+  --login-input-border: rgb(169 112 255 / 0.22);
+
+  /* Wall geometry: shared by seams and rivets so rivet placement stays
+     mathematically attached to the seams. The 2px seam groove ends at the
+     tile edge, so its centerline sits seam-width/2 inside the tile. Rivets
+     sit rivet-inset-x from the vertical panel edges (at that centerline);
+     the two vertical rows sit independently rivet-inset-y from the row
+     tile's top edge and from its bottom edge (y = inset-y and
+     y = panel-h - inset-y). */
+  --login-panel-w: 300px;
+  --login-panel-h: 340px;
+  --login-seam-width: 2px;
+  --login-rivet-inset-x: 34px;
+  --login-rivet-inset-y: 36px;
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: clamp(1.25rem, 5vh, 2.5rem) clamp(0.75rem, 4vw, 1.5rem);
+  overflow-x: hidden;
+  color-scheme: dark;
+  background: var(--login-bg);
+}
+
+/* No global border-box reset in this app: keep width:min() honest so padding
+   cannot push the card past the viewport on narrow screens. */
+.login-stand,
+.login-brand-lockup,
+.login-logo,
+.login-card {
+  box-sizing: border-box;
+}
+
+/* Industrial wall: large dark panels, seams, rivets, vignette, violet glow.
+   The 2px vertical seam runs along each tile's right edge (centerline at
+   x = panel-width - 1px), and the horizontal seam rows repeat from the
+   viewport's bottom edge (0deg gradient). The four rivet layers use the
+   same bottom anchor (background-position: 0 100%) so their panel-height
+   tiling stays in phase with the horizontal seam rows at any viewport
+   size. Every panel then shows exactly four rivets - top row at
+   y = rivet-inset-y, bottom row at y = panel-h - rivet-inset-y, each
+   computed independently from its own tile edge (not from one shared
+   seam), landing ~36px inside the panel's top and bottom edges. Around a
+   horizontal seam the upper panel's bottom row and the lower panel's top
+   row read as two separated rows. Dots stay 34-36px inside the row tile,
+   so nothing clips at panel or viewport edges, and the low-contrast dots
+   never show through the opaque login card. */
+.login-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(120% 95% at 50% 42%, transparent 40%, rgb(2 1 5 / 0.58) 80%, rgb(1 0 3 / 0.82) 100%),
+    radial-gradient(58% 42% at 50% 41%, var(--login-glow), transparent 72%),
+    radial-gradient(4px 4px at calc(var(--login-rivet-inset-x) - var(--login-seam-width) / 2) var(--login-rivet-inset-y), rgb(0 0 0 / 0.6) 0 2px, rgb(255 255 255 / 0.05) 2px 3px, transparent 3.5px),
+    radial-gradient(4px 4px at calc(var(--login-panel-w) - var(--login-seam-width) / 2 - var(--login-rivet-inset-x)) var(--login-rivet-inset-y), rgb(0 0 0 / 0.6) 0 2px, rgb(255 255 255 / 0.05) 2px 3px, transparent 3.5px),
+    radial-gradient(4px 4px at calc(var(--login-rivet-inset-x) - var(--login-seam-width) / 2) calc(var(--login-panel-h) - var(--login-rivet-inset-y)), rgb(0 0 0 / 0.6) 0 2px, rgb(255 255 255 / 0.05) 2px 3px, transparent 3.5px),
+    radial-gradient(4px 4px at calc(var(--login-panel-w) - var(--login-seam-width) / 2 - var(--login-rivet-inset-x)) calc(var(--login-panel-h) - var(--login-rivet-inset-y)), rgb(0 0 0 / 0.6) 0 2px, rgb(255 255 255 / 0.05) 2px 3px, transparent 3.5px),
+    repeating-linear-gradient(90deg, transparent 0 calc(var(--login-panel-w) - var(--login-seam-width)), var(--login-seam) calc(var(--login-panel-w) - var(--login-seam-width)) calc(var(--login-panel-w) - var(--login-seam-width) / 2), var(--login-seam-hi) calc(var(--login-panel-w) - var(--login-seam-width) / 2) var(--login-panel-w)),
+    repeating-linear-gradient(0deg, transparent 0 calc(var(--login-panel-h) - var(--login-seam-width)), rgb(0 0 0 / 0.45) calc(var(--login-panel-h) - var(--login-seam-width)) calc(var(--login-panel-h) - var(--login-seam-width) / 2), var(--login-seam-hi) calc(var(--login-panel-h) - var(--login-seam-width) / 2) var(--login-panel-h)),
+    linear-gradient(105deg, rgb(255 255 255 / 0.025), transparent 34%),
+    linear-gradient(180deg, var(--login-panel-top) 0%, var(--login-panel-mid) 55%, var(--login-bg) 100%);
+  background-size:
+    auto,
+    auto,
+    var(--login-panel-w) var(--login-panel-h),
+    var(--login-panel-w) var(--login-panel-h),
+    var(--login-panel-w) var(--login-panel-h),
+    var(--login-panel-w) var(--login-panel-h),
+    auto,
+    auto,
+    auto,
+    auto;
+  /* Bottom-anchors the rivet rows (layers 3-6) to the same reference as the
+     0deg horizontal-seam repeat; all other layers keep the default 0 0. */
+  background-position:
+    0 0,
+    0 0,
+    0 100%,
+    0 100%,
+    0 100%,
+    0 100%,
+    0 0,
+    0 0,
+    0 0,
+    0 0;
+}
+
+/* Centered logo + card column */
+.login-stand {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  width: min(320px, 100%);
+  min-width: 0;
+  font-family: var(--font-sans);
+}
+
+.login-brand-lockup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Fixed square box: the container size never changes when the logo content
+   or the source (animated GIF vs static PNG) switches, so the card below
+   cannot shift. */
+.login-logo {
+  width: clamp(78px, 18vw, 104px);
+  aspect-ratio: 1 / 1;
+}
+
+.login-logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 32px rgb(124 90 199 / 0.4));
+}
+
+/* The animated GIF must not carry the CSS drop-shadow: the filter is
+   recomputed on every decoded frame over the GIF's 1-bit alpha mask, which
+   causes visible flickering around the logo. Only a single logo element is
+   ever mounted (Login.tsx picks animated vs static via
+   prefers-reduced-motion), so no display toggling is needed here. */
+.login-logo img.login-logo-animated {
+  filter: none;
+}
+
+.login-product-name {
+  color: var(--login-title);
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+/* Compact dark card. The border echoes the wall's seam highlight so the
+   outline blends into the industrial wall instead of reading as a bright
+   rectangle; the shadow and violet ambient glow stay restrained. */
+.login-card {
+  width: min(300px, 100%);
+  min-width: 0;
+  padding: 0.95rem 1.05rem 1rem;
+  border-radius: 11px;
+  background: linear-gradient(180deg, rgb(21 17 31 / 0.94), rgb(13 10 20 / 0.96));
+  border: 1px solid var(--login-card-border);
+  box-shadow:
+    0 30px 80px rgb(0 0 0 / 0.6),
+    0 0 0 1px rgb(0 0 0 / 0.3),
+    0 0 70px rgb(124 90 199 / 0.12);
+  color: var(--login-text);
+}
+
+/* Headline block ("Welcome back" / "Sign in to AndJoy GitOps"): centered,
+   two separate lines. Form fields below stay left-aligned. */
+.login-card-head {
+  text-align: center;
+}
+
+.login-card .ant-typography {
+  display: block;
+  margin: 0 0 0.6rem;
+  color: var(--login-muted);
+  font-size: var(--gitops-table-cell-font-size);
+  font-weight: var(--gitops-table-cell-font-weight);
+  line-height: var(--gitops-table-cell-line-height);
+}
+
+.login-card h3.ant-typography {
+  margin-bottom: 0.15rem;
+  color: var(--login-title);
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.login-field {
+  margin-bottom: 0.7rem;
+}
+
+.login-field label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: var(--gitops-table-cell-font-size);
+  font-weight: var(--gitops-table-cell-font-weight);
+  line-height: var(--gitops-table-cell-line-height);
+  color: var(--login-label);
+}
+
+/* Antd controls — dark violet, no browser-default white */
+.login-card .ant-input-affix-wrapper {
+  min-height: 32px;
+  padding: 0.35rem 0.6rem;
+  border-radius: 7px;
+  border-color: var(--login-input-border) !important;
+  background: var(--login-input-bg) !important;
+  box-shadow: none !important;
+}
+
+.login-card .ant-input {
+  color: var(--login-text) !important;
+  background: transparent !important;
+  font-size: var(--gitops-table-cell-font-size);
+  font-weight: var(--gitops-table-cell-font-weight);
+}
+
+.login-card .ant-input::placeholder {
+  color: var(--login-placeholder) !important;
+}
+
+.login-card .ant-input-prefix {
+  margin-inline-end: 0.4rem;
+  color: var(--login-icon) !important;
+}
+
+.login-card .ant-input-suffix {
+  color: var(--login-icon) !important;
+}
+
+.login-card .ant-input-affix-wrapper:hover {
+  border-color: rgb(169 112 255 / 0.4) !important;
+}
+
+.login-card .ant-input-affix-wrapper-focused {
+  border-color: var(--login-accent) !important;
+  box-shadow: 0 0 0 2px rgb(169 112 255 / 0.22) !important;
+}
+
+.login-card .ant-input-password-icon {
+  color: var(--login-icon) !important;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.login-card .ant-input-password-icon:hover {
+  color: #cdbcef !important;
+}
+
+.login-card .ant-input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px rgb(13 11 20) inset !important;
+  -webkit-text-fill-color: var(--login-text) !important;
+}
+
+.login-error {
+  margin: 0.15rem 0 0.65rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 7px;
+  border: 1px solid rgb(242 73 92 / 0.5);
+  background: rgb(242 73 92 / 0.12);
+  color: #ff98a6;
+  font-size: var(--gitops-table-cell-font-size);
+}
+
+/* Sign in button */
+.login-card .ant-btn-primary {
+  height: 2.1rem;
+  font-size: var(--gitops-table-cell-font-size);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border-radius: 7px;
+  border-color: rgb(169 112 255 / 0.45) !important;
+  background: linear-gradient(180deg, #9a6fe3 0%, var(--login-accent-deep) 100%) !important;
+  background-color: var(--login-accent-deep) !important;
+  color: #f8f5fd !important;
+  box-shadow: 0 8px 22px rgb(124 90 199 / 0.35) !important;
+}
+
+.login-card .ant-btn-primary:hover,
+.login-card .ant-btn-primary:focus {
+  border-color: rgb(201 172 245 / 0.7) !important;
+  background: linear-gradient(180deg, #b18cf0 0%, #8f68d8 100%) !important;
+  background-color: #8f68d8 !important;
+  color: #ffffff !important;
+}
+
+.login-card .ant-btn-primary:focus-visible {
+  box-shadow: 0 0 0 3px rgb(169 112 255 / 0.3), 0 8px 22px rgb(124 90 199 / 0.35) !important;
+}
+
+.login-card .ant-btn-primary:disabled,
+.login-card .ant-btn-primary.ant-btn-disabled,
+.login-card .ant-btn-primary.ant-btn-disabled:hover {
+  border-color: rgb(169 112 255 / 0.18) !important;
+  background: rgb(124 90 199 / 0.22) !important;
+  background-color: rgb(124 90 199 / 0.22) !important;
+  color: rgb(210 200 235 / 0.45) !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 480px) {
+  .login-stand {
+    gap: 0.75rem;
+  }
+
+  .login-card {
+    padding: 0.95rem 1rem 1rem;
+    border-radius: 10px;
+  }
+}

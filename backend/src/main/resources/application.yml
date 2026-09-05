@@ -1,0 +1,63 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: andjoy-gitops
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:postgres}:${DB_PORT:5432}/${DB_NAME:gitlab_ops}
+    username: ${DB_USER:gitlab_ops_user}
+    password: ${DB_PASSWORD:gitlab_ops_user}
+    hikari:
+      maximum-pool-size: ${database.max_connections:10}
+
+  jackson:
+    default-property-inclusion: non_null
+
+# Custom properties (mapped to @ConfigurationProperties beans)
+database:
+  max_connections: 10
+
+security:
+  encryption-key: "0000000000000000000000000000000000000000000000000000000000000000"
+
+analytics:
+  enabled: true
+  sync-interval-seconds: 60
+  retention-days: 30
+  sync-users: true
+  pipeline-history-days: 30
+
+gitlab:
+  api-timeout-seconds: 30
+  max-concurrent-requests: 8
+  max-retries: 3
+
+ui:
+  read-only: true
+  hide-write-actions: false
+  page-size-options:
+    - 10
+    - 20
+    - 30
+    - 40
+    - 50
+    - 100
+  default-page-size: 10
+
+logging:
+  level:
+    com.gitlabops: DEBUG
+    org.springframework.security: WARN
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true

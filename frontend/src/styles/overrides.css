@@ -1,0 +1,738 @@
+/* Ant Design overrides */
+.ant-btn-primary {
+  border-color: #7652c7;
+  background: #7652c7;
+}
+
+.ant-btn-primary:hover,
+.ant-btn-primary:focus {
+  border-color: #8f6ed8 !important;
+  background: #8f6ed8 !important;
+}
+
+html.dark-theme .ant-btn-primary {
+  background: var(--dashboard-accent);
+  border-color: var(--dashboard-accent);
+}
+
+html.dark-theme .ant-btn-primary:hover,
+html.dark-theme .ant-btn-primary:focus {
+  background: #c4a7ff !important;
+  border-color: #c4a7ff !important;
+}
+
+html.dark-theme .ant-input,
+html.dark-theme .ant-input-affix-wrapper,
+html.dark-theme .ant-select-selector {
+  background: #111516 !important;
+  border-color: #303538 !important;
+  color: #f4f4f5 !important;
+}
+
+html.dark-theme .ant-input::placeholder {
+  color: #70777d;
+}
+
+html.dark-theme .ant-btn-text {
+  color: #e4e4e7;
+  background: transparent !important;
+}
+
+/* Header and popup surfaces follow the active dashboard theme. */
+.app-header .ant-btn-text {
+  transition: background 140ms ease, color 140ms ease;
+}
+.app-header .ant-btn-text:hover,
+.app-header .ant-btn-text:focus-visible,
+.app-header .ant-btn-text.ant-dropdown-open {
+  color: var(--dashboard-text) !important;
+  background: color-mix(in srgb, var(--dashboard-accent) 12%, var(--dashboard-surface)) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dashboard-accent) 30%, transparent);
+}
+
+.ant-dropdown .ant-dropdown-menu,
+.user-activity-user-dropdown {
+  color: var(--dashboard-text) !important;
+  background: var(--dashboard-surface) !important;
+  border: 1px solid var(--dashboard-border);
+  box-shadow: var(--dashboard-shadow) !important;
+}
+
+.ant-dropdown .ant-dropdown-menu-item,
+.user-activity-user-dropdown .ant-select-item {
+  color: var(--dashboard-text) !important;
+}
+
+.ant-dropdown .ant-dropdown-menu-item:hover,
+.ant-dropdown .ant-dropdown-menu-item-active,
+.user-activity-user-dropdown .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  color: var(--dashboard-text) !important;
+  background: var(--dashboard-surface-hover) !important;
+}
+
+/* Sign-out menu: a little gap below the username button and a smaller
+   menu (box + font) than the username trigger. !important needed to beat
+   antd's runtime-injected cssinjs rules. */
+.header-user-dropdown { margin-top: 6px; }
+.ant-dropdown.header-user-dropdown .ant-dropdown-menu { padding: 2px 4px !important; font-size: 12px !important; }
+.ant-dropdown.header-user-dropdown .ant-dropdown-menu-item { height: 26px !important; line-height: 26px !important; padding: 0 8px !important; font-size: 12px !important; border-radius: 6px; min-height: 26px !important; }
+.ant-dropdown.header-user-dropdown .ant-dropdown-menu-item .anticon { font-size: 12px !important; margin-right: 6px; }
+
+.user-activity-user-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  color: var(--dashboard-text) !important;
+  background: var(--dashboard-accent-soft) !important;
+}
+
+.user-activity-user-select .ant-select-selector,
+.user-activity-user-select .ant-select-selection-placeholder,
+.user-activity-user-select .ant-select-selection-item,
+.user-activity-user-dropdown .ant-select-item-empty {
+  color: var(--dashboard-text) !important;
+}
+
+.user-activity-user-select .ant-select-selection-placeholder {
+  color: var(--dashboard-muted) !important;
+}
+
+/* Range controls and their portalled menus follow the active theme. */
+.range-select-dropdown {
+  color: var(--dashboard-text) !important;
+  border: 1px solid var(--dashboard-border);
+  background: var(--dashboard-surface) !important;
+  box-shadow: var(--dashboard-shadow) !important;
+}
+
+.range-select-dropdown .ant-select-item {
+  color: var(--dashboard-text) !important;
+}
+
+.range-select-dropdown .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  background: var(--dashboard-surface-hover) !important;
+}
+
+.range-select-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  color: var(--dashboard-text) !important;
+  background: var(--dashboard-accent-soft) !important;
+}
+
+/* Field selectors (Runners, Pipelines, and the shared FieldSearchBox) render
+   in a portal, so theme the actual popup surface to follow the active theme. */
+.runner-search-field-dropdown,
+.pipeline-search-field-dropdown,
+.field-search-field-dropdown {
+  color: var(--dashboard-text) !important;
+  border: 1px solid var(--dashboard-border);
+  background: var(--dashboard-surface) !important;
+  box-shadow: var(--dashboard-shadow) !important;
+}
+
+.runner-search-field-dropdown .ant-select-item,
+.pipeline-search-field-dropdown .ant-select-item,
+.field-search-field-dropdown .ant-select-item {
+  color: var(--dashboard-text) !important;
+}
+
+.runner-search-field-dropdown .ant-select-item-option-active:not(.ant-select-item-option-disabled),
+.pipeline-search-field-dropdown .ant-select-item-option-active:not(.ant-select-item-option-disabled),
+.field-search-field-dropdown .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  background: var(--dashboard-surface-hover) !important;
+}
+
+.runner-search-field-dropdown .ant-select-item-option:not(.ant-select-item-option-disabled):hover,
+.pipeline-search-field-dropdown .ant-select-item-option:not(.ant-select-item-option-disabled):hover,
+.field-search-field-dropdown .ant-select-item-option:not(.ant-select-item-option-disabled):hover {
+  background: var(--dashboard-surface-hover) !important;
+}
+
+.runner-search-field-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled),
+.pipeline-search-field-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled),
+.field-search-field-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  color: var(--dashboard-text) !important;
+  background: var(--dashboard-accent-soft) !important;
+  font-weight: 600;
+}
+
+.runner-search-field-dropdown .ant-select-item-option-state,
+.pipeline-search-field-dropdown .ant-select-item-option-state,
+.field-search-field-dropdown .ant-select-item-option-state {
+  color: var(--dashboard-accent) !important;
+}
+
+.runner-search-field-dropdown .ant-select-item:focus-visible,
+.pipeline-search-field-dropdown .ant-select-item:focus-visible,
+.field-search-field-dropdown .ant-select-item:focus-visible {
+  outline: 2px solid var(--dashboard-accent);
+  outline-offset: -2px;
+}
+
+.runner-search-field-dropdown .ant-select-item-empty,
+.pipeline-search-field-dropdown .ant-select-item-empty,
+.field-search-field-dropdown .ant-select-item-empty {
+  color: var(--dashboard-muted) !important;
+}
+
+/* Relations Map toolbar Select portal menus follow the active theme. */
+.relations-dropdown {
+  color: var(--dashboard-text) !important;
+  border: 1px solid var(--dashboard-border);
+  background: var(--dashboard-surface) !important;
+  box-shadow: var(--dashboard-shadow) !important;
+}
+
+.relations-dropdown .ant-select-item {
+  color: var(--dashboard-text) !important;
+}
+
+.relations-dropdown .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  background: var(--dashboard-surface-hover) !important;
+}
+
+.relations-dropdown .ant-select-item-option:not(.ant-select-item-option-disabled):hover {
+  background: var(--dashboard-surface-hover) !important;
+}
+
+.relations-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  color: var(--dashboard-text) !important;
+  background: var(--dashboard-accent-soft) !important;
+  font-weight: 600;
+}
+
+.relations-dropdown .ant-select-item-option-state {
+  color: var(--dashboard-accent) !important;
+}
+
+.relations-dropdown .ant-select-item:focus-visible {
+  outline: 2px solid var(--dashboard-accent);
+  outline-offset: -2px;
+}
+
+.relations-dropdown .ant-select-selector {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.relations-dropdown .ant-select-item:focus-visible {
+  outline: 2px solid var(--dashboard-accent);
+  outline-offset: -2px;
+}
+
+.relations-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  color: var(--dashboard-text) !important;
+  background: var(--dashboard-accent-soft) !important;
+  font-weight: 600;
+}
+
+.relations-dropdown .ant-select-item-option-state {
+  color: var(--dashboard-accent) !important;
+}
+
+.relations-dropdown .ant-select-item:focus-visible {
+  outline: 2px solid var(--dashboard-accent);
+  outline-offset: -2px;
+}
+
+.relations-dropdown .ant-select-item-empty {
+  color: var(--dashboard-muted) !important;
+}
+
+html.dark-theme .range-select .ant-select-arrow {
+  color: var(--dashboard-muted);
+}
+
+/* native-range-select: theme-aware in both light and dark */
+.native-range-select {
+  color-scheme: light;
+  color: var(--dashboard-text);
+  background: var(--dashboard-surface);
+  border: 1px solid var(--dashboard-border);
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.native-range-select option {
+  color: var(--dashboard-text);
+  background: var(--dashboard-surface);
+}
+
+html.dark-theme .native-range-select {
+  color-scheme: dark;
+}
+
+html.dark-theme .native-range-select option {
+  color: var(--dashboard-text);
+  background: var(--dashboard-surface);
+}
+
+/* Shared data-search suggestion menus (Pipelines, Runners and Users). */
+.search-suggest-dropdown {
+  color: var(--dashboard-text) !important;
+  border: 1px solid var(--dashboard-border);
+  background: var(--dashboard-surface) !important;
+  box-shadow: var(--dashboard-shadow) !important;
+}
+
+.search-suggest-dropdown .ant-select-item { color:var(--dashboard-text) !important; }
+.search-suggest-dropdown .ant-select-item-option-active:not(.ant-select-item-option-disabled) { background:var(--dashboard-surface-hover) !important; }
+.search-suggest-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled) { color:var(--dashboard-text) !important; background:var(--dashboard-accent-soft) !important; }
+.search-suggest .ant-select-selector { color:var(--dashboard-text) !important; border-color:var(--dashboard-border) !important; background:var(--dashboard-surface-subtle) !important; box-shadow:none !important; }
+.search-suggest:hover .ant-select-selector,.search-suggest.ant-select-focused .ant-select-selector { border-color:var(--dashboard-accent) !important; }
+.search-suggest .ant-input,.search-suggest .ant-input-affix-wrapper { color:var(--dashboard-text) !important; background:transparent !important; }
+.search-suggest .ant-input::placeholder { color:var(--dashboard-muted) !important; }
+.search-suggest .ant-input-clear-icon { color:var(--dashboard-muted) !important; background:transparent !important; }
+.search-suggest .ant-input-clear-icon:hover { color:var(--dashboard-text) !important; }
+
+/* Keep each tag's close button visually separate from the clear-all control. */
+.user-activity-user-select.ant-select-allow-clear .ant-select-selection-overflow {
+  padding-inline-end: 16px;
+}
+
+.user-activity-user-select .ant-select-clear {
+  margin-inline-start: 6px;
+}
+
+/* Group and environment selectors render in a portal, so theme their complete surface. */
+.theme-selector-modal .ant-modal-mask {
+  background: rgb(0 0 0 / 62%);
+  backdrop-filter: blur(4px);
+}
+
+.theme-selector-modal .ant-modal-content,
+.theme-selector-modal .ant-modal-header {
+  color: var(--dashboard-text);
+  background: var(--dashboard-surface);
+}
+
+.theme-selector-modal .ant-modal-content {
+  border: 1px solid var(--dashboard-border);
+  box-shadow: var(--dashboard-shadow);
+}
+
+.theme-selector-modal .ant-modal-title,
+.theme-selector-modal .ant-modal-close,
+.theme-selector-modal .theme-selector-option strong {
+  color: var(--dashboard-text);
+}
+
+.theme-selector-modal .ant-modal-close:hover {
+  color: var(--dashboard-text);
+  background: var(--dashboard-surface-hover);
+}
+
+.theme-selector-description {
+  margin-bottom: .75rem;
+  color: var(--dashboard-muted);
+  font-size: .875rem;
+}
+
+.theme-selector-message,
+.theme-selector-meta {
+  color: var(--dashboard-muted);
+}
+
+.theme-selector-message { text-align:center; }
+.theme-selector-empty { padding:1rem 0; }
+
+.theme-selector-option {
+  color: var(--dashboard-text);
+  border: 1px solid var(--dashboard-border);
+  background: var(--dashboard-surface-subtle);
+  cursor: pointer;
+  transition: border-color .15s, background .15s, box-shadow .15s;
+}
+
+.theme-selector-option:hover {
+  border-color: var(--dashboard-accent);
+  background: var(--dashboard-surface-hover);
+}
+
+.theme-selector-option.is-selected {
+  border-color: var(--dashboard-accent);
+  background: var(--dashboard-accent-soft);
+  box-shadow: inset 3px 0 0 var(--dashboard-accent);
+}
+
+.theme-selector-environment.ant-btn {
+  color: var(--dashboard-text);
+  border-color: var(--dashboard-border);
+  background: var(--dashboard-surface-subtle);
+  box-shadow: none;
+}
+
+.theme-selector-environment.ant-btn:hover,
+.theme-selector-environment.ant-btn:focus-visible {
+  color: var(--dashboard-text) !important;
+  border-color: var(--dashboard-accent) !important;
+  background: var(--dashboard-surface-hover) !important;
+}
+
+.theme-selector-environment.ant-btn.is-selected {
+  color: var(--dashboard-text);
+  border-color: var(--dashboard-accent);
+  background: var(--dashboard-accent-soft);
+}
+
+/* Error boundary */
+.error-boundary {
+  padding: 2rem;
+  text-align: center;
+  color: var(--dashboard-danger);
+}
+
+/* Header */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 12px 12px 0;
+  padding: 0.75rem 1rem;
+  background: var(--dashboard-surface);
+  border: 1px solid var(--dashboard-border);
+  border-radius: 12px;
+  box-shadow: var(--dashboard-shadow);
+  color: var(--dashboard-text);
+  flex-shrink: 0;
+}
+
+.app-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.app-header-brand {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--dashboard-text);
+  cursor: pointer;
+}
+
+.app-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@media (max-width: 800px) {
+  .app-header { margin: 8px 8px 0; border-radius: 10px; }
+}
+
+/* ── Global config: pipeline view Select portal dropdown ── */
+.pipeline-view-dropdown {
+  color: var(--dashboard-text) !important;
+  border: 1px solid var(--dashboard-border);
+  background: var(--dashboard-surface) !important;
+  box-shadow: var(--dashboard-shadow) !important;
+}
+
+.pipeline-view-dropdown .ant-select-item {
+  color: var(--dashboard-text) !important;
+  background: var(--dashboard-surface) !important;
+}
+
+.pipeline-view-dropdown .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  background: var(--dashboard-surface-hover) !important;
+}
+
+.pipeline-view-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  color: var(--dashboard-text) !important;
+  background: var(--dashboard-accent-soft) !important;
+}
+
+/* Environment form: Group IDs tags Select renders its menu in a body portal. */
+.environment-group-id-dropdown {
+  color: var(--dashboard-text) !important;
+  border: 1px solid var(--dashboard-border);
+  background: var(--dashboard-surface) !important;
+  box-shadow: var(--dashboard-shadow) !important;
+}
+
+.environment-group-id-dropdown .ant-select-item {
+  color: var(--dashboard-text) !important;
+  background: transparent !important;
+}
+
+.environment-group-id-dropdown .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  background: var(--dashboard-surface-hover) !important;
+}
+
+.environment-group-id-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  color: var(--dashboard-text) !important;
+  background: var(--dashboard-accent-soft) !important;
+}
+
+.environment-group-id-dropdown .ant-select-item-option-state {
+  color: var(--dashboard-accent) !important;
+}
+
+/* ── Popconfirm bubbles: theme-aware for all confirm popovers ── */
+.ant-popover .ant-popover-inner {
+  color: var(--dashboard-text) !important;
+  background: var(--dashboard-surface) !important;
+  border: 1px solid var(--dashboard-border) !important;
+  box-shadow: var(--dashboard-shadow) !important;
+}
+
+.ant-popover .ant-popover-arrow::before,
+.ant-popover .ant-popover-arrow::after {
+  background: var(--dashboard-surface) !important;
+}
+
+.ant-popover .ant-popconfirm-title,
+.ant-popover .ant-popconfirm-description {
+  color: var(--dashboard-text) !important;
+}
+
+.ant-popover .ant-popconfirm-message-icon .anticon-exclamation-circle {
+  color: var(--dashboard-warning) !important;
+}
+
+/* Cancel button inside popconfirm */
+.ant-popover .ant-btn-default {
+  color: var(--dashboard-text) !important;
+  border-color: var(--dashboard-border) !important;
+  background: var(--dashboard-surface-subtle) !important;
+}
+
+.ant-popover .ant-btn-default:hover {
+  color: var(--dashboard-text) !important;
+  border-color: var(--dashboard-accent) !important;
+  background: var(--dashboard-surface-hover) !important;
+}
+
+/* ── Dark: antd defaults assume a light theme (near-black colorText).
+   Map text and light-surface controls onto the dashboard theme variables.
+   Light theme is untouched: every rule below is scoped to dark. ── */
+html.dark-theme .ant-typography {
+  color: var(--dashboard-text) !important;
+}
+
+html.dark-theme .ant-typography.ant-typography-secondary {
+  color: var(--dashboard-muted) !important;
+}
+
+html.dark-theme .ant-typography.ant-typography-warning {
+  color: var(--dashboard-warning) !important;
+}
+
+html.dark-theme .ant-typography.ant-typography-danger {
+  color: var(--dashboard-danger) !important;
+}
+
+html.dark-theme .ant-typography.ant-typography-success {
+  color: var(--dashboard-success) !important;
+}
+
+/* Restore violet accent for the Dashboard "Observability" eyebrow label;
+   the broad .ant-typography override above would otherwise flatten it to
+   the plain text colour. */
+html.dark-theme .ant-typography.dashboard-eyebrow {
+  color: var(--dashboard-accent) !important;
+}
+
+/* The login card is always dark and self-contained; keep the dark
+   typography overrides from overriding its own token-based colors. */
+html.dark-theme .login-card .ant-typography {
+  color: var(--login-muted, #9b93ad) !important;
+}
+
+html.dark-theme .login-card h3.ant-typography {
+  color: var(--login-title, #f5f3fb) !important;
+}
+
+/* Radio controls (the theme picker is a button switch; kept for any
+   future radio pickers). */
+html.dark-theme .ant-radio-wrapper {
+  color: var(--dashboard-text) !important;
+}
+
+html.dark-theme .ant-radio-wrapper:hover .ant-radio-inner,
+html.dark-theme .ant-radio:hover .ant-radio-inner {
+  border-color: var(--dashboard-accent) !important;
+}
+
+html.dark-theme .ant-radio-checked .ant-radio-inner {
+  border-color: var(--dashboard-accent) !important;
+  background-color: var(--dashboard-accent) !important;
+}
+
+html.dark-theme .ant-radio-checked .ant-radio-inner::after {
+  background-color: var(--dashboard-surface) !important;
+}
+
+html.dark-theme .ant-checkbox {
+  color: var(--dashboard-text) !important;
+}
+
+html.dark-theme .ant-checkbox-wrapper {
+  color: var(--dashboard-text) !important;
+}
+
+html.dark-theme .ant-checkbox-label {
+  color: var(--dashboard-text) !important;
+}
+
+html.dark-theme .ant-checkbox:hover .ant-checkbox-label {
+  color: var(--dashboard-text) !important;
+}
+
+html.dark-theme .ant-checkbox-input:disabled + .ant-checkbox-inner {
+  border-color: var(--dashboard-border) !important;
+  background: var(--dashboard-surface) !important;
+}
+
+/* Alerts: replace the pastel light backgrounds with theme surfaces. */
+html.dark-theme .ant-alert {
+  color: var(--dashboard-text) !important;
+  background: var(--dashboard-surface-subtle) !important;
+  border-color: var(--dashboard-border) !important;
+}
+
+html.dark-theme .ant-alert-message,
+html.dark-theme .ant-alert-description {
+  color: var(--dashboard-text) !important;
+}
+
+html.dark-theme .ant-alert-info .ant-alert-icon {
+  color: var(--dashboard-info) !important;
+}
+
+html.dark-theme .ant-alert-success .ant-alert-icon {
+  color: var(--dashboard-success) !important;
+}
+
+html.dark-theme .ant-alert-warning .ant-alert-icon {
+  color: var(--dashboard-warning) !important;
+}
+
+html.dark-theme .ant-alert-error .ant-alert-icon {
+  color: var(--dashboard-danger) !important;
+}
+
+/* Select affordances that the default light tokens render nearly invisible. */
+html.dark-theme .ant-select:not(.ant-select-disabled) .ant-select-arrow {
+  color: var(--dashboard-muted) !important;
+}
+
+html.dark-theme .ant-select .ant-select-selection-placeholder {
+  color: var(--dashboard-muted) !important;
+}
+
+/* Empty states and spinners inherit their labels from muted text. */
+html.dark-theme .ant-empty-description {
+  color: var(--dashboard-muted) !important;
+}
+
+html.dark-theme .ant-spin-text {
+  color: var(--dashboard-muted) !important;
+}
+
+/* ── Job Detail Modal — theme-aware surface (light + dark) ───────────── */
+
+.job-detail-modal .ant-modal-mask {
+  background: rgb(0 0 0 / 62%) !important;
+  backdrop-filter: blur(4px);
+}
+
+.job-detail-modal .ant-modal {
+  width: min(520px, 96vw);
+}
+
+.job-detail-modal .ant-modal-content {
+  padding: 0.95rem 1.05rem 1rem !important;
+  color: var(--dashboard-text) !important;
+  background: var(--dashboard-surface) !important;
+  border: 1px solid var(--dashboard-border) !important;
+  border-radius: 11px !important;
+  box-shadow: var(--dashboard-shadow) !important;
+}
+
+.job-detail-modal .ant-modal-header {
+  margin-bottom: 0.15rem !important;
+  color: var(--dashboard-text) !important;
+  background: var(--dashboard-surface) !important;
+}
+
+.job-detail-modal .ant-modal-title {
+  color: var(--dashboard-text) !important;
+}
+
+.job-detail-modal .ant-modal-close .anticon {
+  color: var(--dashboard-muted) !important;
+}
+
+.job-detail-modal .ant-modal-close:hover .anticon {
+  color: var(--dashboard-text) !important;
+  background: var(--dashboard-surface-hover);
+}
+
+.job-detail-modal .ant-modal-body {
+  color: var(--dashboard-text) !important;
+}
+
+.job-detail-modal .ant-modal-body strong {
+  color: var(--dashboard-text) !important;
+}
+
+/* Ant Design SVG icons inside the modal follow text color */
+.job-detail-modal svg.anticon {
+  color: inherit !important;
+}
+
+/* Job property labels stay muted */
+.job-detail-modal label {
+  color: var(--dashboard-muted) !important;
+}
+
+/* Tag pills follow the component CSS variables — exclude themed badges */
+.job-detail-modal .ant-tag:not(.job-status-badge):not(.job-tags-badge):not(.pipeline-branch) {
+  background: var(--dashboard-surface) !important;
+  border-color: var(--dashboard-border) !important;
+  color: var(--dashboard-text) !important;
+}
+
+/* Themed status badge — same as Pipelines table */
+.job-detail-modal .ant-tag.job-status-badge {
+  display: inline-flex !important;
+  margin: 0 !important;
+  padding: 0 8px !important;
+  border-radius: 4px !important;
+  font-size: 0.85em !important;
+  font-weight: 600 !important;
+  line-height: 16px !important;
+  white-space: nowrap !important;
+  color: color-mix(in srgb, var(--job-status-color) 76%, var(--dashboard-text)) !important;
+  border-color: color-mix(in srgb, var(--job-status-color) 70%, var(--dashboard-border)) !important;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--job-status-color) 16%, var(--dashboard-surface)), color-mix(in srgb, var(--job-status-color) 9%, var(--dashboard-surface))) !important;
+}
+.job-detail-modal .ant-tag.job-status-badge:hover {
+  background: color-mix(in srgb, var(--job-status-color) 24%, var(--dashboard-surface)) !important;
+  box-shadow: 0 0 8px color-mix(in srgb, var(--job-status-color) 22%, transparent) !important;
+}
+
+/* Tag pills — same accent palette as Ref badge and Pipelines Trigger badge */
+.job-detail-modal .ant-tag.job-tags-badge {
+  display: inline-flex !important;
+  margin: 0 !important;
+  padding: 0 8px !important;
+  border-radius: 4px !important;
+  font-size: 0.85em !important;
+  font-weight: 400 !important;
+  line-height: 16px !important;
+  white-space: nowrap !important;
+  color: color-mix(in srgb, var(--dashboard-accent) 78%, var(--dashboard-text)) !important;
+  border-color: color-mix(in srgb, var(--dashboard-accent) 72%, var(--dashboard-border)) !important;
+  background: color-mix(in srgb, var(--dashboard-accent) 14%, var(--dashboard-surface)) !important;
+}
+
+/* Code/commit blocks match the surface */
+.job-detail-modal pre,
+.job-detail-modal code {
+  background: var(--dashboard-surface-subtle) !important;
+  color: var(--dashboard-text) !important;
+}
+
+/* Ensure dark-mode variables resolve correctly inside the modal panel */
+html.dark-theme .job-detail-modal .ant-modal-body {
+  color-scheme: dark;
+}

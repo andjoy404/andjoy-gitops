@@ -1,0 +1,39 @@
+/* Pipelines module styles — mirrors favorites.module.css for consistent empty/loading/error states */
+
+.refreshCaption {
+  color: var(--dashboard-muted);
+  font-size: var(--gitops-table-cell-font-size);
+  white-space: nowrap;
+}
+
+.pipelinesEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 320px;
+  color: var(--dashboard-muted);
+  text-align: center;
+  gap: 0.5rem;
+  padding: 0 1.5rem;
+  font-size: var(--gitops-table-cell-font-size);
+}
+
+.pipelinesEmpty .emptyIcon {
+  color: var(--dashboard-muted);
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
+}
+
+.pipelinesEmpty strong {
+  color: var(--dashboard-text);
+  font-weight: 600;
+  font-size: var(--gitops-table-cell-font-size);
+}
+
+.pipelinesEmpty p {
+  margin: 0.25rem 0 0;
+  color: var(--dashboard-muted);
+  max-width: 320px;
+}

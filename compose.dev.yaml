@@ -1,0 +1,32 @@
+# Development stack — separate Vite dev server + Spring Boot dev server
+
+services:
+  andjoy-gitops-backend:
+    build:
+      context: ./backend
+      dockerfile: ../dev.Dockerfile
+      target: builder
+    ports:
+      - "8090:8090"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      DB_HOST: ${DB_HOST:-localhost}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-gitlab_ci_dashboard}
+      DB_USER: ${DB_USER:-gitlab_ci_dashboard}
+      DB_PASSWORD: ${DB_PASSWORD:-gitlab_ci_dashboard}
+      ENVIRONMENT_TOKEN_ENCRYPTION_KEY: ${ENVIRONMENT_TOKEN_ENCRYPTION_KEY:-0000000000000000000000000000000000000000000000000000000000000000}
+    restart: unless-stopped
+
+  andjoy-gitops-frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../dev.Dockerfile
+      target: builder
+    ports:
+      - "5173:5173"
+    depends_on:
+      - andjoy-gitops-backend
+
+    restart: unless-stopped
+

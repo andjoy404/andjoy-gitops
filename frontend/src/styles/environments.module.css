@@ -1,0 +1,394 @@
+/* ── Page shell ── */
+.envPage {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-height: 0;
+  flex: 1;
+}
+
+/* ── Table card (mirrors usersTableCard) ── */
+.envTableCard {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  margin-top: 10px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 12px;
+  background: var(--dashboard-surface);
+  box-shadow: var(--dashboard-shadow);
+}
+
+/* ── Toolbar inside card ── */
+.envToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--dashboard-border);
+  color: var(--dashboard-muted);
+}
+
+.envCount {
+  color: var(--dashboard-muted);
+  font-size: 13px;
+}
+
+/* ── Native table (mirrors userTable) ── */
+.envTable {
+  width: 100%;
+  table-layout: auto;
+  border-collapse: collapse;
+}
+
+.envTable th,
+.envTable td {
+  padding: 0.72rem 1rem;
+  border-bottom: 1px solid var(--dashboard-border);
+  text-align: left;
+  background: var(--dashboard-surface);
+}
+
+.envTable tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.envTable th {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  color: var(--dashboard-muted);
+  background: var(--dashboard-surface);
+}
+
+.envTable tbody tr {
+  transition: background-color 140ms ease;
+}
+
+.envTable tbody tr:hover td {
+  background: var(--table-row-hover);
+}
+
+/* ── Name cell ── */
+.nameCell {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+/* ── Status dot ── */
+.statusDot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--dashboard-success);
+  flex-shrink: 0;
+}
+
+/* ── Badges (mirrors paletteBadge pattern) ── */
+.badge:global(.ant-tag) {
+  margin: 0;
+  padding: 1px 8px;
+  border: 1px solid;
+  border-radius: 5px;
+  font-size: 11px;
+  line-height: 20px;
+}
+
+.badgeDefault:global(.ant-tag) {
+  color: color-mix(in srgb, #f5b301 82%, var(--dashboard-text));
+  border-color: color-mix(in srgb, #d4960a 70%, var(--dashboard-border));
+  background: color-mix(in srgb, #d4960a 17%, var(--dashboard-surface));
+}
+
+.badgeEnabled:global(.ant-tag) {
+  color: color-mix(in srgb, #22c55e 82%, var(--dashboard-text));
+  border-color: color-mix(in srgb, #16a34a 70%, var(--dashboard-border));
+  background: color-mix(in srgb, #16a34a 17%, var(--dashboard-surface));
+}
+
+.badgeDisabled:global(.ant-tag) {
+  color: var(--dashboard-muted);
+  border-color: color-mix(in srgb, var(--dashboard-muted) 65%, var(--dashboard-border));
+  background: color-mix(in srgb, var(--dashboard-muted) 13%, var(--dashboard-surface));
+}
+
+/* ── Action cell ── */
+.actionsCell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.15rem;
+}
+
+/* ── Empty & loading states ── */
+.envEmpty {
+  padding: 3rem !important;
+  text-align: center !important;
+  color: var(--dashboard-muted);
+}
+
+.loadingContainer {
+  padding: 2rem;
+  text-align: center;
+  color: var(--dashboard-muted);
+}
+
+/* ── Empty first-run state (full page) ── */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 2rem;
+  gap: 1rem;
+  flex: 1;
+}
+
+.emptyState h2 {
+  margin: 0;
+  color: var(--dashboard-text);
+  font-size: 1.25rem;
+  line-height: 1.35;
+}
+
+.emptyState p {
+  color: var(--dashboard-muted);
+  max-width: 480px;
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.emptyState ol {
+  text-align: left;
+  color: var(--dashboard-muted);
+  max-width: 440px;
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.emptyState ol li {
+  margin-bottom: 0.25rem;
+}
+
+.emptyState :global(.ant-btn) {
+  font-size: 0.875rem;
+}
+
+@media (max-width: 800px) {
+  .envTableCard {
+    overflow: auto;
+  }
+}
+
+/* ── Env editor drawer (mirrors userDrawer) ── */
+.envDrawer :global(.ant-drawer-mask) { background: rgb(0 0 0 / 62%); backdrop-filter: blur(4px); }
+.envDrawer :global(.ant-drawer-content),
+.envDrawer :global(.ant-drawer-header),
+.envDrawer :global(.ant-drawer-body) { color: var(--dashboard-text); background: var(--dashboard-surface); }
+.envDrawer :global(.ant-drawer-content) { border-left: 1px solid var(--dashboard-border); box-shadow: -24px 0 70px rgb(0 0 0 / 45%); }
+.envDrawer :global(.ant-drawer-header) { padding: 20px; border-bottom: 1px solid var(--dashboard-border); }
+.envDrawer :global(.ant-drawer-header-title) { min-width: 0; }
+.envDrawer :global(.ant-drawer-title) { color: var(--dashboard-text); }
+.envDrawer :global(.ant-drawer-extra .ant-btn) { color: var(--dashboard-muted); }
+.envDrawer :global(.ant-drawer-extra .ant-btn:hover) { color: var(--dashboard-text) !important; background: var(--dashboard-surface-hover) !important; }
+.envDrawer :global(.ant-drawer-body) { display: flex; flex-direction: column; min-height: 0; padding: 20px; }
+.envDrawer,
+.envDrawer :global(.ant-form),
+.envDrawer :global(.ant-form-item-label > label),
+.envDrawer :global(.ant-form-item-extra),
+.envDrawer :global(.ant-form-item-explain),
+.envDrawer :global(.ant-input),
+.envDrawer :global(.ant-input-affix-wrapper),
+.envDrawer :global(.ant-btn),
+.envDrawer :global(.ant-switch-inner) {
+  font-size: var(--gitops-table-cell-font-size);
+  font-weight: var(--gitops-table-cell-font-weight);
+  line-height: var(--gitops-table-cell-line-height);
+}
+
+/* Drawer heading */
+.drawerHeading { display: flex; flex-direction: column; gap: 4px; }
+.drawerHeading strong { color: var(--dashboard-text); font-size: 20px; }
+.drawerHeading small { color: var(--dashboard-muted); font-size: var(--gitops-table-cell-font-size); font-weight: var(--gitops-table-cell-font-weight); line-height: var(--gitops-table-cell-line-height); }
+
+/* Scrollable form body */
+.envForm { overflow-y: auto; min-height: 0; padding-right: 4px; flex: 1; }
+
+/* Theme-aware form controls inside the drawer */
+.envDrawer :global(.ant-form-item-label > label) { color: var(--dashboard-text); }
+.envDrawer :global(.ant-input),
+.envDrawer :global(.ant-input-affix-wrapper),
+.envDrawer :global(.ant-input-password) {
+  color: var(--dashboard-text) !important;
+  border-color: var(--dashboard-border) !important;
+  background: var(--dashboard-surface-subtle) !important;
+}
+.envDrawer :global(.ant-input::placeholder) { color: var(--dashboard-muted) !important; }
+.envDrawer :global(.ant-input:hover),
+.envDrawer :global(.ant-input-affix-wrapper:hover) { border-color: var(--dashboard-accent) !important; }
+.envDrawer :global(.ant-input:focus),
+.envDrawer :global(.ant-input-affix-wrapper-focused) {
+  border-color: var(--dashboard-accent) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--dashboard-accent) 18%, transparent) !important;
+}
+.envDrawer :global(.ant-input-password-icon),
+.envDrawer :global(.ant-input-suffix .anticon) { color: var(--dashboard-muted) !important; }
+.envDrawer :global(.ant-input-password-icon:hover) { color: var(--dashboard-text) !important; }
+.envDrawer :global(.ant-select),
+.envDrawer :global(.ant-select-selector) {
+  color: var(--dashboard-text) !important;
+  border-color: var(--dashboard-border) !important;
+  background: var(--dashboard-surface-subtle) !important;
+}
+.envDrawer :global(.ant-select-single) {
+  color: var(--dashboard-text) !important;
+}
+.envDrawer :global(.ant-select-arrow) { color: var(--dashboard-muted) !important; }
+.envDrawer :global(.ant-select-selection-item) {
+  background: var(--dashboard-accent-soft, color-mix(in srgb, var(--dashboard-accent) 14%, var(--dashboard-surface))) !important;
+  border-color: var(--dashboard-accent) !important;
+  color: var(--dashboard-text) !important;
+}
+.envDrawer :global(.ant-select-selection-item-content) { color: var(--dashboard-text) !important; }
+.groupIdsSelect :global(.ant-select-selector) {
+  min-height: 40px !important;
+  height: auto !important;
+  padding: 4px 8px !important;
+  cursor: text !important;
+  border-color: var(--dashboard-border) !important;
+  background: var(--dashboard-surface-subtle) !important;
+  color: var(--dashboard-text) !important;
+}
+.groupIdsSelect :global(.ant-select-selection-overflow) {
+  align-items: center;
+  gap: 4px;
+  row-gap: 5px;
+}
+.groupIdsSelect :global(.ant-select-selection-overflow-item) {
+  max-width: 100%;
+}
+.groupIdsSelect :global(.ant-select-selection-search) {
+  min-width: 12rem;
+  margin-inline-start: 2px;
+}
+.groupIdsSelect :global(.ant-select-selection-search-input) {
+  color: var(--dashboard-text) !important;
+}
+.groupIdsSelect :global(.ant-select-selection-placeholder) {
+  inset-inline-start: 10px !important;
+  color: var(--dashboard-muted) !important;
+}
+.groupIdTag {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  margin: 0 !important;
+  padding: 2px 8px !important;
+  border: 1px solid color-mix(in srgb, var(--dashboard-accent) 62%, var(--dashboard-border)) !important;
+  border-radius: 999px !important;
+  color: var(--dashboard-text) !important;
+  background: color-mix(in srgb, var(--dashboard-accent) 16%, var(--dashboard-surface)) !important;
+  font-size: var(--gitops-table-cell-font-size);
+  line-height: 1.35;
+}
+.groupIdTag :global(.ant-tag-close-icon) {
+  margin-inline-start: 6px;
+  color: var(--dashboard-muted);
+}
+.groupIdTag :global(.ant-tag-close-icon:hover) {
+  color: var(--dashboard-text);
+}
+.statusForm :global(.ant-form-item-control-input-content) { display: flex; align-items: center; gap: 10px; }
+.statusTextOn { color: var(--dashboard-success); font-weight: 600; }
+.statusTextOff { color: var(--dashboard-muted); }
+.envDrawer :global(.ant-switch) { background: var(--dashboard-border); }
+.envDrawer :global(.ant-switch.ant-switch-checked) { background: var(--dashboard-accent); }
+.envDrawer :global(.ant-switch-inner) { color: #fff; }
+.envDrawer :global(.ant-form-item-extra) { color: var(--dashboard-muted) !important; }
+.envDrawer :global(.ant-form-item-explain-error) { color: var(--dashboard-danger); }
+
+.groupIdsItem :global(.ant-form-item-tooltip) {
+  color: color-mix(in srgb, var(--dashboard-accent) 72%, var(--dashboard-text)) !important;
+}
+
+:global(.environment-help-tooltip) :global(.ant-tooltip-inner) {
+  padding: 5px 7px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 6px;
+  color: var(--dashboard-text);
+  background: var(--dashboard-surface);
+  box-shadow: var(--dashboard-shadow);
+  font-size: var(--gitops-table-header-font-size);
+  line-height: var(--gitops-table-cell-line-height);
+}
+
+:global(.environment-help-tooltip) :global(.ant-tooltip-arrow)::before {
+  background: var(--dashboard-surface);
+}
+
+/* Footer */
+.formFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--dashboard-border);
+  gap: 0.65rem;
+}
+.formFooter :global(.ant-btn) { flex: 1; color: var(--dashboard-text); border-color: var(--dashboard-border); background: var(--dashboard-surface-subtle); }
+.formFooter :global(.ant-btn-primary) { border-color: var(--dashboard-accent); background: var(--dashboard-accent); }
+
+/* Error banner inside drawer */
+.envFormError {
+  margin-bottom: 1rem;
+  padding: 0.65rem;
+  color: color-mix(in srgb, var(--dashboard-danger) 86%, var(--dashboard-text));
+  border: 1px solid color-mix(in srgb, var(--dashboard-danger) 65%, var(--dashboard-border));
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--dashboard-danger) 12%, var(--dashboard-surface));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--gitops-table-cell-font-size);
+  font-weight: var(--gitops-table-cell-font-weight);
+  line-height: var(--gitops-table-cell-line-height);
+}
+.envFormError > span { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 1rem; }
+.errorClose {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  color: currentColor;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  cursor: pointer;
+  place-items: center;
+  flex: 0 0 auto;
+}
+.errorClose:hover { background: rgba(215, 47, 69, 0.14); }
+
+/* ── Row highlight after create/edit (mirrors newUserHighlight) ── */
+.newEnvHighlight td { animation: newEnvHighlight 2.6s ease-out; }
+
+@keyframes newEnvHighlight {
+  0%, 32% { background: color-mix(in srgb, var(--dashboard-accent) 28%, transparent); }
+  55%      { background: color-mix(in srgb, var(--dashboard-accent) 9%, transparent); }
+  72%      { background: color-mix(in srgb, var(--dashboard-accent) 22%, transparent); }
+  100%     { background: transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .newEnvHighlight td { animation: none; background: var(--dashboard-accent-soft); }
+}

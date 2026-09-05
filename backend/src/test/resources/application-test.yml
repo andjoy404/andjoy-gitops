@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres-test:5432/gitlab_ops_test
+    driver-class-name: org.postgresql.Driver
+    username: gitlab_ops_test
+    password: test-only-password
+  task:
+    scheduling:
+      enabled: false
+  flyway:
+    enabled: false

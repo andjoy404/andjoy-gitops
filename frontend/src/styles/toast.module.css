@@ -1,0 +1,55 @@
+/* ── Reusable themed toast (no layout impact: fixed + pointer-events none) ── */
+.toast {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  max-width: min(420px, calc(100vw - 2rem));
+  border: 1px solid var(--dashboard-border);
+  border-radius: 8px;
+  background: var(--dashboard-surface);
+  color: var(--dashboard-text);
+  font-size: 0.8rem;
+  box-shadow: var(--dashboard-shadow);
+  pointer-events: none;
+  animation: toast-slide-in 160ms ease-out;
+}
+
+.success {
+  border-color: color-mix(in srgb, var(--dashboard-success) 40%, var(--dashboard-border));
+  background: color-mix(in srgb, var(--dashboard-success) 8%, var(--dashboard-surface));
+}
+
+.success .icon {
+  color: var(--dashboard-success);
+}
+
+.error {
+  border-color: color-mix(in srgb, var(--dashboard-danger) 45%, var(--dashboard-border));
+  background: color-mix(in srgb, var(--dashboard-danger) 8%, var(--dashboard-surface));
+}
+
+.error .icon {
+  color: var(--dashboard-danger);
+}
+
+.icon {
+  flex: 0 0 auto;
+  font-size: 0.85rem;
+}
+
+@keyframes toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -6px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}

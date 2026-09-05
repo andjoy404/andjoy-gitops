@@ -1,0 +1,677 @@
+/* Theme tokens — light (default) and dark */
+
+/* Light theme (default) */
+:root {
+  --dashboard-surface: #ffffff;
+  --dashboard-surface-subtle: #f8fafc;
+  --dashboard-surface-hover: #f3f5f8;
+  --dashboard-border: #e5e7eb;
+  --dashboard-text: #202331;
+  --dashboard-muted: #6b7280;
+  --dashboard-accent: #7c5ac7;
+  --dashboard-accent-soft: #d9cdf0;
+  --table-row-hover: color-mix(in srgb, var(--dashboard-accent) 10%, var(--dashboard-surface));
+  --dashboard-success: #18D99A;
+  --dashboard-success-soft: #d6f3e5;
+  --dashboard-danger: #FF5267;
+  --dashboard-warning: #FFC21C;
+  --dashboard-info: #39A0FF;
+  --dashboard-gauge-track: #e7ebf0;
+  --dashboard-shadow: 0 1px 3px rgb(15 23 42 / 6%);
+  --dashboard-shadow-sm: 0 1px 2px rgb(15 23 42 / 4%);
+  --dashboard-shadow-md: 0 4px 12px rgb(15 23 42 / 8%);
+  --dashboard-shadow-lg: 0 8px 24px rgb(15 23 42 / 12%);
+  --dashboard-radius-sm: 6px;
+  --dashboard-radius-md: 8px;
+  --dashboard-radius-lg: 12px;
+  --dashboard-transition: all 150ms ease;
+  --dashboard-selection: color-mix(in srgb, var(--dashboard-accent) 30%, transparent);
+  --sidebar-overlay-shadow: 0 4px 18px rgb(15 23 42 / 16%), 1px 0 4px rgb(15 23 42 / 8%), 10px 0 24px rgb(124 90 199 / 14%);
+}
+
+/* Dark theme */
+html.dark-theme {
+  color-scheme: dark;
+  --dashboard-surface: #0d1011;
+  --dashboard-surface-subtle: #0a0d0e;
+  --dashboard-surface-hover: #15191b;
+  --dashboard-border: #292d30;
+  --dashboard-text: #f4f4f5;
+  --dashboard-muted: #92989f;
+  --dashboard-accent: #a970ff;
+  --dashboard-accent-soft: #4b2f6e;
+  --dashboard-success: #73bf69;
+  --dashboard-success-soft: #1d3928;
+  --dashboard-danger: #f2495c;
+  --dashboard-warning: #ff9830;
+  --dashboard-info: #5794f2;
+  --dashboard-gauge-track: #24282a;
+  --dashboard-shadow: 0 8px 24px rgb(0 0 0 / 30%);
+  --dashboard-shadow-sm: 0 2px 4px rgb(0 0 0 / 20%);
+  --dashboard-shadow-md: 0 4px 16px rgb(0 0 0 / 25%);
+  --dashboard-shadow-lg: 0 8px 32px rgb(0 0 0 / 35%);
+  --dashboard-radius-sm: 6px;
+  --dashboard-radius-md: 8px;
+  --dashboard-radius-lg: 12px;
+  --dashboard-transition: all 150ms ease;
+  --sidebar-overlay-shadow: 0 8px 28px rgb(0 0 0 / 55%), 1px 0 5px rgb(0 0 0 / 45%), 10px 0 26px rgb(169 112 255 / 20%);
+}
+
+/* ── Shared data-table typography ───────────────────────────────────────────
+   Compact, lighter table type. Applied via one .gitops-data-table class so
+   every table shares identical header/cell tokens. Colors resolve to the
+   active theme's existing --dashboard-* variables. */
+:root {
+  --gitops-table-row-min-height: 40px;
+  --gitops-table-header-font-size: 0.625rem;   /* 10px */
+  --gitops-table-header-font-weight: 600;       /* semi-bold */
+  --gitops-table-header-line-height: 1.2;
+  --gitops-table-header-letter-spacing: 0.0625em; /* 0.5px */
+  --gitops-table-header-color: var(--dashboard-muted);
+
+  --gitops-table-cell-font-size: 0.75rem;       /* 12px */
+  --gitops-table-cell-font-weight: 400;         /* regular, not bold */
+  --gitops-table-cell-line-height: 1.35;
+  --gitops-table-cell-color: var(--dashboard-text);
+  --gitops-table-secondary-color: var(--dashboard-muted);
+}
+
+/* ── Shared font families (UI/body + mono face set) ────────────────────
+    Montserrat Variable is the UI/body face; Geist Mono Variable is the
+    mono/heading face. Both are bundled locally via @fontsource-variable. */
+:root {
+  --font-sans: 'Montserrat Variable', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Geist Mono Variable', monospace;
+  --font-mono: 'Geist Mono Variable', monospace;
+}
+
+/* App shell */
+body {
+  font-family: var(--font-sans);
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.app-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.analytics-loading-gate { position:relative; min-width:0; }
+.analytics-loading-gate__content { transition:filter 160ms ease,opacity 160ms ease; }
+.analytics-loading-gate--active { min-height:clamp(360px,56vh,640px); }
+.analytics-loading-gate--full.analytics-loading-gate--active { min-height:max(520px,calc(100dvh - 170px)); }
+.analytics-loading-gate--active .analytics-loading-gate__content { min-height:inherit; filter:blur(3px) saturate(.72); opacity:.38; pointer-events:none; user-select:none; }
+.analytics-loading-gate__overlay { position:absolute; z-index:4; inset:0; display:flex; min-height:inherit; padding:1.5rem; box-sizing:border-box; align-items:center; justify-content:center; flex-direction:column; gap:.55rem; text-align:center; color:var(--dashboard-text); border:1px solid color-mix(in srgb,var(--dashboard-border) 76%,transparent); border-radius:10px; background:color-mix(in srgb,var(--dashboard-surface) 72%,transparent); -webkit-backdrop-filter:blur(5px) saturate(.86); backdrop-filter:blur(5px) saturate(.86); box-shadow:inset 0 0 38px color-mix(in srgb,var(--dashboard-accent) 9%,transparent); }
+.analytics-loading-gate__overlay .ant-spin-dot-item { background-color:var(--dashboard-accent); }
+.analytics-loading-gate__overlay strong { margin-top:.2rem; font-size:var(--gitops-table-cell-font-size); font-weight:600; }
+.analytics-loading-gate__overlay > span:last-child { color:var(--dashboard-muted); font-size:var(--gitops-table-cell-font-size); font-weight:var(--gitops-table-cell-font-weight); }
+.analytics-loading-gate--error .analytics-loading-gate__overlay .ant-alert { width:min(560px,100%); border-color:color-mix(in srgb,var(--dashboard-danger) 42%,var(--dashboard-border)); background:color-mix(in srgb,var(--dashboard-danger) 10%,var(--dashboard-surface)); color:var(--dashboard-text); }
+.analytics-loading-gate--error .analytics-loading-gate__overlay .ant-alert-message { color:var(--dashboard-text); font-size:var(--gitops-table-cell-font-size); font-weight:600; }
+.analytics-loading-gate--error .analytics-loading-gate__overlay .ant-alert-description { color:var(--dashboard-muted); font-size:var(--gitops-table-cell-font-size); }
+.first-environment-empty-state { display:flex; min-width:0; max-width:960px; flex:1; flex-direction:column; align-items:flex-start; justify-content:flex-start; gap:.75rem; padding:.35rem 0; text-align:left; color:var(--dashboard-muted); }
+.first-environment-empty-state > .anticon { color:var(--dashboard-muted); font-size:2.25rem; }
+.first-environment-empty-state h2 { margin:.35rem 0 0; color:var(--dashboard-text); font-size:21px; line-height:1.25; font-weight:600; }
+.first-environment-empty-state p,
+.first-environment-empty-state ol { margin:0; color:var(--dashboard-muted); font-size:var(--gitops-table-cell-font-size); line-height:var(--gitops-table-cell-line-height); font-weight:var(--gitops-table-cell-font-weight); }
+.first-environment-empty-state ol { padding-left:1.35rem; }
+.first-environment-empty-state .ant-btn { margin-top:.25rem; font-size:var(--gitops-table-cell-font-size); }
+@media (prefers-reduced-motion:reduce) { .analytics-loading-gate__content { transition:none; } }
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-content {
+  padding: 1.5rem;
+  padding-bottom: 24px;
+  background: var(--dashboard-surface);
+  color: var(--dashboard-text);
+}
+
+.placeholder-page {
+  text-align: center;
+  padding: 3rem;
+}
+
+.placeholder-page h2 {
+  margin-bottom: 0.5rem;
+  color: var(--dashboard-text);
+}
+
+.placeholder-page p {
+  color: var(--dashboard-muted);
+  margin: 0.25rem 0;
+}
+
+.ant-btn-primary {
+  border-color: #7652c7;
+  background: #7652c7;
+}
+
+.ant-btn-primary:hover {
+  border-color: #8f6ed8 !important;
+  background: #8f6ed8 !important;
+}
+
+/* ── Shared page header icon tile (theme-aware via dashboard vars) ── */
+/* ── Global Refresh (default antd button) — mirrors the Pipeline toolbar
+   Refresh on every page: subtle surface, theme border, accent hover, 6px radius. */
+.ant-btn-default,
+.ant-btn-default:hover,
+.ant-btn-default:focus {
+  background: var(--dashboard-surface) !important;
+  background-color: var(--dashboard-surface) !important;
+  color: var(--dashboard-text) !important;
+  border-color: var(--dashboard-border) !important;
+  border-radius: 6px !important;
+}
+.ant-btn-default:hover:not(:disabled),
+.ant-btn-default:focus:not(:disabled) {
+  background: var(--dashboard-surface-hover) !important;
+  color: var(--dashboard-accent) !important;
+  border-color: var(--dashboard-accent) !important;
+}
+.ant-btn-default:focus-visible {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--dashboard-accent) 22%, transparent) !important;
+}
+.ant-btn-default > .anticon { color: inherit; }
+
+/* ── Global range pill — the Pipeline range control, reusable on any page.
+   32px tall, 6px radius, muted caption + divider + borderless antd Select. */
+.range-box { display:inline-flex; height:32px; box-sizing:border-box; align-items:center; overflow:hidden; border:1px solid var(--dashboard-border); border-radius:6px; background:var(--dashboard-surface-subtle); transition:border-color 140ms ease; }
+.range-box:hover,.range-box:focus-within { border-color:color-mix(in srgb,var(--dashboard-accent) 60%,var(--dashboard-border)); }
+.range-box > span { padding:0 10px; color:var(--dashboard-muted); font-size:.72rem; user-select:none; }
+.range-box .ant-select { min-width:132px; height:32px; }
+.range-box .ant-select .ant-select-selector { border:0 !important; border-left:1px solid var(--dashboard-border) !important; border-left-width:1px !important; border-radius:0 !important; background:transparent !important; box-shadow:none !important; }
+.range-box .ant-select:not(.ant-select-disabled):hover .ant-select-selector,.range-box .ant-select-focused .ant-select-selector { box-shadow:none !important; border-left-color:var(--dashboard-accent) !important; }
+.range-box .ant-select-selection-item { font-size:.85rem; line-height:30px !important; color:var(--dashboard-text) !important; }
+.range-box .ant-select-arrow { color:var(--dashboard-muted); }
+
+/* ── Standalone toolbar Select — 32px, 6px radius, theme border + accent
+   hover. Companion to .range-box for filter controls without a caption. */
+.toolbar-select { height:32px; }
+.toolbar-select .ant-select-selector { height:32px !important; min-height:32px !important; border:1px solid var(--dashboard-border); border-radius:6px; background:var(--dashboard-surface-subtle) !important; box-shadow:none !important; color:var(--dashboard-text); }
+.toolbar-select:not(.ant-select-disabled):hover .ant-select-selector, .toolbar-select.ant-select-focused .ant-select-selector { border-color:var(--dashboard-accent) !important; box-shadow:none !important; }
+.toolbar-select .ant-select-selection-item, .toolbar-select .ant-select-selection-placeholder { line-height:30px !important; font-size:var(--gitops-table-cell-font-size); font-weight:var(--gitops-table-cell-font-weight); }
+.toolbar-select .ant-select-selection-placeholder { color:var(--dashboard-muted); display:inline-flex !important; align-items:center; }
+.toolbar-select.ant-select-multiple .ant-select-selector { min-height:32px !important; align-items:center; }
+.toolbar-select.ant-select-multiple .ant-select-selection-item { line-height:24px !important; padding-block:0; border-radius:4px; }
+.toolbar-select .ant-select-arrow, .toolbar-select .ant-select-show-search .ant-select-selection-search svg, .toolbar-select .ant-select-clear { color:var(--dashboard-muted); }
+
+/* ── Global template: every Antd Select dropdown item uses the dashboard
+   table-cell font size. `!important` keeps individual popups from drifting.
+   (Weight is left per-popup so selected-state bold still applies.) ── */
+.ant-select-item { font-size: var(--gitops-table-cell-font-size) !important; }
+
+/* ── Global tooltip font (renders in DOM portal, scoped CSS can't reach it) ── */
+.ant-tooltip-inner { padding: 4px 8px; font-size: var(--gitops-table-cell-font-size) !important; }
+.ant-tooltip-arrow { font-size: var(--gitops-table-header-font-size) !important; }
+
+.page-header-icon { padding:0.45rem; color:var(--dashboard-accent); border-radius:7px; background:var(--dashboard-accent-soft); font-size:18px; flex:0 0 auto; }
+.page-header-copy { display:flex; flex-direction:column; justify-content:center; min-width:0; }
+
+/* ── Shared boxed page header (operation-menu parity: surface, border, radius, shadow) ── */
+.page-header-box { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 12px; padding:10px 12px; border:1px solid var(--dashboard-border); border-radius:12px; background:var(--dashboard-surface); box-shadow:var(--dashboard-shadow); }
+.page-header-title { display:flex; align-items:center; gap:0.8rem; flex:1 1 auto; min-width:0; }
+.page-header-title-text { margin:0; min-width:0; font-size:17px; line-height:1.25; color:var(--dashboard-text); overflow-wrap:anywhere; }
+.page-header-subtitle { margin: 0; min-width: 0; color: var(--dashboard-muted); font-size: var(--gitops-table-cell-font-size); line-height: 1.4; overflow-wrap: anywhere; }
+.page-header-actions { display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap; margin-left:auto; }
+
+/* ── Shared empty-state banner (Pipelines / Runners / UserActivity) ── */
+.pipelines-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 320px;
+  color: var(--dashboard-muted);
+  text-align: center;
+  gap: 0.5rem;
+  padding: 0 1.5rem;
+  font-size: var(--gitops-table-cell-font-size);
+}
+.pipelines-empty > .anticon {
+  color: var(--dashboard-muted);
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
+}
+.pipelines-empty strong {
+  color: var(--dashboard-text);
+  font-weight: 600;
+  font-size: var(--gitops-table-cell-font-size);
+}
+.pipelines-empty p {
+  margin: 0.25rem 0 0;
+  color: var(--dashboard-muted);
+  max-width: 320px;
+}
+
+/* ── Shared data table typography ───────────────────────────────────────────
+   One global class applies identical header/cell type to every table.
+   Typography only — padding, borders, hover, truncation and responsive
+   scroll stay owned by each table's own (module) rules. Badges, tags,
+   buttons, icons and action menus are intentionally NOT restyled here. */
+.gitops-data-table th {
+  font-size: var(--gitops-table-header-font-size);
+  font-weight: var(--gitops-table-header-font-weight);
+  line-height: var(--gitops-table-header-line-height);
+  letter-spacing: var(--gitops-table-header-letter-spacing);
+  text-transform: uppercase;
+  color: var(--gitops-table-header-color);
+}
+
+.gitops-data-table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  color: var(--dashboard-text) !important;
+  background: var(--dashboard-surface) !important;
+  table-layout: auto !important;
+}
+.gitops-data-table th {
+  padding: 10px 12px;
+  background: var(--dashboard-surface) !important;
+  color: var(--dashboard-muted) !important;
+  min-height: var(--gitops-table-row-min-height);
+  border-bottom: 1px solid var(--dashboard-border) !important;
+  text-align: left;
+}
+.gitops-data-table td {
+  padding: 10px 12px;
+  font-size: var(--gitops-table-cell-font-size);
+  font-weight: var(--gitops-table-cell-font-weight);
+  line-height: var(--gitops-table-cell-line-height);
+  color: var(--gitops-table-cell-color);
+  min-height: var(--gitops-table-row-min-height);
+  box-sizing: border-box;
+  vertical-align: middle;
+  background: var(--dashboard-surface) !important;
+  border-bottom: 1px solid var(--dashboard-border) !important;
+}
+.gitops-data-table tbody tr:hover > td {
+  background: var(--table-row-hover) !important;
+}
+.gitops-data-table tbody > tr:last-child > td {
+  border-bottom: none !important;
+}
+
+/* Values that were bold now share the lighter cell weight.
+   Links, tags, badges and inline actions keep their own color/behavior and
+   only inherit the lighter weight from the cell. */
+.gitops-data-table td strong,
+.gitops-data-table td b {
+  font-weight: var(--gitops-table-cell-font-weight);
+  text-decoration: none;
+}
+
+/* ── Global template — RunnersPage layout, applied to every menu page ──────
+   Shared surface: border, radius, shadow match the dashboard card style.
+   Page root layout, summary-bar, data-workspace, data-table-wrapper, and
+   data-table typography all live here so every menu renders identically
+   (only content differs). */
+
+/* ── Runner table — Ant Design v5 puts the className on <div class="ant-table ...">
+    itself. Target the inner table directly — don't nest .ant-table inside it ── */
+.gitops-data-table.runner-table
+  > .ant-table-container
+  > .ant-table-body
+  > table,
+.gitops-data-table.runner-table
+  > .ant-table-container
+  > .ant-table-scroll
+  > .ant-table-body
+  > table {
+  table-layout: auto !important;
+}
+
+/* Global page root: matches .runnersPage skeleton */
+.global-page-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  min-height: calc(100vh - 94px);
+  flex: 1;
+  color: var(--dashboard-text);
+}
+
+/* Global template: .summary-bar two-column (title + segments) */
+.global-page-layout .summary-bar {
+  grid-template-columns: max-content minmax(0, 1fr);
+}
+
+.analytics-loading-gate--full {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  position: relative;
+}
+.analytics-loading-gate--full > .analytics-loading-gate__content {
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.analytics-loading-gate--full:not(.analytics-loading-gate--active) {
+  min-height: 320px;
+}
+
+/* Shared data workspace — flex column, no outer box (summary-bar already has border/shadow) */
+.data-workspace {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+/* Shared table wrapper inside .data-workspace */
+.data-table-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  overflow-x: auto;
+}
+
+/* Shared data-table styling — sticky header, colors, and border
+    removal for the last row. Pipeline page uses its own (more specific)
+    selectors in pipelines.css to style the same elements, so the global
+    rules here act only as a fallback for pages that don't override. */
+.data-workspace .gitops-data-table {
+  color: var(--dashboard-text) !important;
+  background: var(--dashboard-surface) !important;
+}
+
+
+/* Global uniform badge/tag height for in-table status/trigger/job badges.
+   Height only — color, weight, font-size stay untouched. Keeps every in-table
+   badge the same height regardless of the table it appears in so rows never
+   grow taller than the shared row-height floor. */
+.gitops-data-table td .pipeline-status-badge,
+.gitops-data-table td .pipeline-trigger-badge,
+.gitops-data-table td .pipeline-branch,
+.gitops-data-table td .pipeline-job-badge,
+.gitops-data-table td .status-badge,
+.gitops-data-table td .ant-tag,
+.gitops-data-table td .ant-badge-status,
+.gitops-data-table td .ant-badge-status-text {
+  height: 22px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  line-height: 1.2;
+}
+
+/* Global uniform height for antd Buttons and action icons inside any data
+   table cell.  Only caps the box height — text/icon still centers via
+   inline-flex. Keeps 32px circle/text buttons from pushing the row past
+   the shared 48px row floor. */
+.gitops-data-table td .ant-btn,
+.gitops-data-table td .pipeline-actions-cell {
+  height: 22px;
+  min-height: 22px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 6px;
+  line-height: 1.2;
+}
+.gitops-data-table td .ant-btn .anticon {
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+/* ── Visual Enhancements: Animations ─────────────────────────────────────── */
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 4px color-mix(in srgb, var(--dashboard-accent) 30%, transparent); }
+  50% { box-shadow: 0 0 12px color-mix(in srgb, var(--dashboard-accent) 50%, transparent); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes border-glow {
+  0%, 100% { border-color: var(--dashboard-border); }
+  50% { border-color: color-mix(in srgb, var(--dashboard-accent) 40%, var(--dashboard-border)); }
+}
+
+@keyframes number-count {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ── Custom Scrollbar ────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--dashboard-surface-subtle);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--dashboard-muted) 30%, transparent);
+  border-radius: 4px;
+  transition: background 140ms ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--dashboard-muted) 50%, transparent);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--dashboard-surface-subtle);
+}
+
+/* ── Selection Color ─────────────────────────────────────────────────────── */
+
+::selection {
+  background: var(--dashboard-selection);
+  color: var(--dashboard-text);
+}
+
+::-moz-selection {
+  background: var(--dashboard-selection);
+  color: var(--dashboard-text);
+}
+
+/* ── Noise Texture Overlay ───────────────────────────────────────────────── */
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.015;
+  z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+html.dark-theme body::after {
+  opacity: 0.008;
+}
+
+/* ── Gradient Text for Page Headings ─────────────────────────────────────── */
+
+.page-heading-gradient {
+  background: linear-gradient(135deg, var(--dashboard-text) 0%, var(--dashboard-accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Skeleton Loading States ─────────────────────────────────────────────── */
+
+.skeleton {
+  background: linear-gradient(90deg,
+    var(--dashboard-surface-hover) 25%,
+    color-mix(in srgb, var(--dashboard-border) 40%, var(--dashboard-surface)) 50%,
+    var(--dashboard-surface-hover) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--dashboard-radius-sm);
+}
+
+.skeleton-text {
+  height: 12px;
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+.skeleton-text.short { width: 60%; }
+.skeleton-text.medium { width: 80%; }
+.skeleton-text.long { width: 100%; }
+
+.skeleton-title {
+  height: 18px;
+  margin-bottom: 12px;
+  width: 40%;
+}
+
+.skeleton-card {
+  height: 120px;
+  border-radius: var(--dashboard-radius-md);
+}
+
+.skeleton-row {
+  height: 40px;
+  border-radius: var(--dashboard-radius-sm);
+  margin-bottom: 4px;
+}
+
+/* ── Animated Focus Rings ────────────────────────────────────────────────── */
+
+*:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--dashboard-accent) 35%, transparent);
+  border-radius: var(--dashboard-radius-sm);
+}
+
+/* ── Button Press Effect ─────────────────────────────────────────────────── */
+
+.ant-btn {
+  transition: var(--dashboard-transition), transform 100ms ease;
+}
+
+.ant-btn:active {
+  transform: scale(0.98);
+}
+
+/* ── Enhanced Tooltip Animation ──────────────────────────────────────────── */
+
+.ant-tooltip {
+  animation: fade-in-up 150ms ease;
+}
+
+.ant-tooltip-inner {
+  padding: 6px 10px;
+  font-size: var(--gitops-table-cell-font-size) !important;
+  border-radius: var(--dashboard-radius-sm);
+  box-shadow: var(--dashboard-shadow-md);
+}
+
+.ant-tooltip-arrow {
+  font-size: var(--gitops-table-header-font-size) !important;
+}
+
+/* ── Table Row Entrance Animation ────────────────────────────────────────── */
+
+.gitops-data-table tbody tr {
+  animation: fade-in-up 200ms ease both;
+}
+
+/* ── Live Indicator Pulse ────────────────────────────────────────────────── */
+
+.live-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--dashboard-success);
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* ── Animated Gradient Border for Key Cards ──────────────────────────────── */
+
+.gradient-border-card {
+  position: relative;
+  border-radius: var(--dashboard-radius-md);
+  background: var(--dashboard-surface);
+  border: 1px solid var(--dashboard-border);
+  overflow: hidden;
+}
+
+.gradient-border-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--dashboard-radius-md);
+  padding: 1px;
+  background: linear-gradient(135deg, var(--dashboard-accent), var(--dashboard-info), var(--dashboard-success), var(--dashboard-accent));
+  background-size: 300% 300%;
+  animation: gradient-shift 6s ease infinite;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ── Glassmorphism Panels ────────────────────────────────────────────────── */
+
+.glass-panel {
+  background: color-mix(in srgb, var(--dashboard-surface) 85%, transparent);
+  backdrop-filter: blur(8px) saturate(1.2);
+  -webkit-backdrop-filter: blur(8px) saturate(1.2);
+  border: 1px solid color-mix(in srgb, var(--dashboard-border) 60%, transparent);
+  border-radius: var(--dashboard-radius-md);
+}
+
+/* ── Prefers Reduced Motion ──────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton, .gradient-border-card::before, .live-indicator {
+    animation: none;
+  }
+  .gitops-data-table tbody tr {
+    animation: none;
+  }
+  .ant-tooltip {
+    animation: none;
+  }
+  .ant-btn:active {
+    transform: none;
+  }
+}

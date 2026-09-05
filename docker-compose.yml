@@ -1,0 +1,88 @@
+# AndJoy GitOps — Production Deployment
+#
+# Default: self-contained (andjoy-gitops + bundled PostgreSQL)
+# Advanced: external PostgreSQL (postgres service disabled)
+volumes:
+  postgres-data:
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-gitlab_ops}
+      POSTGRES_USER: ${DB_USER:-gitlab_ops_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change-me}
+      TZ: ${TZ:-Asia/Jakarta}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-gitlab_ops_user} -d ${DB_NAME:-gitlab_ops}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  andjoy-gitops:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ghcr.io/andjoy404/anjoy-gitops:latest
+    ports:
+      - "${APP_PORT:-8090}:8090"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-production}
+      APP_PORT: ${APP_PORT:-8090}
+      DB_HOST: ${DB_HOST:?DB_HOST is required}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:?DB_NAME is required}
+      DB_USER: ${DB_USER:?DB_USER is required}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      ENVIRONMENT_TOKEN_ENCRYPTION_KEY: "${ENVIRONMENT_TOKEN_ENCRYPTION_KEY:?ENVIRONMENT_TOKEN_ENCRYPTION_KEY is required}"
+      READ_ONLY: ${READ_ONLY:-false}
+      HIDE_WRITE_ACTIONS: ${HIDE_WRITE_ACTIONS:-false}
+      DATABASE_MAX_CONNECTIONS: ${DATABASE_MAX_CONNECTIONS:-10}
+      SESSION_SECURE: ${SESSION_SECURE:-false}
+      SESSION_IDLE_TIMEOUT_MINUTES: ${SESSION_IDLE_TIMEOUT_MINUTES:-480}
+      SESSION_ABSOLUTE_TIMEOUT_HOURS: ${SESSION_ABSOLUTE_TIMEOUT_HOURS:-24}
+      DEFAULT_PAGE_SIZE: ${DEFAULT_PAGE_SIZE:-10}
+      PAGE_SIZE_OPTIONS: ${PAGE_SIZE_OPTIONS:-10,20,30,40,50}
+      ANALYTICS_SYNC_INTERVAL_SECONDS: ${ANALYTICS_SYNC_INTERVAL_SECONDS:-60}
+      ANALYTICS_RETENTION_DAYS: ${ANALYTICS_RETENTION_DAYS:-30}
+      PIPELINE_HISTORY_DAYS: ${PIPELINE_HISTORY_DAYS:-90}
+      TZ: ${TZ:-Asia/Jakarta}
+      GITLAB_API_TIMEOUT_SECONDS: ${GITLAB_API_TIMEOUT_SECONDS:-30}
+      GITLAB_MAX_CONCURRENT_REQUESTS: ${GITLAB_MAX_CONCURRENT_REQUESTS:-8}
+      GITLAB_MAX_RETRIES: ${GITLAB_MAX_RETRIES:-3}
+    # Hardening
+    read_only: true
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8090/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:exec,nosuid,size=100m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 1G
+        reservations:
+          cpus: "0.5"
+          memory: 256M
+    depends_on:
+      postgres:
+        condition: service_healthy
+

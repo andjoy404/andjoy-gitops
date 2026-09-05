@@ -1,0 +1,387 @@
+/* ── Page shell ── */
+.configPage {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-height: 0;
+  flex: 1;
+}
+
+/* ── Card + preview side-by-side layout ── */
+.configLayout {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  margin-top: 10px;
+}
+
+/* ── Settings card ── */
+.configCard {
+  flex: 1;
+  min-width: 0;
+  max-width: 580px;
+  padding: 1.5rem;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 12px;
+  background: var(--dashboard-surface);
+  box-shadow: var(--dashboard-shadow);
+  font-size: var(--gitops-table-cell-font-size);
+  font-weight: var(--gitops-table-cell-font-weight);
+  line-height: var(--gitops-table-cell-line-height);
+}
+
+/* ── Theme-aware Ant form controls ── */
+.configCard :global(.ant-form-item-label > label) {
+  color: var(--dashboard-text);
+  font-size: var(--gitops-table-cell-font-size);
+}
+
+.configCard :global(.ant-input),
+.configCard :global(.ant-input-affix-wrapper),
+.configCard :global(.ant-select-selection-item),
+.configCard :global(.ant-select-selection-placeholder),
+.configCard :global(.ant-form-item-extra),
+.configCard :global(.ant-form-item-explain-error),
+.configCard :global(.ant-btn) {
+  font-size: var(--gitops-table-cell-font-size);
+  font-weight: var(--gitops-table-cell-font-weight);
+}
+
+.configCard :global(.ant-form-item-explain-error) {
+  color: var(--dashboard-danger);
+}
+
+.configCard :global(.ant-form-item-extra) {
+  color: var(--dashboard-muted) !important;
+}
+
+.configCard :global(.ant-form-item-tooltip) {
+  color: color-mix(in srgb, var(--dashboard-accent) 72%, var(--dashboard-text)) !important;
+}
+
+.configCard :global(.ant-form-item-tooltip) :global(.anticon),
+.configCard :global(.ant-form-item-tooltip) :global(.anticon svg) {
+  font-size: var(--gitops-table-header-font-size) !important;
+  width: 1em;
+  height: 1em;
+}
+
+.configCard :global(.ant-input),
+.configCard :global(.ant-input-affix-wrapper) {
+  color: var(--dashboard-text) !important;
+  border-color: var(--dashboard-border) !important;
+  background: var(--dashboard-surface-subtle) !important;
+}
+
+.configCard :global(.ant-input::placeholder) {
+  color: var(--dashboard-muted) !important;
+}
+
+.configCard :global(.ant-input:hover),
+.configCard :global(.ant-input-affix-wrapper:hover) {
+  border-color: var(--dashboard-accent) !important;
+}
+
+.configCard :global(.ant-input:focus),
+.configCard :global(.ant-input-focused),
+.configCard :global(.ant-input-affix-wrapper-focused) {
+  border-color: var(--dashboard-accent) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--dashboard-accent) 18%, transparent) !important;
+}
+
+/* Pipeline view Select trigger */
+.configCard :global(.ant-select-selector) {
+  color: var(--dashboard-text) !important;
+  border-color: var(--dashboard-border) !important;
+  background: var(--dashboard-surface-subtle) !important;
+}
+
+.configCard :global(.ant-select-selection-item) {
+  color: var(--dashboard-text) !important;
+}
+
+.configCard :global(.ant-select-selection-placeholder) {
+  color: var(--dashboard-muted) !important;
+}
+
+.configCard :global(.ant-select:not(.ant-select-disabled):hover .ant-select-selector) {
+  border-color: var(--dashboard-accent) !important;
+}
+
+.configCard :global(.ant-select-focused .ant-select-selector) {
+  border-color: var(--dashboard-accent) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--dashboard-accent) 18%, transparent) !important;
+}
+
+.configCard :global(.ant-select-arrow) {
+  color: var(--dashboard-muted);
+}
+
+
+
+/* ── Inline save error (near the form, mirrors users page pattern) ── */
+.formError {
+  margin: 0 0 0.9rem;
+  padding: 0.6rem 0.75rem;
+  color: color-mix(in srgb, var(--dashboard-danger) 86%, var(--dashboard-text));
+  border: 1px solid color-mix(in srgb, var(--dashboard-danger) 65%, var(--dashboard-border));
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--dashboard-danger) 12%, var(--dashboard-surface));
+  font-size: var(--gitops-table-cell-font-size);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.errorClose {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: currentColor;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.errorClose:hover {
+  background: color-mix(in srgb, var(--dashboard-danger) 14%, transparent);
+}
+
+/* ── Logo tabs (URL / Upload switcher) ── */
+.logoTabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 7px;
+  overflow: hidden;
+  width: fit-content;
+}
+
+.logoTab {
+  padding: 0.35rem 0.8rem;
+  color: var(--dashboard-muted);
+  border: 0;
+  background: var(--dashboard-surface-subtle);
+  cursor: pointer;
+  font-size: var(--gitops-table-cell-font-size);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: color 120ms, background 120ms;
+}
+
+.logoTab:hover {
+  color: var(--dashboard-text);
+  background: var(--dashboard-surface-hover);
+}
+
+.logoTabActive {
+  color: var(--dashboard-accent);
+  background: var(--dashboard-accent-soft);
+  font-weight: 500;
+}
+
+/* ── Theme switch (compact light/dark segmented toggle) ── */
+.themeSwitch {
+  display: flex;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 7px;
+  overflow: hidden;
+  width: fit-content;
+  background: var(--dashboard-surface-subtle);
+}
+
+.themeSwitchBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-width: 4.8rem;
+  padding: 0.4rem 0.8rem;
+  border: 0;
+  background: transparent;
+  color: var(--dashboard-muted);
+  font-size: var(--gitops-table-cell-font-size);
+  cursor: pointer;
+  transition: color 120ms, background 120ms;
+}
+
+.themeSwitchBtn:hover {
+  color: var(--dashboard-text);
+  background: var(--dashboard-surface-hover);
+}
+
+.themeSwitchBtnActive {
+  color: var(--dashboard-accent);
+  background: var(--dashboard-accent-soft);
+  font-weight: 500;
+}
+
+.themeSwitchBtn:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--dashboard-accent) 35%, transparent);
+  color: var(--dashboard-text);
+}
+
+/* ── File upload area ── */
+.uploadArea {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.uploadLabel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 1rem;
+  border: 1px dashed var(--dashboard-border);
+  border-radius: 8px;
+  background: var(--dashboard-surface-subtle);
+  color: var(--dashboard-muted);
+  cursor: pointer;
+  font-size: var(--gitops-table-cell-font-size);
+  transition: border-color 120ms, background 120ms;
+}
+
+.uploadLabel:hover {
+  border-color: var(--dashboard-accent);
+  background: var(--dashboard-surface-hover);
+  color: var(--dashboard-text);
+}
+
+.uploadLabel small {
+  font-size: var(--gitops-table-cell-font-size);
+  color: var(--dashboard-muted);
+}
+
+.uploadError {
+  margin: 0;
+  font-size: var(--gitops-table-cell-font-size);
+  color: var(--dashboard-danger);
+}
+
+/* ── Logo hint below the upload/url field ── */
+.logoHint {
+  font-size: 0.5625rem;
+  line-height: 1.3;
+  color: var(--dashboard-muted);
+}
+
+/* ── Logo preview box (right column) ── */
+.logoPreviewBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  min-width: 140px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 12px;
+  background: var(--dashboard-surface);
+  box-shadow: var(--dashboard-shadow);
+  align-self: flex-start;
+  margin-top: 0;
+}
+
+.logoPreviewLabel {
+  margin: 0;
+  font-size: var(--gitops-table-header-font-size);
+  font-weight: var(--gitops-table-header-font-weight);
+  color: var(--dashboard-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.logoPreviewWrap {
+  position: relative;
+  line-height: 0;
+}
+
+.logoPreviewImg {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  border-radius: 8px;
+  border: 1px solid var(--dashboard-border);
+  background: var(--dashboard-surface-subtle);
+}
+
+.logoRemoveBtn {
+  position: absolute;
+  top: -9px;
+  right: -9px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--dashboard-danger) 40%, var(--dashboard-border));
+  border-radius: 50%;
+  background: var(--dashboard-surface);
+  color: var(--dashboard-danger);
+  font-size: var(--gitops-table-cell-font-size);
+  cursor: pointer;
+  box-shadow: var(--dashboard-shadow);
+  transition: background 120ms, border-color 120ms;
+}
+
+.logoRemoveBtn:hover,
+.logoRemoveBtn:focus-visible {
+  background: color-mix(in srgb, var(--dashboard-danger) 12%, var(--dashboard-surface-subtle));
+  border-color: color-mix(in srgb, var(--dashboard-danger) 55%, var(--dashboard-border));
+}
+
+.logoPreviewEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 96px;
+  height: 96px;
+  border-radius: 8px;
+  border: 1px dashed var(--dashboard-border);
+  background: var(--dashboard-surface-subtle);
+  color: var(--dashboard-muted);
+  font-size: 1.5rem;
+}
+
+.logoPreviewEmpty small {
+  font-size: var(--gitops-table-cell-font-size);
+  color: var(--dashboard-muted);
+}
+
+@media (max-width: 720px) {
+  .configLayout {
+    flex-direction: column;
+  }
+
+  .configCard {
+    max-width: 100%;
+  }
+
+  .logoPreviewBox {
+    flex-direction: row;
+    width: 100%;
+    justify-content: flex-start;
+    align-self: auto;
+  }
+}
