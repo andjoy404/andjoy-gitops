@@ -5,7 +5,7 @@
 
   **A polished, self-hosted operations dashboard for GitLab delivery, pipeline observability, and team analytics.**
 
-  <a href="https://github.com/andjoy404/anjoy-gitops/actions/workflows/ci.yml"><img src="https://github.com/andjoy404/anjoy-gitops/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/andjoy404/andjoy-gitops/actions/workflows/ci.yml"><img src="https://github.com/andjoy404/andjoy-gitops/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://shields.io"><img src="https://img.shields.io/badge/Java-21-5c2d91?logo=openjdk&logoColor=white" alt="Java 21"></a>
   <a href="https://shields.io"><img src="https://img.shields.io/badge/Spring_Boot-3.4-6db33f?logo=springboot&logoColor=white" alt="Spring Boot"></a>
   <a href="https://shields.io"><img src="https://img.shields.io/badge/Node.js-22-339933?logo=node.js&logoColor=white" alt="Node 22"></a>
