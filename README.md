@@ -32,7 +32,7 @@
 
 ## 📸 Screenshots
 
-See the full interactive gallery: [**docs/gallery/index.html**](docs/gallery/index.html)
+[![AndJoy GitOps Dashboard](https://raw.githubusercontent.com/andjoy404/andjoy-gitops/main/docs/images/screenshots/01-dashboard-pipeline-analytics.png)](docs/gallery/index.html?utm_source=readme)
 
 - **Dashboard — Pipeline Analytics** — summary metrics, trend charts, and active runner fleet
 - **Dashboard — User Analytics** — contribution leaderboards and activity breakdowns
@@ -41,7 +41,7 @@ See the full interactive gallery: [**docs/gallery/index.html**](docs/gallery/ind
 - **Runner Fleet** — real-time runner availability, active jobs, and executor inventories
 - **Relations Map** — force-directed graph of group → project → pipeline → job relationships
 
-👉 [**Open full gallery**](docs/gallery/index.html) — click any thumbnail for full-size view with keyboard navigation (←/→ arrows, Esc to close).
+👉 [**Open full gallery**](docs/gallery/index.html?utm_source=readme) — click any thumbnail for full-size view with keyboard navigation (←/→ arrows, Esc to close).
 
 ---
 
