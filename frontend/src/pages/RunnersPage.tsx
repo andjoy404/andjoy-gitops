@@ -13,7 +13,21 @@ import { useScopedRefresh } from '../hooks/useSyncRefresh'
 import AnalyticsLoadingGate, { datasetIsPending } from '../components/AnalyticsLoadingGate'
 import type { AnalyticsReadiness } from '../types'
 import '../styles/dashboard.css'
+import '../styles/pipelines.css'
 import styles from '../styles/runners.module.css'
+
+const JOB_STATUS_COLORS: Record<string, string> = {
+  created: '#39A0FF',
+  pending: '#9AA3AD',
+  running: '#39A0FF',
+  success: '#18D99A',
+  failed: '#FF5267',
+  canceled: 'var(--dashboard-muted)',
+  canceling: 'var(--dashboard-muted)',
+  skipped: '#FF9F2F',
+  manual: '#FFC21C',
+  waiting_for_resource: '#9AA3AD',
+}
 
 interface RunnerJob {
   id: number
@@ -428,12 +442,12 @@ export default function RunnersPage() {
                 <thead>
                   <tr>
                     <th>Number</th>
-                    <th>Tags</th>
-                    <th>Status</th>
                     <th>Type</th>
                     <th>Group / Project</th>
                     <th>Address</th>
-                    <th>Jobs</th>
+                    <th>Status</th>
+                    <th>Tags</th>
+                    <th className="pipeline-jobs-cell">Jobs</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -448,6 +462,38 @@ export default function RunnersPage() {
                     return (
                       <tr key={runner.id}>
                         <td><strong>#{runner.id}</strong></td>
+                        <td>{typeLabel}</td>
+                        <td>
+                          {runner.projects.length > 0 ? (
+                            <a
+                              href={`${selectedEnvBaseUrl || 'https://gitlab.appfuxion.com'}/${runner.projects[0].path_with_namespace}/-/runners`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="View runners for this project/group"
+                            >
+                              {scope}
+                            </a>
+                          ) : (
+                            <span title="View runners for this group">{scope}</span>
+                          )}
+                        </td>
+                        <td>
+                          {address ? (
+                            <span className={styles.addressTag}>{address}</span>
+                          ) : (
+                            <span className={styles.ipUnavailable}>Unavailable</span>
+                          )}
+                        </td>
+                        <td>
+                          <span
+                            className={`status-badge ${STATUS_BADGE_CLASS(status)}`}
+                            style={{
+                              '--runner-status-color': STATUS_COLORS[status] || '#8b9298',
+                            } as React.CSSProperties}
+                          >
+                            {status}
+                          </span>
+                        </td>
                         <td>
                           {tagList.length === 0 ? (
                             <span>-</span>
@@ -472,39 +518,7 @@ export default function RunnersPage() {
                             </span>
                           )}
                         </td>
-                        <td>
-                          <span
-                            className={`status-badge ${STATUS_BADGE_CLASS(status)}`}
-                            style={{
-                              '--runner-status-color': STATUS_COLORS[status] || '#8b9298',
-                            } as React.CSSProperties}
-                          >
-                            {status}
-                          </span>
-                        </td>
-                        <td>{typeLabel}</td>
-                        <td>
-                          {runner.projects.length > 0 ? (
-                            <a
-                              href={`${selectedEnvBaseUrl || 'https://gitlab.appfuxion.com'}/${runner.projects[0].path_with_namespace}/-/runners`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              title="View runners for this project/group"
-                            >
-                              {scope}
-                            </a>
-                          ) : (
-                            <span title="View runners for this group">{scope}</span>
-                          )}
-                        </td>
-                        <td>
-                          {address ? (
-                            <span className={styles.addressTag}>{address}</span>
-                          ) : (
-                            <span className={styles.ipUnavailable}>Unavailable</span>
-                          )}
-                        </td>
-                        <td>
+                        <td className="pipeline-jobs-cell">
                           {jobs.length === 0 ? (
                             status === 'running' ? (
                               <span className={styles.noJob}>Job details unavailable</span>
@@ -512,20 +526,29 @@ export default function RunnersPage() {
                               <span>-</span>
                             )
                           ) : (
-                            <div className={styles.jobList}>
-                              {jobs.slice(0, 4).map((job) => (
+                            <div className="pipeline-job-badges">
+                              {jobs.map((job) => (
                                 <Tooltip
                                   key={job.id}
                                   title={`${job.name} :: ${job.stage} :: ${job.ref || job.pipeline?.ref || '-'} :: pipeline #${job.pipeline?.id || job.pipeline_id || '-'}`}
                                 >
-                                  <a href={job.web_url} target="_blank" rel="noopener noreferrer">
-                                    <Tag className={styles.jobTag}>
+                                  <a
+                                    href={job.web_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{ textDecoration: 'none' }}
+                                  >
+                                    <span
+                                      className="pipeline-job-badge"
+                                      style={{
+                                        '--job-color': JOB_STATUS_COLORS[job.status] || '#39A0FF',
+                                      } as React.CSSProperties}
+                                    >
                                       {job.name} · #{job.pipeline?.id || job.pipeline_id}
-                                    </Tag>
+                                    </span>
                                   </a>
                                 </Tooltip>
                               ))}
-                              {jobs.length > 4 && <Tag>+{jobs.length - 4} more</Tag>}
                             </div>
                           )}
                         </td>

@@ -317,18 +317,43 @@ body {
    data-table typography all live here so every menu renders identically
    (only content differs). */
 
-/* ── Runner table — Ant Design v5 puts the className on <div class="ant-table ...">
-    itself. Target the inner table directly — don't nest .ant-table inside it ── */
-.gitops-data-table.runner-table
-  > .ant-table-container
-  > .ant-table-body
-  > table,
-.gitops-data-table.runner-table
-  > .ant-table-container
-  > .ant-table-scroll
-  > .ant-table-body
-  > table {
+/* ── Runner table — auto layout following content width like Pipelines ── */
+.gitops-data-table.runner-table,
+table.gitops-data-table.runner-table,
+.runner-table {
+  width: auto !important;
+  min-width: 100% !important;
   table-layout: auto !important;
+}
+
+.runner-table th,
+.runner-table td {
+  white-space: nowrap;
+}
+
+.runner-table th.pipeline-jobs-cell,
+.runner-table td.pipeline-jobs-cell {
+  width: max-content !important;
+  min-width: max-content !important;
+  max-width: none !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+}
+
+.runner-table .pipeline-job-badges {
+  display: inline-flex !important;
+  align-items: center !important;
+  width: max-content !important;
+  min-width: max-content !important;
+  flex-wrap: nowrap !important;
+  gap: 4px;
+  overflow: visible !important;
+  white-space: nowrap !important;
+}
+
+.runner-table .pipeline-job-badge {
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
 }
 
 /* Global page root: matches .runnersPage skeleton */
