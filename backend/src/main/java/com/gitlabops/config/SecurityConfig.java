@@ -36,7 +36,19 @@ public class SecurityConfig {
      */
     public static boolean isSecure() {
         String secure = System.getProperty("SESSION_SECURE", System.getenv("SESSION_SECURE"));
-        return "true".equalsIgnoreCase(secure);
+        if (secure != null && !secure.isBlank()) {
+            return "true".equalsIgnoreCase(secure);
+        }
+        String profile = System.getProperty("spring.profiles.active", System.getenv("SPRING_PROFILES_ACTIVE"));
+        return "production".equalsIgnoreCase(profile);
+    }
+
+    /**
+     * Determines whether cookies should be marked Secure, taking into account
+     * whether the incoming request is HTTPS (including forwarded protocol from reverse proxy).
+     */
+    public static boolean isSecure(jakarta.servlet.http.HttpServletRequest request) {
+        return (request != null && request.isSecure()) || isSecure();
     }
 
     /**

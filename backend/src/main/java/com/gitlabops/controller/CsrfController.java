@@ -35,15 +35,17 @@ public class CsrfController {
      * XSRF-TOKEN cookie for easy JavaScript extraction.
      */
     @GetMapping("/csrf")
-    public void csrfToken(CsrfToken token, HttpServletResponse response) {
+    public void csrfToken(CsrfToken token,
+                          jakarta.servlet.http.HttpServletRequest request,
+                          HttpServletResponse response) {
         Cookie cookie = new Cookie("XSRF-TOKEN", token.getToken());
         cookie.setPath("/");
         cookie.setHttpOnly(false);
 
-        // Respect SESSION_SECURE env var:
+        // Respect HTTPS request and SESSION_SECURE env var:
         //   false = local HTTP works (cookie not Secure)
         //   true  = HTTPS only (cookie Secure)
-        boolean secure = SecurityConfig.isSecure();
+        boolean secure = SecurityConfig.isSecure(request);
         cookie.setSecure(secure); // Session cookie, setSecure=false for local http
 
         // Session cookie — no max-age (expires on browser close)

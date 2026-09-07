@@ -1,5 +1,6 @@
 package com.gitlabops.controller;
 
+import com.gitlabops.config.SecurityConfig;
 import com.gitlabops.config.UiProperties;
 import com.gitlabops.model.dto.AppUserDTO;
 import com.gitlabops.model.dto.AuthStatus;
@@ -11,6 +12,7 @@ import com.gitlabops.service.LoginAttemptStore;
 import com.gitlabops.service.SessionStore;
 
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -66,8 +68,14 @@ public class AuthController {
         return ResponseEntity.ok(status);
     }
 
+    public ResponseEntity<?> login(LoginRequest request, HttpServletResponse response) {
+        return login(request, null, response);
+    }
+
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletResponse response) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request,
+                                   HttpServletRequest httpRequest,
+                                   HttpServletResponse response) {
         String username = request.getUsername().trim();
 
         if (loginAttemptStore.isThrottled(username)) {
@@ -102,8 +110,7 @@ public class AuthController {
         Cookie cookie = new Cookie("gcd_session", sessionId);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
-        boolean isSecure = Boolean.parseBoolean(
-                System.getenv("SESSION_SECURE"));
+        boolean isSecure = SecurityConfig.isSecure(httpRequest);
         cookie.setSecure(isSecure);
         cookie.setMaxAge(3600);
         cookie.setAttribute("SameSite", "Lax");
@@ -121,7 +128,7 @@ public class AuthController {
     @PostMapping("/logout")
     public void logout(
             @CookieValue(value = "gcd_session", required = false) String sessionCookie,
-            jakarta.servlet.http.HttpServletRequest request,
+            HttpServletRequest request,
             HttpServletResponse response) {
         if (sessionCookie != null && !sessionCookie.isEmpty()) {
             sessionStore.invalidate(sessionCookie);
@@ -130,16 +137,23 @@ public class AuthController {
         Cookie cookie = new Cookie("gcd_session", null);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
-        cookie.setSecure(Boolean.parseBoolean(
-                System.getenv("SESSION_SECURE")));
+        cookie.setSecure(SecurityConfig.isSecure(request));
         cookie.setMaxAge(0);
         response.addCookie(cookie);
+    }
+
+    public ResponseEntity<?> changePassword(
+            String sessionCookie,
+            ChangePasswordRequest request,
+            HttpServletResponse response) {
+        return changePassword(sessionCookie, request, null, response);
     }
 
     @PutMapping("/password")
     public ResponseEntity<?> changePassword(
             @CookieValue(value = "gcd_session", required = false) String sessionCookie,
             @RequestBody ChangePasswordRequest request,
+            HttpServletRequest httpRequest,
             HttpServletResponse response) {
 
         if (sessionCookie == null || sessionCookie.isEmpty()) {
@@ -183,10 +197,7 @@ public class AuthController {
         Cookie cookie = new Cookie("gcd_session", newSessionId);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
-        cookie.setSecure(Boolean.parseBoolean(
-                System.getenv("SESSION_SECURE"))
-                || "production".equals(
-                System.getProperty("spring.profiles.active", "")));
+        cookie.setSecure(SecurityConfig.isSecure(httpRequest));
         cookie.setMaxAge(3600);
         cookie.setAttribute("SameSite", "Lax");
         response.addCookie(cookie);
