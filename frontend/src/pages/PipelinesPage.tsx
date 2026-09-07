@@ -463,7 +463,9 @@ export default function PipelinesPage() {
     for (const s of PIPELINE_STATUSES) counts[s.value] = 0
     for (const g of pipelineProjects || []) {
       for (const p of g.pipelines) {
-        counts[p.status] = (counts[p.status] || 0) + 1
+        const rawStatus = String(p.status || '').toLowerCase().trim()
+        const st = rawStatus === 'created' ? 'running' : rawStatus
+        counts[st] = (counts[st] || 0) + 1
       }
     }
     return counts
@@ -737,32 +739,11 @@ export default function PipelinesPage() {
           }
         }
 
-        const color = PIPELINE_STATUS_COLORS[s] || '#9AA3AD'
-        const isManualOrApprovalStatus = s === 'manual' || s === 'approval'
-        const gitlabUrl = (isManualOrApprovalStatus ? (manualOrApprovalJob?.web_url || targetJob?.web_url) : undefined) || pipeline?.web_url
-
-        if (isManualOrApprovalStatus && gitlabUrl) {
-          return (
-            <Tooltip title="Open in GitLab">
-              <a
-                href={gitlabUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ textDecoration: 'none', display: 'inline-flex' }}
-              >
-                <Tag
-                  className="pipeline-status-badge"
-                  style={{
-                    '--status-color': color,
-                    cursor: 'pointer',
-                  } as React.CSSProperties}
-                >
-                  {s}
-                </Tag>
-              </a>
-            </Tooltip>
-          )
+        if (s === 'created') {
+          s = 'running'
         }
+
+        const color = PIPELINE_STATUS_COLORS[s] || '#9AA3AD'
 
         return (
           <Tooltip title="Click for pipeline details">

@@ -412,16 +412,19 @@ function JobDetailModalBase({
       }}
       title={
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--dashboard-text)' }}>
-          {job && <BranchesOutlined style={{ color: COLORS[job.status] || '#9AA3AD', fontSize: '1.1em' }} />}
+          {job && <BranchesOutlined style={{ color: COLORS[job.status === 'created' ? 'running' : job.status] || '#9AA3AD', fontSize: '1.1em' }} />}
           <span style={{ fontWeight: 600, fontSize: '1.05rem', color: 'var(--dashboard-text)' }}>{job?.name}</span>
-          {job && (
-            <Tag
-              className="job-status-badge"
-              style={{ '--job-status-color': COLORS[job.status] || '#9AA3AD' } as React.CSSProperties}
-            >
-              {job.status?.charAt(0).toUpperCase() + (job.status || '').slice(1)}
-            </Tag>
-          )}
+          {job && (() => {
+            const st = job.status === 'created' ? 'running' : job.status
+            return (
+              <Tag
+                className="job-status-badge"
+                style={{ '--job-status-color': COLORS[st] || '#9AA3AD' } as React.CSSProperties}
+              >
+                {st?.charAt(0).toUpperCase() + (st || '').slice(1)}
+              </Tag>
+            )
+          })()}
         </div>
       }
     >
@@ -471,35 +474,12 @@ export function ParentJobDetailModal({
                 <FitViewButton />
               </div>
               <div style={{ flex: 1, height: 0 }}>
-                <PipelineDAGWrapper jobs={dedupRetryJobs(allJobs)} selectedJob={null} COLORS={COLORS} />
+                <PipelineDAGWrapper jobs={dedupRetryJobs(allJobs)} selectedJob={job} COLORS={COLORS} />
               </div>
             </ReactFlowProvider>
           </div>
         </div>
       )}
-    </JobDetailModalBase>
-  )
-}
-
-/* ── ChildJobDetailModal — child job detail (no DAG) ─────────────────── */
-
-export function ChildJobDetailModal({
-  job,
-  allJobs,
-  pipelineSha,
-  projectWebUrl,
-  onAfterClose,
-  COLORS,
-}: {
-  job: JobInfo | null
-  allJobs?: JobInfo[]
-  pipelineSha?: string
-  projectWebUrl?: string
-  onAfterClose: () => void
-  COLORS: Record<string, string>
-}) {
-  return (
-    <JobDetailModalBase job={job} pipelineSha={pipelineSha} projectWebUrl={projectWebUrl} onAfterClose={onAfterClose} COLORS={COLORS} showContent={true}>
       {job && allJobs && (() => {
         const childJobs = allJobs?.filter(j => j.parent_job_id != null && Number(j.parent_job_id) === Number(job?.id)) || []
         const hasChildren = childJobs.length > 0
@@ -537,6 +517,19 @@ export function ChildJobDetailModal({
   )
 }
 
+/* ── ChildJobDetailModal — child job detail with DAG ─────────────────── */
+
+export function ChildJobDetailModal(props: {
+  job: JobInfo | null
+  allJobs?: JobInfo[]
+  pipelineSha?: string
+  projectWebUrl?: string
+  onAfterClose: () => void
+  COLORS: Record<string, string>
+}) {
+  return <ParentJobDetailModal {...props} />
+}
+
 /* ── Export for backwards compatibility ──────────────────────────────── */
 
 export function JobDetailModal({
@@ -546,7 +539,6 @@ export function JobDetailModal({
   projectWebUrl,
   onAfterClose,
   COLORS,
-  isParentJob,
 }: {
   job: JobInfo | null
   allJobs?: JobInfo[]
@@ -554,22 +546,10 @@ export function JobDetailModal({
   projectWebUrl?: string
   onAfterClose: () => void
   COLORS: Record<string, string>
-  isParentJob: boolean
+  isParentJob?: boolean
 }) {
-  if (isParentJob) {
-    return (
-      <ParentJobDetailModal
-        job={job}
-        allJobs={allJobs}
-        pipelineSha={pipelineSha}
-        projectWebUrl={projectWebUrl}
-        onAfterClose={onAfterClose}
-        COLORS={COLORS}
-      />
-    )
-  }
   return (
-    <ChildJobDetailModal
+    <ParentJobDetailModal
       job={job}
       allJobs={allJobs}
       pipelineSha={pipelineSha}
@@ -630,7 +610,6 @@ export function PipelineJobBadges({
   }, [])
 
   const handleClick = useCallback((jobIndex: number, job: JobInfo, target: HTMLElement) => {
-    if (SPIN_JOB_STATUSES.has(job.status)) return
     setSelectedBadgeRef(target)
     setSelectedJob(prev => prev && prev.id === job.id ? null : job)
     if (arrowIndex >= 0 && jobIndex < arrowIndex) {
@@ -643,8 +622,10 @@ export function PipelineJobBadges({
   const showJob = selectedJob !== null
 
   function renderBadge(job: JobInfo, jobIndex: number) {
-    const isSpinJob = SPIN_JOB_STATUSES.has(job.status)
-    const isClickable = !isSpinJob
+    const rawStatus = String(job.status || '').toLowerCase()
+    const status = (rawStatus === 'created' ? 'running' : job.status) as JobStatus
+    const isSpinJob = SPIN_JOB_STATUSES.has(status)
+    const effectiveJob = { ...job, status }
     return (
       <Tooltip
         key={job.id}
@@ -652,17 +633,17 @@ export function PipelineJobBadges({
         title={
           <div>
             <div><strong>{job.name}</strong></div>
-            <div>Stage: {job.stage} · Status: {job.status}</div>
+            <div>Stage: {job.stage} · Status: {status}</div>
           </div>
         }
       >
         <span
           className="pipeline-job-badge"
-          onClick={(e) => { isClickable && handleClick(jobIndex, job, e.currentTarget) }}
-          style={{"--job-color": JOB_STATUS_TEXT_COLORS[job.status] || '#9AA3AD', cursor: isClickable ? 'pointer' : 'default'} as React.CSSProperties}
+          onClick={(e) => { handleClick(jobIndex, effectiveJob, e.currentTarget) }}
+          style={{"--job-color": JOB_STATUS_TEXT_COLORS[status] || '#9AA3AD', cursor: 'pointer'} as React.CSSProperties}
         >
           {isSpinJob && (
-            <LoadingOutlined style={{ color: JOB_STATUS_TEXT_COLORS[job.status] || '#9AA3AD', fontSize: 11 }} />
+            <LoadingOutlined style={{ color: JOB_STATUS_TEXT_COLORS[status] || '#9AA3AD', fontSize: 11 }} />
           )}
           <span style={{ fontSize: '1em', whiteSpace: 'nowrap' }}>
             {job.name.length > 12 ? `${job.name.substring(0, 10)}…` : job.name}
@@ -754,14 +735,17 @@ export function PipelineDetailModal({
       }}
       title={
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {pipeline && (
-            <Tag
-              className="job-status-badge"
-              style={{ '--job-status-color': COLORS[pipeline.status] || '#9AA3AD' } as React.CSSProperties}
-            >
-              {pipeline.status?.charAt(0).toUpperCase() + (pipeline.status || '').slice(1)}
-            </Tag>
-          )}
+          {pipeline && (() => {
+            const st = pipeline.status === 'created' ? 'running' : pipeline.status
+            return (
+              <Tag
+                className="job-status-badge"
+                style={{ '--job-status-color': COLORS[st] || '#9AA3AD' } as React.CSSProperties}
+              >
+                {st?.charAt(0).toUpperCase() + (st || '').slice(1)}
+              </Tag>
+            )
+          })()}
           <span style={{ fontWeight: 600, fontSize: '1.05rem', color: 'var(--dashboard-text)' }}>
             Pipeline #{pipeline?.id}
           </span>
@@ -1213,8 +1197,9 @@ function PipelineDAGGraph({
           height: 86,
           data: {
             label: job.name,
-            status: job.status,
-            isSelected: selectedJob ? selectedJob.id === job.id : false
+            status: job.status === 'created' ? 'running' : job.status,
+            isSelected: selectedJob ? selectedJob.id === job.id : false,
+            stage: job.stage,
           },
           focusable: false,
           selectable: false,
@@ -1234,8 +1219,9 @@ function PipelineDAGGraph({
           height: 86,
           data: {
             label: job.name,
-            status: job.status,
-            isSelected: selectedJob ? selectedJob.id === job.id : false
+            status: job.status === 'created' ? 'running' : job.status,
+            isSelected: selectedJob ? selectedJob.id === job.id : false,
+            stage: job.stage,
           },
         })
       })
