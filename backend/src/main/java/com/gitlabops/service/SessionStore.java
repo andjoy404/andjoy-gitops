@@ -20,17 +20,26 @@ public class SessionStore {
 
     private final ConcurrentHashMap<String, SessionInfo> sessions = new ConcurrentHashMap<>();
 
-    private static final long IDLE_TIMEOUT_MS = Optional
-            .ofNullable(System.getenv("SESSION_IDLE_TIMEOUT_MINUTES"))
-            .map(Long::valueOf)
-            .map(v -> v == 0 ? Long.MAX_VALUE : v)
-            .orElse(480L) * 60 * 1000L;
+    static long parseTimeoutMs(String envVal, long defaultVal, long multiplier) {
+        if (envVal == null || envVal.isBlank()) {
+            return defaultVal * multiplier;
+        }
+        try {
+            long val = Long.parseLong(envVal.trim());
+            if (val <= 0) {
+                return Long.MAX_VALUE;
+            }
+            return val * multiplier;
+        } catch (NumberFormatException e) {
+            return defaultVal * multiplier;
+        }
+    }
 
-    private static final long ABSOLUTE_TIMEOUT_MS = Optional
-            .ofNullable(System.getenv("SESSION_ABSOLUTE_TIMEOUT_HOURS"))
-            .map(Long::valueOf)
-            .map(v -> v == 0 ? Long.MAX_VALUE : v)
-            .orElse(24L) * 3600 * 1000L;
+    public static final long IDLE_TIMEOUT_MS = parseTimeoutMs(
+            System.getenv("SESSION_IDLE_TIMEOUT_MINUTES"), 480L, 60 * 1000L);
+
+    public static final long ABSOLUTE_TIMEOUT_MS = parseTimeoutMs(
+            System.getenv("SESSION_ABSOLUTE_TIMEOUT_HOURS"), 24L, 3600 * 1000L);
 
     public String createSession(Long userId, String username, String role, boolean mustChangePassword) {
         byte[] bytes = new byte[32];
@@ -45,8 +54,9 @@ public class SessionStore {
         SessionInfo session = sessions.get(token);
         if (session == null) return null;
         long now = System.currentTimeMillis();
-        if (now - session.lastAccessedAt() > IDLE_TIMEOUT_MS
-                || now - session.createdAt() > ABSOLUTE_TIMEOUT_MS) {
+        boolean idleExpired = (IDLE_TIMEOUT_MS != Long.MAX_VALUE) && (now - session.lastAccessedAt() > IDLE_TIMEOUT_MS);
+        boolean absoluteExpired = (ABSOLUTE_TIMEOUT_MS != Long.MAX_VALUE) && (now - session.createdAt() > ABSOLUTE_TIMEOUT_MS);
+        if (idleExpired || absoluteExpired) {
             sessions.remove(token);
             return null;
         }
@@ -64,8 +74,9 @@ public class SessionStore {
         Iterator<Map.Entry<String, SessionInfo>> it = sessions.entrySet().iterator();
         while (it.hasNext()) {
             SessionInfo s = it.next().getValue();
-            if (now - s.lastAccessedAt() > IDLE_TIMEOUT_MS
-                    || now - s.createdAt() > ABSOLUTE_TIMEOUT_MS) {
+            boolean idleExpired = (IDLE_TIMEOUT_MS != Long.MAX_VALUE) && (now - s.lastAccessedAt() > IDLE_TIMEOUT_MS);
+            boolean absoluteExpired = (ABSOLUTE_TIMEOUT_MS != Long.MAX_VALUE) && (now - s.createdAt() > ABSOLUTE_TIMEOUT_MS);
+            if (idleExpired || absoluteExpired) {
                 it.remove();
             }
         }

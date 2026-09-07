@@ -112,7 +112,7 @@ public class AuthController {
         cookie.setHttpOnly(true);
         boolean isSecure = SecurityConfig.isSecure(httpRequest);
         cookie.setSecure(isSecure);
-        cookie.setMaxAge(3600);
+        cookie.setMaxAge(getSessionCookieMaxAge());
         cookie.setAttribute("SameSite", "Lax");
         response.addCookie(cookie);
 
@@ -198,11 +198,19 @@ public class AuthController {
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         cookie.setSecure(SecurityConfig.isSecure(httpRequest));
-        cookie.setMaxAge(3600);
+        cookie.setMaxAge(getSessionCookieMaxAge());
         cookie.setAttribute("SameSite", "Lax");
         response.addCookie(cookie);
 
         return ResponseEntity.noContent().build();
+    }
+
+    public static int getSessionCookieMaxAge() {
+        if (SessionStore.ABSOLUTE_TIMEOUT_MS == Long.MAX_VALUE) {
+            return 365 * 24 * 3600; // 1 year when timeout disabled
+        }
+        long seconds = SessionStore.ABSOLUTE_TIMEOUT_MS / 1000L;
+        return (int) Math.min(seconds, Integer.MAX_VALUE);
     }
 
     private record AuthError(String error) {}
