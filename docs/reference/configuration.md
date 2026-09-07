@@ -21,8 +21,8 @@ Copy `.env.example` to `.env`. Never commit the resulting `.env` file.
 | `SPRING_PROFILES_ACTIVE` | `production` | No | Active Spring profile. |
 | `ENVIRONMENT_TOKEN_ENCRYPTION_KEY` | — | Yes | 32-byte AES key encoded as 64 hexadecimal characters. |
 | `SESSION_SECURE` | `false` | No | Set `true` when the browser reaches AndJoy GitOps through HTTPS. |
-| `SESSION_IDLE_TIMEOUT_MINUTES` | `480` | No | Maximum idle session duration. |
-| `SESSION_ABSOLUTE_TIMEOUT_HOURS` | `24` | No | Maximum total session duration. |
+| `SESSION_IDLE_TIMEOUT_MINUTES` | `480` | No | Maximum idle session duration. Set `0` to disable. |
+| `SESSION_ABSOLUTE_TIMEOUT_HOURS` | `24` | No | Maximum total session duration. Set `0` to disable. |
 | `READ_ONLY` | `false` | No | Reject supported mutating operations. |
 | `HIDE_WRITE_ACTIONS` | `false` | No | Hide write controls in the interface. |
 

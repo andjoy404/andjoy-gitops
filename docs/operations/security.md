@@ -6,8 +6,8 @@
 - Session cookie: `gcd_session` (httpOnly=true, SameSite=Lax, Secure when SESSION_SECURE=true or profiles.active==production, path=/, Max-Age=3600s)
 - Secure flag determined by OR logic: `SESSION_SECURE=true` OR `spring.profiles.active=="production"`
 - Sessions stored in in-memory ConcurrentHashMap
-- Session idle timeout: 8 hours (configurable via SESSION_IDLE_TIMEOUT_MINUTES)
-- Session absolute timeout: 24 hours (configurable via SESSION_ABSOLUTE_TIMEOUT_HOURS)
+- Session idle timeout: 8 hours (configurable via SESSION_IDLE_TIMEOUT_MINUTES, set `0` to disable)
+- Session absolute timeout: 24 hours (configurable via SESSION_ABSOLUTE_TIMEOUT_HOURS, set `0` to disable)
 
 ## Password Hashing
 

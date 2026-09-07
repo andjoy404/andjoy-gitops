@@ -23,11 +23,13 @@ public class SessionStore {
     private static final long IDLE_TIMEOUT_MS = Optional
             .ofNullable(System.getenv("SESSION_IDLE_TIMEOUT_MINUTES"))
             .map(Long::valueOf)
+            .map(v -> v == 0 ? Long.MAX_VALUE : v)
             .orElse(480L) * 60 * 1000L;
 
     private static final long ABSOLUTE_TIMEOUT_MS = Optional
             .ofNullable(System.getenv("SESSION_ABSOLUTE_TIMEOUT_HOURS"))
             .map(Long::valueOf)
+            .map(v -> v == 0 ? Long.MAX_VALUE : v)
             .orElse(24L) * 3600 * 1000L;
 
     public String createSession(Long userId, String username, String role, boolean mustChangePassword) {

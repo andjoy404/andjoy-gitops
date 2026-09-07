@@ -130,8 +130,8 @@ reachable through the internal Docker Compose network via the service DNS name
 | SPRING_PROFILES_ACTIVE | `production` | ✅ | SecurityHeaders/cookie logic |
 | ENVIRONMENT_TOKEN_ENCRYPTION_KEY | (required) | ✅ | SecurityProperties |
 | SESSION_SECURE | `false` | ✅ | AuthController cookie flag |
-| SESSION_IDLE_TIMEOUT_MINUTES | `480` | ✅ | SessionStore |
-| SESSION_ABSOLUTE_TIMEOUT_HOURS | `24` | ✅ | SessionStore |
+| SESSION_IDLE_TIMEOUT_MINUTES | `480` | ✅ | SessionStore (set `0` to disable) |
+| SESSION_ABSOLUTE_TIMEOUT_HOURS | `24` | ✅ | SessionStore (set `0` to disable) |
 | READ_ONLY | `false` | ✅ | AppConfig/Spring |
 | HIDE_WRITE_ACTIONS | `false` | ✅ | AppConfig/Spring |
 | DEFAULT_PAGE_SIZE | `10` | ✅ | UiProperties |

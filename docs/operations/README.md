@@ -28,8 +28,8 @@ curl http://localhost:8090/health
 | APP_PORT | `8090` | Application HTTP port |
 | SPRING_PROFILES_ACTIVE | `production` | Spring Boot profile |
 | SESSION_SECURE | `false` | Secure cookie flag (`false`=HTTP, `true`=HTTPS) |
-| SESSION_IDLE_TIMEOUT_MINUTES | `480` | Session idle timeout (minutes) |
-| SESSION_ABSOLUTE_TIMEOUT_HOURS | `24` | Session absolute timeout (hours) |
+| SESSION_IDLE_TIMEOUT_MINUTES | `480` | Session idle timeout (minutes). Set `0` to disable. |
+| SESSION_ABSOLUTE_TIMEOUT_HOURS | `24` | Session absolute timeout (hours). Set `0` to disable. |
 | READ_ONLY | `false` | Disable write actions |
 | HIDE_WRITE_ACTIONS | `false` | Hide edit/delete buttons in UI |
 | ANALYTICS_SYNC_INTERVAL_SECONDS | `60` | Analytics sync interval |
