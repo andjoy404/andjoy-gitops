@@ -37,6 +37,7 @@ import {
   pipelineRowKey,
   PipelineJobBadges,
   PipelineDetailModal,
+  orderJobsByStageSequence,
 } from '../utils/pipelineShared'
 import styles from '../styles/pipelines.module.css'
 import '../styles/pipelines.css'
@@ -684,10 +685,85 @@ export default function PipelinesPage() {
       dataIndex: 'latestPipeline',
       key: 'status',
       render: (latest: PipelineInfo | undefined, r: PipelineTableRow) => {
-        const s = String(latest?.status || 'unknown').trim() as PipelineStatus
-        const color = PIPELINE_STATUS_COLORS[s] || '#9AA3AD'
         const pipeline = r.latestPipeline
-        const jobs = pipeline && jobsByPipeline.get(pipeline.id) ? jobsByPipeline.get(pipeline.id)! : []
+        const rawJobs = pipeline && jobsByPipeline.get(pipeline.id) ? jobsByPipeline.get(pipeline.id)! : []
+        const jobs = orderJobsByStageSequence(rawJobs)
+
+        let s = String(latest?.status || 'unknown').trim() as PipelineStatus
+
+        const hasChildJobs = jobs.some(j => j.parent_job_id !== null)
+        const firstChildIdx = jobs.findIndex(j => j.parent_job_id !== null)
+        const arrowIndex = hasChildJobs && jobs.length > 1 ? (firstChildIdx > 0 ? firstChildIdx : 1) : -1
+        const parentJobs = hasChildJobs && arrowIndex >= 0 ? jobs.slice(0, arrowIndex) : (hasChildJobs ? jobs.filter(j => j.parent_job_id === null) : jobs)
+        const childJobs = hasChildJobs && arrowIndex >= 0 ? jobs.slice(arrowIndex) : jobs.filter(j => j.parent_job_id !== null)
+
+        // Find rightmost target job:
+        // "give status pipeline for the most right side of child jobs"
+        // "if only parent jobs then put status same like parent jobs status"
+        const targetJob = childJobs.length > 0
+          ? childJobs[childJobs.length - 1]
+          : (parentJobs.length > 0 ? parentJobs[parentJobs.length - 1] : undefined)
+
+        const manualOrApprovalJob = jobs.find(
+          j => String(j.status || '').toLowerCase() === 'manual' ||
+               String(j.status || '').toLowerCase() === 'approval' ||
+               String(j.name || '').toLowerCase().trim() === 'approval' ||
+               String(j.name || '').toLowerCase().includes('approval')
+        )
+
+        const isManualOrApproval = (j?: { status?: string; name?: string } | null) => {
+          if (!j) return false
+          const st = String(j.status || '').toLowerCase().trim()
+          const nm = String(j.name || '').toLowerCase().trim()
+          return st === 'manual' || st === 'approval' || nm === 'approval' || nm.includes('approval')
+        }
+
+        if (childJobs.length > 0) {
+          // If child jobs: take the status of the most right side of child jobs
+          if (targetJob) {
+            if (isManualOrApproval(targetJob)) {
+              s = 'manual'
+            } else if (targetJob.status) {
+              s = String(targetJob.status).trim() as PipelineStatus
+            }
+          }
+        } else if (parentJobs.length > 0) {
+          // If only parent jobs: put status same like parent jobs status
+          // parent jobs approval = manual
+          if (isManualOrApproval(targetJob) || manualOrApprovalJob) {
+            s = 'manual'
+          } else if (targetJob?.status) {
+            s = String(targetJob.status).trim() as PipelineStatus
+          }
+        }
+
+        const color = PIPELINE_STATUS_COLORS[s] || '#9AA3AD'
+        const isManualOrApprovalStatus = s === 'manual' || s === 'approval'
+        const gitlabUrl = (isManualOrApprovalStatus ? (manualOrApprovalJob?.web_url || targetJob?.web_url) : undefined) || pipeline?.web_url
+
+        if (isManualOrApprovalStatus && gitlabUrl) {
+          return (
+            <Tooltip title="Open in GitLab">
+              <a
+                href={gitlabUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ textDecoration: 'none', display: 'inline-flex' }}
+              >
+                <Tag
+                  className="pipeline-status-badge"
+                  style={{
+                    '--status-color': color,
+                    cursor: 'pointer',
+                  } as React.CSSProperties}
+                >
+                  {s}
+                </Tag>
+              </a>
+            </Tooltip>
+          )
+        }
+
         return (
           <Tooltip title="Click for pipeline details">
             <Tag
@@ -698,7 +774,7 @@ export default function PipelinesPage() {
               } as React.CSSProperties}
               onClick={() => {
                 if (pipeline) {
-                  setSelectedPipeline(pipeline)
+                  setSelectedPipeline({ ...pipeline, status: s })
                   setSelectedPipelineJobs(jobs)
                 }
               }}

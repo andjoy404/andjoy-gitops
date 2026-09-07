@@ -25,6 +25,7 @@ export const PIPELINE_STATUS_COLORS: Record<PipelineStatus, string> = {
   canceling: 'var(--dashboard-muted)',
   skipped: '#FF9F2F',
   manual: '#FFC21C',
+  approval: '#FFC21C',
   scheduled: '#A970FF',
   preparing: '#39A0FF',
   waiting_for_resource: '#9AA3AD',
@@ -616,6 +617,7 @@ export function PipelineJobBadges({
     canceling: 'var(--dashboard-muted)',
     skipped: '#FF9F2F',
     manual: '#FFC21C',
+    approval: '#FFC21C',
     waiting_for_resource: '#9AA3AD',
   }
 

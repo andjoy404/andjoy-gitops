@@ -140,6 +140,7 @@ export type PipelineStatus =
   | 'preparing'
   | 'waiting_for_resource'
   | 'success'
+  | 'approval'
 
 export type PipelineSource =
   | 'push'
@@ -202,6 +203,7 @@ export type JobStatus =
   | 'skipped'
   | 'waiting_for_resource'
   | 'manual'
+  | 'approval'
 
 export interface JobInfo {
   id: number
