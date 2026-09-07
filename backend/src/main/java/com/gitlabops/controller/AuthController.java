@@ -103,9 +103,7 @@ public class AuthController {
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         boolean isSecure = Boolean.parseBoolean(
-                System.getenv("SESSION_SECURE"))
-                || "production".equals(
-                System.getProperty("spring.profiles.active", ""));
+                System.getenv("SESSION_SECURE"));
         cookie.setSecure(isSecure);
         cookie.setMaxAge(3600);
         cookie.setAttribute("SameSite", "Lax");
@@ -133,9 +131,7 @@ public class AuthController {
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         cookie.setSecure(Boolean.parseBoolean(
-                System.getenv("SESSION_SECURE"))
-                || "production".equals(
-                System.getProperty("spring.profiles.active", "")));
+                System.getenv("SESSION_SECURE")));
         cookie.setMaxAge(0);
         response.addCookie(cookie);
     }
