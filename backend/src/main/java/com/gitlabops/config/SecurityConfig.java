@@ -19,6 +19,7 @@ import org.springframework.security.web.firewall.StrictHttpFirewall;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 /**
  * Shared security configuration supporting both the SecurityFilterChain
@@ -80,7 +81,8 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
-            SessionAuthenticationFilter sessionAuthFilter) throws Exception {
+            SessionAuthenticationFilter sessionAuthFilter,
+            CorsConfigurationSource corsConfigurationSource) throws Exception {
 
         StrictHttpFirewall firewall = new StrictHttpFirewall();
         firewall.setAllowSemicolon(true);
@@ -99,6 +101,7 @@ public class SecurityConfig {
         CsrfTokenRequestHandler dualHandler = new DualCsrfTokenRequestHandler(baseHandler);
 
         http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(tokenRepository)
                         .csrfTokenRequestHandler(dualHandler)

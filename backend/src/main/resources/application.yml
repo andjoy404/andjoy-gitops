@@ -1,5 +1,9 @@
 server:
   port: 8090
+  forward-headers-strategy: ${SERVER_FORWARD_HEADERS_STRATEGY:framework}
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:}
 
 spring:
   application:

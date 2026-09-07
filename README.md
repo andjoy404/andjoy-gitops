@@ -79,11 +79,19 @@ cd andjoy-gitops
 cp .env.example .env
 ```
 
-Edit `.env` with your database password and encryption key:
+Generate a 256-bit (64-character hex) encryption key for securing GitLab access tokens:
+
+```bash
+openssl rand -hex 32
+```
+
+Edit `.env` with your database password, encryption key, and CORS/proxy settings:
 
 ```env
 DB_PASSWORD=your_secure_db_password
 ENVIRONMENT_TOKEN_ENCRYPTION_KEY=your-generated-64-hex-character-key
+CORS_ALLOWED_ORIGINS=https://gitops.domain.com
+SERVER_FORWARD_HEADERS_STRATEGY=framework
 ```
 
 Then start:
@@ -104,7 +112,9 @@ All runtime settings are configurable via `.env`:
 | --- | --- | --- |
 | `APP_PORT` | `8090` | Web dashboard & API port |
 | `DB_PASSWORD` | *Required* | PostgreSQL password |
-| `ENVIRONMENT_TOKEN_ENCRYPTION_KEY` | *Required* | 256-bit hex key for GitLab token encryption |
+| `ENVIRONMENT_TOKEN_ENCRYPTION_KEY` | *Required* | 256-bit hex key (`openssl rand -hex 32`) for token encryption |
+| `CORS_ALLOWED_ORIGINS` | `https://gitops.appfuxion.com` | Comma-separated allowed CORS origins |
+| `SERVER_FORWARD_HEADERS_STRATEGY` | `framework` | Proxy forwarded header processing (`framework`, `native`, `none`) |
 | `SESSION_SECURE` | `false` | Set `true` behind HTTPS |
 | `ANALYTICS_SYNC_INTERVAL_SECONDS` | `60` | Background sync cadence |
 | `ANALYTICS_RETENTION_DAYS` | `30` | Data retention cutoff |
