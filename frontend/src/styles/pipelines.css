@@ -783,20 +783,18 @@ html.dark-theme .job-detail-modal .ant-modal-body {
 }
 
 .pipeline-dag-graph .react-flow__edge-path {
-  stroke: var(--dashboard-accent);
-  stroke-width: 2;
+  stroke: color-mix(in srgb, var(--dashboard-text) 35%, var(--dashboard-border));
+  stroke-width: 2px;
   fill: none;
 }
 
 .pipeline-dag-graph .react-flow__edge-line {
-  stroke: var(--dashboard-accent);
-  stroke-width: 2;
+  stroke: color-mix(in srgb, var(--dashboard-text) 35%, var(--dashboard-border));
+  stroke-width: 2px;
 }
 
 .pipeline-dag-graph .react-flow__edge-arrowhead path {
-  fill: var(--dashboard-accent);
-  stroke: var(--dashboard-accent);
-  stroke-width: 2;
+  display: none !important;
 }
 
 .pipeline-dag-graph .react-flow__background {

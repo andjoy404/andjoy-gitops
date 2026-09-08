@@ -120,6 +120,28 @@ function buildGraphParams(scope: {
   return p
 }
 
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function matchesWildcardOrSubstring(text: string, query: string): boolean {
+  if (!query) return true
+  const q = query.trim().toLowerCase()
+  const target = text.toLowerCase()
+  if (q.includes('*') || q.includes('?')) {
+    try {
+      const pattern = '^' + q
+        .split('*')
+        .map((part) => part.split('?').map(escapeRegex).join('.'))
+        .join('.*') + '$'
+      return new RegExp(pattern, 'i').test(target)
+    } catch {
+      return target.includes(q)
+    }
+  }
+  return target.includes(q)
+}
+
 // ── Level dropdown (themed multi-select) ─────────────────────────────
 
 interface LevelOption<V extends string | number = string | number> {
@@ -147,6 +169,18 @@ function LevelSelect<V extends string | number>(props: LevelSelectProps<V>) {
       <span className="drill-row-label">{label}</span>
       <Select
         mode="multiple"
+        showSearch
+        filterOption={(input, option) => {
+          if (!input) return true
+          const labelStr = String(option?.label ?? '')
+          const searchStr = String((option as any)?.searchText ?? '')
+          const valueStr = String(option?.value ?? '')
+          return (
+            matchesWildcardOrSubstring(labelStr, input) ||
+            matchesWildcardOrSubstring(searchStr, input) ||
+            matchesWildcardOrSubstring(valueStr, input)
+          )
+        }}
         placeholder={placeholder ?? `Select ${label.toLowerCase()}…`}
         value={value || []}
         options={options}

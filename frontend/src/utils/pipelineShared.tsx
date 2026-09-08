@@ -5,6 +5,8 @@ import type { PipelineInfo } from '../types'
 import React, { useState, useCallback, useRef, useEffect, useMemo, createContext, useContext } from 'react'
 import ReactFlow, {
   Background,
+  Handle,
+  Position,
   MarkerType,
   ReactFlowProvider,
   useReactFlow,
@@ -937,106 +939,122 @@ function PipelineJobNode({
   }
 }) {
   const { label, status, isSelected, stage } = data
-  const grad = STATUS_GRADIENTS[status] ?? STATUS_GRADIENTS.preparing
   const accentColor = getAccentColor(status)
-  const isRunning = status === 'running'
-  const isTerminal = ['success', 'failed', 'canceled', 'canceling', 'skipped'].includes(status)
+  const isRunning = status === 'running' || status === 'preparing' || status === 'waiting_for_resource'
+  const isSuccess = status === 'success' || status === 'passed'
+  const isFailed = status === 'failed'
   const isDark = useTheme() === 'dark'
 
-  const surfaceBg = isDark
-    ? 'linear-gradient(180deg, rgba(30,35,40,0.95) 0%, rgba(20,25,30,0.98) 100%)'
-    : 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)'
+  const surfaceBg = isDark ? '#1c2128' : '#ffffff'
   const surfaceShadow = isDark
-    ? '0 2px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04)'
-    : '0 2px 12px rgba(0,0,0,0.06), inset 0 1px 0 #ffffff'
-  const isSelectedShadow = `0 0 0 2px ${accentColor}30, 0 8px 24px rgba(0,0,0,0.3)`
-  const borderWidth = isSelected ? 2 : 1.5
-  const borderColor = isSelected ? accentColor : `${accentColor}33`
+    ? '0 2px 8px rgba(0,0,0,0.35)'
+    : '0 1px 4px rgba(0,0,0,0.08)'
+  const isSelectedShadow = `0 0 0 2px ${accentColor}80, 0 4px 12px rgba(0,0,0,0.3)`
+  const borderColor = isSelected ? accentColor : (isDark ? '#30363d' : '#d0d7de')
 
   const jobNameColor = isSelected
-    ? (isDark ? '#ffffff' : '#202331')
-    : (isDark ? '#d0d3d8' : '#202331')
-  const stageNameColor = isDark ? 'rgba(160,168,178,0.7)' : 'rgba(107,114,128,0.8)'
-  const boxShadowRunning = `0 0 10px ${accentColor}80, 0 0 20px ${accentColor}40`
-  const boxShadowTerminal = `0 0 4px ${accentColor}60`
+    ? (isDark ? '#ffffff' : '#1f2937')
+    : (isDark ? '#e6edf3' : '#1f2937')
+  const stageNameColor = isDark ? '#8b949e' : '#6b7280'
 
   return (
     <div style={{
       display: 'flex',
-      flexDirection: 'column',
-      gap: 6,
-      padding: '18px 16px 16px',
-      borderRadius: 12,
+      alignItems: 'center',
+      gap: 10,
+      padding: '0 12px',
+      borderRadius: 8,
       background: surfaceBg,
-      border: `${borderWidth}px solid ${borderColor}`,
+      border: `1px solid ${borderColor}`,
       boxShadow: isSelected ? isSelectedShadow : surfaceShadow,
-      transition: 'all 0.25s ease',
       position: 'relative',
-      overflow: 'visible',
-      maxWidth: 200,
-      minWidth: 170,
+      width: 220,
+      height: 52,
+      boxSizing: 'border-box',
     }}>
-      {/* Status accent line */}
+      <Handle
+        type="target"
+        position={Position.Left}
+        style={{
+          background: 'var(--dashboard-border, #4b5563)',
+          width: 6,
+          height: 6,
+          borderRadius: '50%',
+          border: 'none',
+          left: -4,
+        }}
+      />
+
+      {/* Status icon circle like GitLab */}
       <div style={{
-        position: 'absolute',
-        top: 0,
-        left: isSelected ? 0 : 'auto',
-        right: isSelected ? 'auto' : 0,
-        width: isSelected ? 3 : 2,
-        height: '100%',
-        background: grad,
-        opacity: 1,
-        borderRadius: isSelected ? '12px 0 0 12px' : '0 15px 0 0',
-      }} />
+        width: 22,
+        height: 22,
+        borderRadius: '50%',
+        border: `2px solid ${accentColor}`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+        color: accentColor,
+        fontSize: 12,
+        fontWeight: 800,
+        lineHeight: 1,
+      }}>
+        {isRunning ? (
+          <LoadingOutlined style={{ fontSize: 12, color: accentColor }} />
+        ) : isSuccess ? (
+          '✓'
+        ) : isFailed ? (
+          '✕'
+        ) : (
+          '•'
+        )}
+      </div>
 
-      {/* Status indicator */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+      {/* Job name & stage */}
+      <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
         <div style={{
-          width: 10,
-          height: 10,
-          borderRadius: 3,
-          background: isTerminal ? grad : grad,
-          boxShadow: isRunning ? boxShadowRunning : boxShadowTerminal,
-          flexShrink: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginTop: 1,
+          fontSize: 12,
+          fontWeight: 600,
+          color: jobNameColor,
+          lineHeight: 1.3,
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
         }}>
-          {isRunning && (
-            <LoadingOutlined style={{ fontSize: 8, color: '#fff', opacity: 0.9 }} />
-          )}
+          {label}
         </div>
-
-        {/* Job name */}
         <div style={{
-          flex: 1,
-          minWidth: 0,
+          fontSize: 11,
+          color: stageNameColor,
+          lineHeight: 1.2,
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
         }}>
-          <div style={{
-            fontSize: 15,
-            fontWeight: 600,
-            color: jobNameColor,
-            lineHeight: 1.3,
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            letterSpacing: -0.2,
-          }}>
-            {label}
-          </div>
-          <div style={{
-            fontSize: 16,
-            fontWeight: 700,
-            color: isSelected ? accentColor : stageNameColor,
-            textTransform: 'uppercase',
-            letterSpacing: 1.2,
-            marginTop: 5,
-          }}>
-            {stage}
-          </div>
+          {stage}
         </div>
       </div>
+
+      <ReloadOutlined style={{
+        fontSize: 11,
+        color: stageNameColor,
+        flexShrink: 0,
+        opacity: 0.6,
+      }} />
+
+      <Handle
+        type="source"
+        position={Position.Right}
+        style={{
+          background: 'var(--dashboard-border, #4b5563)',
+          width: 6,
+          height: 6,
+          borderRadius: '50%',
+          border: 'none',
+          right: -4,
+        }}
+      />
     </div>
   )
 }
@@ -1161,10 +1179,10 @@ function PipelineDAGGraph({
 
     const positions = new Map<number, { x: number; y: number }>()
 
-    const nodeWidth = 200
-    const nodeHeight = 70
-    const gapX = 80
-    const gapY = 60
+    const nodeWidth = 220
+    const nodeHeight = 52
+    const gapX = 65
+    const gapY = 14
 
     const allLevels = sortedStages.map(si => si.sorted.map(j => j.id))
     const maxRowsPerLevel = allLevels.map(l => l.length)
@@ -1182,8 +1200,6 @@ function PipelineDAGGraph({
     return { positions, sortedStages, stageOrder }
   }, [jobs])
 
-  const ref = useRef<HTMLDivElement>(null)
-
   const nodes = useMemo(() => {
     const n: import('reactflow').Node[] = []
     orderedJobs.forEach((job) => {
@@ -1193,8 +1209,8 @@ function PipelineDAGGraph({
           id: `job-${job.id}`,
           type: 'pipelineJob',
           position: pos,
-          width: 200,
-          height: 86,
+          width: 220,
+          height: 52,
           data: {
             label: job.name,
             status: job.status === 'created' ? 'running' : job.status,
@@ -1208,15 +1224,15 @@ function PipelineDAGGraph({
       }
     })
     if (n.length === 0) {
-      orderedJobs.forEach((job) => {
-        const x = 20 + ((Math.log2(job.id || 1) * 50) || 0)
+      orderedJobs.forEach((job, idx) => {
+        const x = 20 + idx * 240
         const y = 20
         n.push({
           id: `job-${job.id}`,
           type: 'pipelineJob',
           position: { x, y },
-          width: 200,
-          height: 86,
+          width: 220,
+          height: 52,
           data: {
             label: job.name,
             status: job.status === 'created' ? 'running' : job.status,
@@ -1229,34 +1245,80 @@ function PipelineDAGGraph({
     return n
   }, [orderedJobs, layout.positions, selectedJob])
 
-    const edges = useMemo(() => {
-       const e: import('reactflow').Edge[] = []
-       if (hasDependencyData) {
-         orderedJobs.forEach(job => {
-           if (job.parent_job_id != null && job.parent_job_id > 0 && jobMap.has(job.parent_job_id)) {
-             e.push({
-               id: `edge-${job.parent_job_id}-${job.id}`,
-               source: `job-${job.parent_job_id}`,
-               target: `job-${job.id}`,
-             })
-           }
-         })
-       } else {
-         const { sortedStages } = layout
-         for (let i = 0; i < sortedStages.length - 1; i++) {
-           const fromJobs = sortedStages[i].sorted
-           const toJobs = sortedStages[i + 1].sorted
-           for (let r = 0; r < Math.max(fromJobs.length, toJobs.length); r++) {
-             e.push({
-               id: `edge-${fromJobs[r % fromJobs.length].id}-${toJobs[r % toJobs.length].id}`,
-               source: `job-${fromJobs[r % fromJobs.length].id}`,
-               target: `job-${toJobs[r % toJobs.length].id}`,
-             })
-           }
-         }
-       }
-       return e
-    }, [orderedJobs, hasDependencyData, layout.sortedStages, jobMap])
+  const edges = useMemo(() => {
+    const e: import('reactflow').Edge[] = []
+    const edgeSet = new Set<string>()
+
+    const addEdge = (srcId: number, tgtId: number) => {
+      const key = `${srcId}->${tgtId}`
+      if (edgeSet.has(key) || srcId === tgtId) return
+      edgeSet.add(key)
+      e.push({
+        id: `edge-${srcId}-${tgtId}`,
+        source: `job-${srcId}`,
+        target: `job-${tgtId}`,
+        type: 'default',
+        style: {
+          stroke: 'color-mix(in srgb, var(--dashboard-text) 35%, var(--dashboard-border))',
+          strokeWidth: 2,
+        },
+      })
+    }
+
+    // 1. Explicit parent_job_id (GitLab DAG dependencies)
+    orderedJobs.forEach((job) => {
+      if (job.parent_job_id != null && job.parent_job_id > 0 && jobMap.has(job.parent_job_id)) {
+        addEdge(job.parent_job_id, job.id)
+      }
+    })
+
+    // 2. Stage-to-stage connections for jobs without explicit dependencies
+    const { sortedStages } = layout
+    const getBaseName = (name: string, stage: string) => {
+      let n = name.toLowerCase().trim()
+      const st = stage.toLowerCase().trim()
+      if (n.startsWith(st + '-')) n = n.slice(st.length + 1)
+      else if (n.startsWith(st + '_')) n = n.slice(st.length + 1)
+      const prefixes = ['compile-', 'build-', 'deploy-', 'test-', 'package-', 'lint-', 'publish-']
+      for (const p of prefixes) {
+        if (n.startsWith(p)) {
+          n = n.slice(p.length)
+          break
+        }
+      }
+      return n
+    }
+
+    for (let i = 0; i < sortedStages.length - 1; i++) {
+      const fromJobs = sortedStages[i].sorted
+      const toJobs = sortedStages[i + 1].sorted
+
+      toJobs.forEach((toJob, toIdx) => {
+        const alreadyHasIncoming = e.some((edge) => edge.target === `job-${toJob.id}`)
+        if (alreadyHasIncoming) return
+
+        if (fromJobs.length === 1) {
+          addEdge(fromJobs[0].id, toJob.id)
+        } else {
+          const toBase = getBaseName(toJob.name, toJob.stage)
+          const matchedFrom = fromJobs.find((fj) => {
+            const fromBase = getBaseName(fj.name, fj.stage)
+            return fromBase === toBase || fj.name.endsWith(toBase) || toJob.name.endsWith(fromBase)
+          })
+
+          if (matchedFrom) {
+            addEdge(matchedFrom.id, toJob.id)
+          } else if (fromJobs.length === toJobs.length) {
+            addEdge(fromJobs[toIdx].id, toJob.id)
+          } else {
+            addEdge(fromJobs[toIdx % fromJobs.length].id, toJob.id)
+          }
+        }
+      })
+    }
+
+    return e
+  }, [orderedJobs, jobMap, layout])
 
   if (nodes.length === 0) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', color: 'var(--dashboard-muted)', fontSize: '0.8em' }}>
@@ -1280,9 +1342,11 @@ function PipelineDAGGraph({
         elementsSelectable={false}
         className="pipeline-dag-graph"
         defaultEdgeOptions={{
-          type: 'smoothstep',
-          style: { stroke: '#6c4f99', strokeWidth: 2.5 } as React.CSSProperties,
-          markerEnd: { type: MarkerType.ArrowClosed, width: 18, height: 18 },
+          type: 'default',
+          style: {
+            stroke: 'color-mix(in srgb, var(--dashboard-text) 35%, var(--dashboard-border))',
+            strokeWidth: 2,
+          } as React.CSSProperties,
         }}
         style={{ background: 'var(--dashboard-surface)', color: 'var(--dashboard-text)' }}
       >

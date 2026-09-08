@@ -32,7 +32,10 @@ const ugpGraph = {
 }
 
 const graphOptions = {
-  users: [{ id: 11, username: 'alice', name: 'Alice' }],
+  users: [
+    { id: 11, username: 'alice', name: 'Alice' },
+    { id: 12, username: 'bob', name: 'Bob' },
+  ],
   projects: [{ id: 101, name: 'web', path_with_ns: 'alpha/web' }],
   branches: ['main', 'dev'],
 }
@@ -253,5 +256,43 @@ describe('RelationsMapPage — drill-down dropdowns', () => {
   it('shows the no-groups empty state when the environment has none', async () => {
     mount({ envNamespaceId: 99999 })
     expect(await screen.findByText('No groups available for this environment.', {}, { timeout: 5000 })).toBeInTheDocument()
+  })
+
+  it('supports partial and wildcard search in drill-down dropdowns', async () => {
+    mount()
+    await pickRoot('Users')
+    await expectLevel('Users')
+
+    const row = rowLabel('Users')?.closest('.drill-row') as HTMLElement | null
+    const selector = row?.querySelector('.ant-select-selector') as HTMLElement | null
+    expect(selector, 'users dropdown').toBeTruthy()
+    fireEvent.mouseDown(selector!)
+
+    await waitFor(() => {
+      const labels = Array.from(document.querySelectorAll<HTMLElement>('.ant-select-item-option'))
+        .map((option) => (option.textContent ?? '').trim())
+      expect(labels).toContain('alice')
+      expect(labels).toContain('bob')
+    })
+
+    const input = row?.querySelector('.ant-select-selection-search-input') as HTMLInputElement | null
+    expect(input, 'search input').toBeTruthy()
+    fireEvent.change(input!, { target: { value: 'ali*' } })
+
+    await waitFor(() => {
+      const labels = Array.from(document.querySelectorAll<HTMLElement>('.ant-select-item-option'))
+        .map((option) => (option.textContent ?? '').trim())
+      expect(labels).toContain('alice')
+      expect(labels).not.toContain('bob')
+    })
+
+    fireEvent.change(input!, { target: { value: '*ob' } })
+
+    await waitFor(() => {
+      const labels = Array.from(document.querySelectorAll<HTMLElement>('.ant-select-item-option'))
+        .map((option) => (option.textContent ?? '').trim())
+      expect(labels).toContain('bob')
+      expect(labels).not.toContain('alice')
+    })
   })
 })

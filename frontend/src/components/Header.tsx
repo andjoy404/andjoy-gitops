@@ -33,7 +33,7 @@ export default function Header({ children, companyName, companyLogo }: HeaderPro
         <Button
             type="text"
             icon={<GithubOutlined />}
-            href="https://github.com/andjoy404/anjoy-gitops"
+            href="https://github.com/andjoy404/andjoy-gitops"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="AndJoy GitOps repository on GitHub"
