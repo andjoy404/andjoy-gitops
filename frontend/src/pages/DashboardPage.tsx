@@ -736,7 +736,7 @@ function LeaderboardPanel({ users, metricKey, title }: { users: UserActivity[]; 
     </div>
   )
 }
-function UsersAnalyticsDashboard({ users, loading }: { users: UserActivity[]; loading: boolean }) {
+export function UsersAnalyticsDashboard({ users, loading }: { users: UserActivity[]; loading: boolean }) {
 
   const usersList: UserActivity[] = Array.isArray(users) ? users : []
 
@@ -750,22 +750,27 @@ function UsersAnalyticsDashboard({ users, loading }: { users: UserActivity[]; lo
 
   const pushLeader = useMemo(() =>
     [...dedupedUsers]
+      .filter((u) => (Number(u.push_count) || 0) > 0)
       .sort((a, b) => (Number(b.push_count) || 0) - (Number(a.push_count) || 0) || a.name.localeCompare(b.name))
       .slice(0, 5), [dedupedUsers])
   const mrLeader = useMemo(() =>
     [...dedupedUsers]
+      .filter((u) => (Number(u.merge_request_count) || 0) > 0)
       .sort((a, b) => (Number(b.merge_request_count) || 0) - (Number(a.merge_request_count) || 0) || a.name.localeCompare(b.name))
       .slice(0, 5), [dedupedUsers])
   const mergedLeader = useMemo(() =>
     [...dedupedUsers]
+      .filter((u) => (Number(u.merged_count) || 0) > 0)
       .sort((a, b) => (Number(b.merged_count) || 0) - (Number(a.merged_count) || 0) || a.name.localeCompare(b.name))
       .slice(0, 5), [dedupedUsers])
   const commentLeader = useMemo(() =>
     [...dedupedUsers]
+      .filter((u) => (Number(u.comment_count) || 0) > 0)
       .sort((a, b) => (Number(b.comment_count) || 0) - (Number(a.comment_count) || 0) || a.name.localeCompare(b.name))
       .slice(0, 5), [dedupedUsers])
   const issueLeader = useMemo(() =>
     [...dedupedUsers]
+      .filter((u) => (Number(u.issue_count) || 0) > 0)
       .sort((a, b) => (Number(b.issue_count) || 0) - (Number(a.issue_count) || 0) || a.name.localeCompare(b.name))
       .slice(0, 5), [dedupedUsers])
 
@@ -966,7 +971,7 @@ function UsersAnalyticsDashboard({ users, loading }: { users: UserActivity[]; lo
           <div className="leaderboard-card-container" key={m.label}>
             <header>
               <strong>{m.label}</strong>
-              <small>Top 5 {m.label}s</small>
+              <small>Top 5 {m.label.endsWith('s') ? m.label : `${m.label}s`}</small>
             </header>
             <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
               <table className="users-top5-table">
@@ -978,22 +983,35 @@ function UsersAnalyticsDashboard({ users, loading }: { users: UserActivity[]; lo
                   </tr>
                 </thead>
                 <tbody>
-                  {m.data.map((u, i) => (
-                    <tr key={u.id}>
-                      <td className={`users-top5-rank rank-${i + 1}`}>{i + 1}</td>
-                      <td className="users-top5-identity">
-                        <div className="users-top5-name">
-                          {u.web_url ? (
-                            <a href={u.web_url} target="_blank" rel="noreferrer">{u.name || u.username}</a>
-                          ) : (
-                            <span>{u.name || u.username}</span>
-                          )}
-                          <small>@{u.username}</small>
-                        </div>
-                      </td>
-                      <td className="users-top5-metric">{m.getVal(u)}</td>
-                    </tr>
-                  ))}
+                  {[0, 1, 2, 3, 4].map((i) => {
+                    const u = m.data[i]
+                    if (u) {
+                      return (
+                        <tr key={u.id}>
+                          <td className={`users-top5-rank rank-${i + 1}`}>{i + 1}</td>
+                          <td className="users-top5-identity">
+                            <div className="users-top5-name">
+                              {u.web_url ? (
+                                <a href={u.web_url} target="_blank" rel="noreferrer">{u.name || u.username}</a>
+                              ) : (
+                                <span>{u.name || u.username}</span>
+                              )}
+                              <small>@{u.username}</small>
+                            </div>
+                          </td>
+                          <td className="users-top5-metric">{m.getVal(u)}</td>
+                        </tr>
+                      )
+                    }
+                    return (
+                      <tr key={`empty-${i + 1}`}>
+                        <td className="users-top5-rank" style={{ color: 'var(--dashboard-muted)' }}>{i + 1}</td>
+                        <td colSpan={2} style={{ textAlign: 'center', color: 'var(--dashboard-muted)' }}>
+                          -
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>

@@ -282,6 +282,23 @@ class UserActivityContractTest {
         assertTrue(root.get("total").asInt() >= 1);
     }
 
+    @Test
+    void searchByWildcardReturnsMatches() {
+        ResponseEntity<String> response = restTemplate.getForEntity(
+            baseUrl + "/api/analytics/users?group_ids=123&hours=720&search=al*&page_size=50", String.class);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        JsonNode root = parse(response.getBody());
+        assertTrue(root.get("total").asInt() >= 1);
+        assertEquals("alice", root.get("users").get(0).get("username").asText());
+
+        ResponseEntity<String> response2 = restTemplate.getForEntity(
+            baseUrl + "/api/analytics/users?group_ids=123&hours=720&search=*smith*&page_size=50", String.class);
+        assertEquals(HttpStatus.OK, response2.getStatusCode());
+        JsonNode root2 = parse(response2.getBody());
+        assertTrue(root2.get("total").asInt() >= 1);
+        assertEquals("bob", root2.get("users").get(0).get("username").asText());
+    }
+
     // ── Combined filters ───────────────────────────────────────
 
     @Test

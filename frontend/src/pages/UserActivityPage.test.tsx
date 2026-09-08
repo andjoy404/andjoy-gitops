@@ -95,9 +95,9 @@ function renderPage(users?: UserActivity[], metrics: Record<string, unknown> = D
   const { paginated, metrics: m, readiness: r } = setupFn(users, metrics, readiness)
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
       qc.setQueryData(['analytics-readiness', 1, 123], r)
-  qc.setQueryData(['user-activity', 1, '123', 24, 'both', '', 1, 10, 'name', 'asc'], paginated)
+  qc.setQueryData(['user-activity', 1, '123', 24, 'both', '', '', 1, 10, 'last_activity', 'desc'], paginated)
   qc.setQueryData(['user-activity-options', 1, '123', 24, 'both'], paginated.users)
-  qc.setQueryData(['user-metrics', 1, '123', 24, 'both', ''], m)
+  qc.setQueryData(['user-metrics', 1, '123', 24, 'both', '', ''], m)
 
   const w = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={qc}>
@@ -190,9 +190,9 @@ describe('UserActivityPage', () => {
       setupFn([], { activeUsers:0,nonActiveUsers:0,totalUsers:0,totalIssues:0,totalMergeRequests:0,totalMergedUsers:0,totalPushes:0,totalComments:0,activityLoading:false })
       const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
       qc.setQueryData(['analytics-readiness', 1, 123], getReadiness())
-      qc.setQueryData(['user-activity', 1, '123', 24, 'both', '', 1, 10, 'name', 'asc'], { users: [], page: 1, pageSize: 10, total: 0 })
+      qc.setQueryData(['user-activity', 1, '123', 24, 'both', '', '', 1, 10, 'last_activity', 'desc'], { users: [], page: 1, pageSize: 10, total: 0 })
       qc.setQueryData(['user-activity-options', 1, '123', 24, 'both'], [])
-      qc.setQueryData(['user-metrics', 1, '123', 24, 'both', ''], { activeUsers:0,nonActiveUsers:0,totalUsers:0,totalIssues:0,totalMergeRequests:0,totalMergedUsers:0,totalPushes:0,totalComments:0,activityLoading:false })
+      qc.setQueryData(['user-metrics', 1, '123', 24, 'both', '', ''], { activeUsers:0,nonActiveUsers:0,totalUsers:0,totalIssues:0,totalMergeRequests:0,totalMergedUsers:0,totalPushes:0,totalComments:0,activityLoading:false })
       const w = ({ children}: { children: React.ReactNode }) => (
         <QueryClientProvider client={qc}>
           <MemoryRouter>
@@ -350,6 +350,15 @@ describe('UserActivityPage', () => {
       const input = screen.getByLabelText('Search users') as HTMLInputElement
       expect(input.placeholder).toBe('Filter all fields...')
     })
+
+    it('allows free text and wildcard search on Enter', async () => {
+      renderPage()
+      const input = screen.getByLabelText('Search users')
+      fireEvent.focus(input)
+      fireEvent.change(input, { target: { value: 'ali*' } })
+      fireEvent.keyDown(input, { key: 'Enter' })
+      expect(screen.getByRole('button', { name: 'Remove filter ali*' })).toBeInTheDocument()
+    })
   })
 
   // ── 10. USER IDS FILTER ─────────────────────────────────────
@@ -494,9 +503,9 @@ describe('UserActivityPage', () => {
   describe('table render', () => {
     it('toggles a sortable header between ascending and descending', async () => {
       renderPage()
-      const nameSort = await screen.findByRole('button', { name: 'Sort by Name descending' })
+      const nameSort = await screen.findByRole('button', { name: 'Sort by Name ascending' })
       fireEvent.click(nameSort)
-      expect(await screen.findByRole('button', { name: 'Sort by Name ascending' })).toBeInTheDocument()
+      expect(await screen.findByRole('button', { name: 'Sort by Name descending' })).toBeInTheDocument()
     })
 
     it('renders data table', () => {
@@ -525,18 +534,23 @@ describe('UserActivityPage', () => {
       expect(badges?.length).toBeGreaterThan(0)
     })
 
-    it('displays column headers', () => {
+    it('displays column headers in order Pushes - MRs - Merged - Comments - Issues', () => {
       renderPage()
       const table = document.querySelector<HTMLTableElement>('table.user-metrics-table')
       expect(table).toBeTruthy()
       const headers = table?.querySelectorAll('thead th')
-      const headerTexts = Array.from(headers!).map(h => h.textContent || '')
-      expect(headerTexts.some(text => text.startsWith('User'))).toBe(true)
-      expect(headerTexts.some(text => text.startsWith('State'))).toBe(true)
-      expect(headerTexts.some(text => text.startsWith('Badge'))).toBe(true)
-      for (const label of ['Issues', 'MRs', 'Pushes', 'Comments', 'Last activity']) {
-        expect(headerTexts.some(text => text.startsWith(label))).toBe(true)
-      }
+      const headerTexts = Array.from(headers!).map(h => h.textContent?.replace(/[↑↓⇅]/g, '').trim() || '')
+      expect(headerTexts).toEqual([
+        'Name',
+        'Username',
+        'State',
+        'Last activity',
+        'Pushes',
+        'MRs',
+        'Merged',
+        'Comments',
+        'Issues',
+      ])
     })
 
     it('renders avatar images', () => {
@@ -584,7 +598,7 @@ describe('UserActivityPage', () => {
       const options = Array.from(
         document.querySelectorAll<HTMLOptionElement>('.user-activity-paginator select option'),
       ).map(option => option.textContent)
-      expect(options).toEqual(['10', '20', '30', '40', '50'])
+      expect(options).toEqual(['10', '20', '30', '40', '50', '100'])
     })
 
     it('restores the persisted page size', async () => {
@@ -609,8 +623,8 @@ describe('UserActivityPage', () => {
       setupFn([], { activeUsers:0,nonActiveUsers:0,totalUsers:0,totalIssues:0,totalMergeRequests:0,totalMergedUsers:0,totalPushes:0,totalComments:0,activityLoading:false })
       const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
       qc.setQueryData(['analytics-readiness', 1, 123], getReadiness())
-      qc.setQueryData(['user-activity', 1, '123', 24, 'both', -1, 1, 10], { users: [], page: 1, pageSize: 10, total: 0 })
-      qc.setQueryData(['user-metrics', 1, '123', 24, 'both', -1], { activeUsers:0,nonActiveUsers:0,totalUsers:0,totalIssues:0,totalMergeRequests:0,totalMergedUsers:0,totalPushes:0,totalComments:0,activityLoading:false })
+      qc.setQueryData(['user-activity', 1, '123', 24, 'both', '', '', 1, 10, 'last_activity', 'desc'], { users: [], page: 1, pageSize: 10, total: 0 })
+      qc.setQueryData(['user-metrics', 1, '123', 24, 'both', '', ''], { activeUsers:0,nonActiveUsers:0,totalUsers:0,totalIssues:0,totalMergeRequests:0,totalMergedUsers:0,totalPushes:0,totalComments:0,activityLoading:false })
       const w = ({ children}: { children: React.ReactNode }) => (
         <QueryClientProvider client={qc}>
           <MemoryRouter>

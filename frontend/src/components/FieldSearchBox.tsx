@@ -51,6 +51,28 @@ export interface FieldSearchBoxProps {
   style?: React.CSSProperties
 }
 
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function matchesWildcardOrSubstring(text: string, query: string): boolean {
+  if (!query) return true
+  const q = query.trim().toLowerCase()
+  const target = text.toLowerCase()
+  if (q.includes('*') || q.includes('?')) {
+    try {
+      const pattern = '^' + q
+        .split('*')
+        .map((part) => part.split('?').map(escapeRegex).join('.'))
+        .join('.*') + '$'
+      return new RegExp(pattern, 'i').test(target)
+    } catch {
+      return target.includes(q)
+    }
+  }
+  return target.includes(q)
+}
+
 export function FieldSearchBox({
   fields,
   selectedField,
@@ -94,7 +116,7 @@ export function FieldSearchBox({
   const q = draft.trim().toLowerCase()
   const visible = rawSuggestions.filter((s) => {
     if (existingValues.has(s.value) || existingValues.has(s.label)) return false
-    return !q || s.label.toLowerCase().includes(q) || s.value.toLowerCase().includes(q)
+    return !q || matchesWildcardOrSubstring(s.label, q) || matchesWildcardOrSubstring(s.value, q)
   })
 
   const open = focused && !closedBySelection && visible.length > 0

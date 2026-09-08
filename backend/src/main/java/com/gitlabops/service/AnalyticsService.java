@@ -37,6 +37,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.regex.Pattern;
 
 @Service
 @ConditionalOnProperty(name = "analytics.enabled", havingValue = "true", matchIfMissing = false)
@@ -348,13 +349,13 @@ public class AnalyticsService {
                 }
             }
 
-            // Apply search filter (username, name, id)
+            // Apply search filter (username, name, id) with wildcard or substring matching
             if (search != null && !search.trim().isEmpty()) {
-                String q = search.trim().toLowerCase();
+                String q = search.trim();
                 users = users.stream()
-                    .filter(u -> u.getUsername().toLowerCase().contains(q)
-                        || (u.getName() != null && u.getName().toLowerCase().contains(q))
-                        || String.valueOf(u.getId()).contains(q))
+                    .filter(u -> matchesWildcardOrSubstring(u.getUsername(), q)
+                        || matchesWildcardOrSubstring(u.getName(), q)
+                        || matchesWildcardOrSubstring(String.valueOf(u.getId()), q))
                     .collect(Collectors.toList());
             }
 
@@ -510,6 +511,33 @@ public class AnalyticsService {
         }
 
         return result;
+    }
+
+    public static boolean matchesWildcardOrSubstring(String text, String query) {
+        if (text == null) return false;
+        if (query == null || query.isBlank()) return true;
+        String q = query.trim().toLowerCase();
+        String target = text.toLowerCase();
+        if (q.contains("*") || q.contains("?")) {
+            StringBuilder regex = new StringBuilder("^");
+            for (int i = 0; i < q.length(); i++) {
+                char c = q.charAt(i);
+                if (c == '*') {
+                    regex.append(".*");
+                } else if (c == '?') {
+                    regex.append(".");
+                } else {
+                    regex.append(Pattern.quote(String.valueOf(c)));
+                }
+            }
+            regex.append("$");
+            try {
+                return Pattern.compile(regex.toString(), Pattern.CASE_INSENSITIVE).matcher(target).matches();
+            } catch (Exception e) {
+                return target.contains(q);
+            }
+        }
+        return target.contains(q);
     }
 
     // ── Pipelines ──────────────────────────────────────────────

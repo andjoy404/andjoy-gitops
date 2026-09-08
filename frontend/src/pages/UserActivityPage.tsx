@@ -137,6 +137,7 @@ export default function UserActivityPage() {
 
   const [searchField, setSearchField] = useState<UserSearchField>('all')
   const [searchFilters, setSearchFilters] = useState<UserSearchFilter[]>([])
+  const [searchQuery, setSearchQuery] = useState<string>('')
 
   const groupIds = selectedGroupId ? [String(selectedGroupId)] : []
   const groupIdsCsv = groupIds.join(',')
@@ -153,7 +154,7 @@ interface PaginatedUserResponse {
 
 // Fetch users with server-side filters
 const { data: usersResponse = { users: [], page: 1, pageSize: 10, total: 0 }, isLoading } = useQuery<PaginatedUserResponse>({
-    queryKey: ['user-activity', selectedEnvId, groupIdsCsv, hours, membershipFilter, userIdsParam ?? '', page, pageSize, sortKey, sortDirection],
+    queryKey: ['user-activity', selectedEnvId, groupIdsCsv, hours, membershipFilter, userIdsParam ?? '', searchQuery, page, pageSize, sortKey, sortDirection],
     queryFn: async () => {
       const params = new URLSearchParams({
         group_ids: groupIdsCsv,
@@ -165,6 +166,7 @@ const { data: usersResponse = { users: [], page: 1, pageSize: 10, total: 0 }, is
         sort_order: sortDirection,
       })
       if (userIdsParam) params.set('user_ids', userIdsParam)
+      if (searchQuery) params.set('search', searchQuery)
       const resp = await fetch(`/api/analytics/users?${params}`, {
         credentials: 'include',
       })
@@ -196,7 +198,7 @@ const { data: usersResponse = { users: [], page: 1, pageSize: 10, total: 0 }, is
 
   // Fetch metrics with same filters
   const { data: metricsData, isLoading: metricsLoading } = useQuery({
-    queryKey: ['user-metrics', selectedEnvId, groupIdsCsv, hours, membershipFilter, userIdsParam ?? ''],
+    queryKey: ['user-metrics', selectedEnvId, groupIdsCsv, hours, membershipFilter, userIdsParam ?? '', searchQuery],
     queryFn: async () => {
       const params = new URLSearchParams({
         group_ids: groupIdsCsv,
@@ -204,6 +206,7 @@ const { data: usersResponse = { users: [], page: 1, pageSize: 10, total: 0 }, is
         membership: membershipFilter,
       })
       if (userIdsParam) params.set('user_ids', userIdsParam)
+      if (searchQuery) params.set('search', searchQuery)
       const resp = await fetch(`/api/analytics/users/metrics?${params}`, {
         credentials: 'include',
       })
@@ -299,30 +302,26 @@ const { data: usersResponse = { users: [], page: 1, pageSize: 10, total: 0 }, is
     if (membershipFilter !== 'both') {
       list.push({ key: `state::${membershipFilter}`, field: 'state', fieldLabel: 'State', valueLabel: stateLabel(membershipFilter) })
     }
-    if (selectedUserKeys.size > 0) {
-      const userId = [...selectedUserKeys][0].split(':')[0]
-      const u = userOptions.find((x: UserActivity) => String(x.id) === userId)
-      list.push({ key: `user::${userId}`, field: 'user', fieldLabel: 'User', valueLabel: u ? u.username : userId })
+    if (searchQuery) {
+      list.push({ key: `search::${searchQuery}`, field: 'user', fieldLabel: 'User', valueLabel: searchQuery })
     }
+    selectedUserKeys.forEach((key) => {
+      const userId = key.split(':')[0]
+      const u = userOptions.find((x: UserActivity) => String(x.id) === userId)
+      list.push({ key: `user::${userId}`, field: 'user', fieldLabel: 'User', valueLabel: u ? (u.name || u.username) : userId })
+    })
     searchFilters.forEach((f) => {
       list.push({ key: `activity::${f.value}`, field: 'activity', fieldLabel: 'Activity', valueLabel: activityLabel(f.value), color: ACTIVITY_COLORS[f.value] })
     })
     return list
-  }, [membershipFilter, selectedUserKeys, userOptions, searchFilters])
+  }, [membershipFilter, searchQuery, selectedUserKeys, userOptions, searchFilters])
 
   const pickSuggestion = useCallback((field: string, s: { value: string; label: string }) => {
     const effField: UserSearchField = field === 'all' ? resolveSearchField(s.value) : (field as UserSearchField)
     if (effField === 'state') setMembershipFilter(s.value as UserMembership)
     else if (effField === 'user') {
       const entry = `${s.value}:`
-      setSelectedUserKeys(prev => {
-        const next = new Set(prev)
-        if (entry === 'all:') {
-          // Deselect "all" means select the first available option
-        }
-        next.add(entry)
-        return next
-      })
+      setSelectedUserKeys(prev => new Set([...prev, entry]))
       setPage(1)
     }
     else setSearchFilters((prev) => prev.some((f) => f.field === 'activity' && f.value === s.value)
@@ -330,36 +329,39 @@ const { data: usersResponse = { users: [], page: 1, pageSize: 10, total: 0 }, is
   }, [])
 
   const pickFreeText = useCallback((field: string, text: string) => {
+    const trimmed = text.trim()
+    if (!trimmed) return
     if (field === 'user' || field === 'all') {
-      const lower = text.toLowerCase()
-      const match = selectableUsers.find((u: UserActivity) =>
-        u.username.toLowerCase().includes(lower) || (u.name || '').toLowerCase().includes(lower))
-      if (match) {
-        setSelectedUserKeys(prev => new Set([...prev, `${match.id}:${match.username}`]))
-        setPage(1)
-        return
-      }
+      setSearchQuery(trimmed)
+      setPage(1)
+      return
     }
     if (field === 'activity') {
-      setSearchFilters((prev) => prev.some((f) => f.field === 'activity' && f.value === text)
-        ? prev : [...prev, { field: 'activity' as const, value: text }])
+      setSearchFilters((prev) => prev.some((f) => f.field === 'activity' && f.value === trimmed)
+        ? prev : [...prev, { field: 'activity' as const, value: trimmed }])
     }
     setPage(1)
-  }, [selectableUsers])
+  }, [])
 
   const removeChip = useCallback((index: number) => {
     const c = chips[index]
     if (!c) return
-    if (c.field === 'state') setMembershipFilter('both')
-    else if (c.field === 'user') {
+    if (c.key.startsWith('search::')) {
+      setSearchQuery('')
+    } else if (c.field === 'state') {
+      setMembershipFilter('both')
+    } else if (c.field === 'user') {
       const id = c.key.split('::')[1]
       setSelectedUserKeys(prev => {
         const next = new Set(prev)
-        next.delete(`${id}:`)
+        for (const k of next) {
+          if (k.startsWith(`${id}:`)) {
+            next.delete(k)
+          }
+        }
         return next
       })
-    }
-    else {
+    } else {
       const id = c.key.split('::')[1]
       setSearchFilters(searchFilters.filter((f) => f.value !== id))
     }
@@ -370,6 +372,7 @@ const { data: usersResponse = { users: [], page: 1, pageSize: 10, total: 0 }, is
     setMembershipFilter('both')
     setSelectedUserKeys(new Set())
     setSearchFilters([])
+    setSearchQuery('')
     setPage(1)
   }, [])
 
@@ -406,13 +409,14 @@ const { data: usersResponse = { users: [], page: 1, pageSize: 10, total: 0 }, is
       membership: membershipFilter,
     })
     if (userIdsParam) params.set('user_ids', userIdsParam)
+    if (searchQuery) params.set('search', searchQuery)
     const range = formatTimeRangeLabel(hours).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
     const url = `/api/analytics/users/export?${params}&filename_prefix=user-activity-${range}`
 
     const a = document.createElement('a')
     a.href = url
     a.click()
-  }, [groupIdsCsv, hours, membershipFilter, userIdsParam])
+  }, [groupIdsCsv, hours, membershipFilter, userIdsParam, searchQuery])
 
   const activityMetrics: SummaryMetric[] = [
     { key: 'pushes', label: 'Pushes', value: metricsData?.totalPushes ?? 0, color: ACTIVITY_COLORS.pushes },
@@ -512,11 +516,11 @@ const { data: usersResponse = { users: [], page: 1, pageSize: 10, total: 0 }, is
                     ['username', 'Username', 150, 'left', false],
                     ['state', 'State', 120, 'center', true],
                     ['last_activity', 'Last activity', 210, 'left', false],
-                    ['issues', 'Issues', 120, 'center', true],
+                    ['pushes', 'Pushes', 120, 'center', true],
                     ['mrs', 'MRs', 120, 'center', true],
                     ['merged', 'Merged', 120, 'center', true],
-                    ['pushes', 'Pushes', 120, 'center', true],
                     ['comments', 'Comments', 130, 'center', true],
+                    ['issues', 'Issues', 120, 'center', true],
                   ] as const).map(([key, label, width, align, centered]) => (
                     <th key={key} style={{ width, textAlign: align }}>
                       <button
@@ -575,11 +579,11 @@ const { data: usersResponse = { users: [], page: 1, pageSize: 10, total: 0 }, is
                     <td>
                       {formatRelative(user.last_activity_on || user.last_pipeline_activity || '')}
                     </td>
-                    <td style={{ textAlign: 'center' }} className="metric-value">{user.issue_count}</td>
+                    <td style={{ textAlign: 'center' }} className="metric-value">{user.push_count}</td>
                     <td style={{ textAlign: 'center' }} className="metric-value">{user.merge_request_count}</td>
                     <td style={{ textAlign: 'center' }} className="metric-value">{user.merged_count}</td>
-                    <td style={{ textAlign: 'center' }} className="metric-value">{user.push_count}</td>
                     <td style={{ textAlign: 'center' }} className="metric-value">{user.comment_count}</td>
+                    <td style={{ textAlign: 'center' }} className="metric-value">{user.issue_count}</td>
                   </tr>
                 ))}
               </tbody>
