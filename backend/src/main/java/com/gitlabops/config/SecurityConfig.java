@@ -120,6 +120,7 @@ public class SecurityConfig {
                         .ignoringRequestMatchers("/api/auth/login",
                                 "/api/auth/status",
                                 "/api/auth/password",
+                                "/api/auth/profile",
                                 "/health",
                                 "/metrics/prometheus")
                 )
@@ -134,7 +135,7 @@ public class SecurityConfig {
                 .addFilterBefore(sessionAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/health", "/metrics/prometheus").permitAll()
-                        .requestMatchers("/api/auth/login", "/api/auth/logout", "/api/auth/password").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/logout", "/api/auth/password", "/api/auth/profile").permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/auth/status",
                                 "/api/csrf",

@@ -1,6 +1,16 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Button, Input, Drawer, Form, Select, Checkbox, Tag, Popconfirm, Space, Typography } from 'antd'
-import { PlusCircleOutlined, EditOutlined, TeamOutlined, CloseOutlined } from '@ant-design/icons'
+import {
+  PlusCircleOutlined,
+  EditOutlined,
+  TeamOutlined,
+  CloseOutlined,
+  UserOutlined,
+  LockOutlined,
+  IdcardOutlined,
+  MailOutlined,
+  SafetyCertificateOutlined,
+} from '@ant-design/icons'
 import styles from '../styles/users.module.css'
 import { api } from '../services/api'
 import { isAdminRole } from '../utils/role'
@@ -319,8 +329,13 @@ export default function UsersPage() {
       <Drawer
         title={(
           <div className={styles.drawerHeading}>
-            <strong>{editing ? 'Edit user' : 'Create new user'}</strong>
-            <small>{editing ? 'Update account details and permissions' : 'Add a dashboard user with the required access'}</small>
+            <span className={styles.drawerTitleIcon}>
+              {editing ? <EditOutlined /> : <PlusCircleOutlined />}
+            </span>
+            <div className={styles.drawerHeadingText}>
+              <strong>{editing ? 'Edit user' : 'Create new user'}</strong>
+              <small>{editing ? 'Update account details and permissions' : 'Add a dashboard user with the required access'}</small>
+            </div>
           </div>
         )}
         open={drawerOpen}
@@ -334,9 +349,13 @@ export default function UsersPage() {
       >
         <div className={styles.userForm}>
           <div className={styles.formField}>
-            <strong>Username *</strong>
-            <small>Unique name used to sign in</small>
-            <input
+            <div className={styles.fieldLabel}>
+              <strong>Username</strong>
+              <span className={styles.requiredStar}>*</span>
+            </div>
+            <small className={styles.fieldHelp}>Unique name used to sign in</small>
+            <Input
+              prefix={<UserOutlined className={styles.inputIconUser} />}
               value={form.username}
               onChange={(e) => setForm({ ...form, username: e.target.value })}
               placeholder="myusername"
@@ -344,28 +363,37 @@ export default function UsersPage() {
             />
           </div>
           <div className={styles.formField}>
-            <strong>Password {editing ? '' : '*'}</strong>
-            <small>{editing ? 'Leave blank to keep the current password' : 'Minimum 8 characters'}</small>
-            <input
-              type="password"
+            <div className={styles.fieldLabel}>
+              <strong>Password</strong>
+              {!editing && <span className={styles.requiredStar}>*</span>}
+            </div>
+            <small className={styles.fieldHelp}>{editing ? 'Leave blank to keep the current password' : 'Minimum 8 characters'}</small>
+            <Input.Password
+              prefix={<LockOutlined className={styles.inputIconPass} />}
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               autoComplete="new-password"
             />
           </div>
           <div className={styles.formField}>
-            <strong>Display name</strong>
-            <small>Name shown for this user</small>
-            <input
+            <div className={styles.fieldLabel}>
+              <strong>Display name</strong>
+            </div>
+            <small className={styles.fieldHelp}>Name shown for this user</small>
+            <Input
+              prefix={<IdcardOutlined className={styles.inputIconName} />}
               value={form.display_name}
               onChange={(e) => setForm({ ...form, display_name: e.target.value })}
               placeholder="Alice Johnson"
             />
           </div>
           <div className={styles.formField}>
-            <strong>Email</strong>
-            <small>Optional contact address</small>
-            <input
+            <div className={styles.fieldLabel}>
+              <strong>Email</strong>
+            </div>
+            <small className={styles.fieldHelp}>Optional contact address</small>
+            <Input
+              prefix={<MailOutlined className={styles.inputIconEmail} />}
               type="email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -374,7 +402,12 @@ export default function UsersPage() {
           </div>
 
           <fieldset>
-            <legend>Role assignment</legend>
+            <legend>
+              <span className={styles.sectionBadge}>
+                <SafetyCertificateOutlined />
+              </span>
+              Role assignment
+            </legend>
             <p style={{ margin: 0 }}>{isAdminLocked ? 'You are an admin. Your role is fixed.' : 'Choose one dashboard access level.'}</p>
             <div className={styles.roleChoices}>
               <div
@@ -404,6 +437,12 @@ export default function UsersPage() {
 
           {editing && (
             <div className={styles.enabledRow}>
+              <div className={styles.enabledInfo}>
+                <span className={styles.enabledLabel}>Account Status</span>
+                <span className={styles.enabledDesc}>
+                  {isAdminLocked ? 'Administrator accounts cannot be disabled' : 'Allow this user to sign in to the dashboard'}
+                </span>
+              </div>
               <Checkbox
                 checked={form.enabled}
                 disabled={isAdminLocked}

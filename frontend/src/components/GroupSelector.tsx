@@ -83,7 +83,22 @@ export default function GroupSelectorModal({ open, onClose, selectedGroupId, onS
                 borderRadius: '8px',
               }}
             >
-              <CloudServerOutlined style={{ color: 'var(--dashboard-accent)', fontSize: '1rem' }} />
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: selectedGroupId === group.id
+                    ? 'color-mix(in srgb, var(--dashboard-accent) 24%, transparent)'
+                    : 'color-mix(in srgb, var(--dashboard-accent) 10%, transparent)',
+                  flexShrink: 0,
+                }}
+              >
+                <CloudServerOutlined style={{ color: 'var(--dashboard-accent)', fontSize: '1rem' }} />
+              </div>
               <Space direction="vertical" size={0} style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <strong style={{ fontSize: '0.9rem' }}>{displayName(group.name)}</strong>

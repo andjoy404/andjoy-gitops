@@ -240,7 +240,25 @@
 
 .login-card .ant-input-prefix {
   margin-inline-end: 0.4rem;
-  color: var(--login-icon) !important;
+  color: var(--login-icon);
+}
+
+.login-card .login-input-icon-user {
+  color: var(--login-accent, #a970ff) !important;
+  opacity: 0.9;
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.login-card .login-input-icon-pass {
+  color: color-mix(in srgb, #ff9830 75%, var(--login-accent, #a970ff)) !important;
+  opacity: 0.9;
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.login-card .ant-input-affix-wrapper-focused .login-input-icon-user,
+.login-card .ant-input-affix-wrapper-focused .login-input-icon-pass {
+  opacity: 1;
+  transform: scale(1.08);
 }
 
 .login-card .ant-input-suffix {

@@ -42,6 +42,21 @@ export interface AuthStatus {
   must_change_password: boolean
 }
 
+export interface UserProfileDTO {
+  id: number
+  username: string
+  display_name: string
+  email: string
+  role: string
+}
+
+export interface UpdateProfileRequest {
+  display_name: string
+  email: string
+  current_password?: string
+  new_password?: string
+}
+
 export interface GroupDTO {
   id: number
   name: string

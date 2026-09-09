@@ -11,7 +11,9 @@ import type {
   JobInfo,
   Pipeline,
   UpdateEnvironmentRequest,
+  UpdateProfileRequest,
   UserActivity,
+  UserProfileDTO,
 } from '../types'
 
 export const queryClient = new QueryClient({
@@ -130,6 +132,9 @@ export const api = {
 
   // Auth
   getAuthStatus: () => apiRequest<AuthStatus>('/api/auth/status'),
+  getProfile: () => api.get<UserProfileDTO>('/api/auth/profile'),
+  updateProfile: (data: UpdateProfileRequest) =>
+    api.put<{ message: string }>('/api/auth/profile', data),
   logout: () => apiRequest<void>('/api/auth/logout', { method: 'POST' }),
 
   // Environment endpoints

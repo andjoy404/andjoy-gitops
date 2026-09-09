@@ -486,4 +486,161 @@ class AuthControllerTest {
         assertEquals(200, status.getStatusCodeValue());
         assertFalse(status.getBody().isAuthenticated());
     }
+
+    // ===========================================================
+    // PROFILE TESTS
+    // ===========================================================
+
+    @Test
+    void getProfile_authenticated_returnsProfile() {
+        String sessionToken = sessionStore.createSession(10L, "editor_user", "editor", false);
+        AppUserDTO user = new AppUserDTO();
+        user.id = 10L;
+        user.username = "editor_user";
+        user.displayName = "Editor User";
+        user.email = "editor@example.com";
+        user.role = "editor";
+
+        when(userRepository.findById(10L)).thenReturn(user);
+
+        AuthController controller = new AuthController(
+                userRepository, sessionStore, authService,
+                new com.gitlabops.config.UiProperties(), loginAttemptStore
+        );
+
+        ResponseEntity<?> response = controller.getProfile(sessionToken);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        @SuppressWarnings("unchecked")
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertNotNull(body);
+        assertEquals(10L, body.get("id"));
+        assertEquals("editor_user", body.get("username"));
+        assertEquals("Editor User", body.get("display_name"));
+        assertEquals("editor@example.com", body.get("email"));
+        assertEquals("editor", body.get("role"));
+    }
+
+    @Test
+    void getProfile_unauthenticated_returnsUnauthorized() {
+        AuthController controller = new AuthController(
+                userRepository, sessionStore, authService,
+                new com.gitlabops.config.UiProperties(), loginAttemptStore
+        );
+
+        ResponseEntity<?> response = controller.getProfile(null);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    void updateProfile_infoOnly_updatesProfile() {
+        String sessionToken = sessionStore.createSession(10L, "editor_user", "editor", false);
+        AppUserDTO user = new AppUserDTO();
+        user.id = 10L;
+        user.username = "editor_user";
+        user.passwordHash = "$argon2d$pass";
+
+        when(userRepository.findById(10L)).thenReturn(user);
+        doNothing().when(userRepository).updateProfile(eq(10L), eq("New Name"), eq("new@example.com"));
+
+        AuthController controller = new AuthController(
+                userRepository, sessionStore, authService,
+                new com.gitlabops.config.UiProperties(), loginAttemptStore
+        );
+
+        Map<String, Object> body = Map.of(
+                "display_name", "New Name",
+                "email", "new@example.com"
+        );
+
+        ResponseEntity<?> response = controller.updateProfile(sessionToken, body, mockResponse());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(userRepository).updateProfile(10L, "New Name", "new@example.com");
+        verify(userRepository, never()).updatePassword(anyLong(), anyString());
+    }
+
+    @Test
+    void updateProfile_withPassword_verifiesCurrentAndUpdates() {
+        String sessionToken = sessionStore.createSession(10L, "editor_user", "editor", false);
+        AppUserDTO user = new AppUserDTO();
+        user.id = 10L;
+        user.username = "editor_user";
+        user.passwordHash = "$argon2d$oldpass";
+
+        when(userRepository.findById(10L)).thenReturn(user);
+        when(authService.verifyPassword("currentSecret1", "$argon2d$oldpass")).thenReturn(true);
+        when(authService.hashNewPassword("newSecretPassword")).thenReturn("$argon2d$newpass");
+        doNothing().when(userRepository).updateProfile(eq(10L), eq("Editor User"), eq("editor@example.com"));
+        doNothing().when(userRepository).updatePassword(eq(10L), eq("$argon2d$newpass"));
+
+        AuthController controller = new AuthController(
+                userRepository, sessionStore, authService,
+                new com.gitlabops.config.UiProperties(), loginAttemptStore
+        );
+
+        Map<String, Object> body = Map.of(
+                "display_name", "Editor User",
+                "email", "editor@example.com",
+                "current_password", "currentSecret1",
+                "new_password", "newSecretPassword"
+        );
+
+        ResponseEntity<?> response = controller.updateProfile(sessionToken, body, mockResponse());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(authService).verifyPassword("currentSecret1", "$argon2d$oldpass");
+        verify(userRepository).updatePassword(10L, "$argon2d$newpass");
+        verify(userRepository).updateProfile(10L, "Editor User", "editor@example.com");
+    }
+
+    @Test
+    void updateProfile_incorrectCurrentPassword_returnsBadRequest() {
+        String sessionToken = sessionStore.createSession(10L, "editor_user", "editor", false);
+        AppUserDTO user = new AppUserDTO();
+        user.id = 10L;
+        user.username = "editor_user";
+        user.passwordHash = "$argon2d$oldpass";
+
+        when(userRepository.findById(10L)).thenReturn(user);
+        when(authService.verifyPassword("wrongPassword", "$argon2d$oldpass")).thenReturn(false);
+
+        AuthController controller = new AuthController(
+                userRepository, sessionStore, authService,
+                new com.gitlabops.config.UiProperties(), loginAttemptStore
+        );
+
+        Map<String, Object> body = Map.of(
+                "display_name", "Editor User",
+                "email", "editor@example.com",
+                "current_password", "wrongPassword",
+                "new_password", "newSecretPassword"
+        );
+
+        ResponseEntity<?> response = controller.updateProfile(sessionToken, body, mockResponse());
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        verify(userRepository, never()).updatePassword(anyLong(), anyString());
+    }
+
+    @Test
+    void updateProfile_shortNewPassword_returnsBadRequest() {
+        String sessionToken = sessionStore.createSession(10L, "editor_user", "editor", false);
+        AppUserDTO user = new AppUserDTO();
+        user.id = 10L;
+        user.username = "editor_user";
+
+        when(userRepository.findById(10L)).thenReturn(user);
+
+        AuthController controller = new AuthController(
+                userRepository, sessionStore, authService,
+                new com.gitlabops.config.UiProperties(), loginAttemptStore
+        );
+
+        Map<String, Object> body = Map.of(
+                "display_name", "Editor User",
+                "email", "editor@example.com",
+                "current_password", "curPass123",
+                "new_password", "short"
+        );
+
+        ResponseEntity<?> response = controller.updateProfile(sessionToken, body, mockResponse());
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
 }

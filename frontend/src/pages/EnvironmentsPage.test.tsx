@@ -103,7 +103,7 @@ describe('EnvironmentsPage', () => {
     expect(screen.getByRole('textbox', { name: /gitlab url/i })).toBeInTheDocument()
     // Token input uses a password field with "glpat-" placeholder
     expect(screen.getByPlaceholderText('glpat-xxxxxxxx')).toBeInTheDocument()
-    expect(screen.getByRole('textbox', { name: /group ids/i })).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: /group ids/i })).toBeInTheDocument()
   })
 
   it('closes create form modal when clicking Cancel', async () => {
@@ -141,7 +141,7 @@ describe('EnvironmentsPage', () => {
     fireEvent.change(screen.getByRole('textbox', { name: /environment name/i }), { target: { value: 'Test Env' } })
     fireEvent.change(screen.getByRole('textbox', { name: /gitlab url/i }), { target: { value: 'https://gitlab.example.com' } })
     fireEvent.change(screen.getByPlaceholderText('glpat-xxxxxxxx'), { target: { value: 'glpat-test123' } })
-    fireEvent.change(screen.getByRole('textbox', { name: /group ids/i }), { target: { value: '123, 456' } })
+    fireEvent.change(screen.getByRole('combobox', { name: /group ids/i }), { target: { value: '123, 456' } })
 
     fireEvent.click(screen.getByRole('button', { name: /create/i }))
 
@@ -166,7 +166,7 @@ describe('EnvironmentsPage', () => {
     fireEvent.change(screen.getByRole('textbox', { name: /environment name/i }), { target: { value: 'Test Env' } })
     fireEvent.change(screen.getByRole('textbox', { name: /gitlab url/i }), { target: { value: 'https://gitlab.example.com' } })
     fireEvent.change(screen.getByPlaceholderText('glpat-xxxxxxxx'), { target: { value: 'glpat-test123' } })
-    fireEvent.change(screen.getByRole('textbox', { name: /group ids/i }), { target: { value: '123' } })
+    fireEvent.change(screen.getByRole('combobox', { name: /group ids/i }), { target: { value: '123' } })
 
     fireEvent.click(screen.getByRole('button', { name: /create/i }))
 

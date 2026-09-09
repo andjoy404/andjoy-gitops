@@ -113,7 +113,7 @@ export default function Login({ onSuccessfulLogin }: {
             <Input
               id="username"
               name="username"
-              prefix={<UserOutlined />}
+              prefix={<UserOutlined className="login-input-icon-user" />}
               autoComplete="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -126,7 +126,7 @@ export default function Login({ onSuccessfulLogin }: {
             <Input.Password
               id="password"
               name="password"
-              prefix={<LockOutlined />}
+              prefix={<LockOutlined className="login-input-icon-pass" />}
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

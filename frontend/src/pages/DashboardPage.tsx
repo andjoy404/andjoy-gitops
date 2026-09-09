@@ -6,9 +6,52 @@ import DashboardMark from '../components/DashboardMark'
 import AnalyticsLoadingGate, { datasetIsPending } from '../components/AnalyticsLoadingGate'
 import EChartsWrapper from '../components/EChartsWrapper'
 import { api } from '../services/api'
+import {
+  PieChartOutlined,
+  UserOutlined,
+  BranchesOutlined,
+  UploadOutlined,
+  MessageOutlined,
+  CheckCircleOutlined,
+  ExclamationCircleOutlined,
+  ThunderboltOutlined,
+  RiseOutlined,
+} from '@ant-design/icons'
+import {
+  BranchesOutlined as BranchesIcon,
+  CheckCircleOutlined as CheckCircleIcon,
+  CloseCircleOutlined as CloseCircleIcon,
+  TeamOutlined as TeamIcon,
+  PieChartOutlined as PieChartIcon,
+  BarChartOutlined as BarChartIcon,
+  FolderOutlined as FolderIcon,
+  ThunderboltOutlined as ThunderboltIcon,
+  RocketOutlined as RocketIcon,
+  ClusterOutlined as ClusterIcon,
+} from '@ant-design/icons-svg'
+import type { IconDefinition, AbstractNode } from '@ant-design/icons-svg/lib/types'
 import { TIME_RANGES } from '../utils/timeRanges'
 import type { AnalyticsSummary, UserActivity, AnalyticsReadiness, GlobalConfigDTO } from '../types'
 import '../styles/dashboard.css'
+
+function PanelIcon({ icon, className }: { icon: IconDefinition; className?: string }) {
+  const node: AbstractNode = typeof icon.icon === 'function' ? icon.icon('currentColor', 'currentColor') : icon.icon
+  return (
+    <svg
+      viewBox={node.attrs?.viewBox || '64 64 896 896'}
+      width="1em"
+      height="1em"
+      fill="currentColor"
+      aria-hidden="true"
+      className={className}
+      focusable="false"
+    >
+      {node.children?.map((child: AbstractNode, idx: number) => (
+        <path key={idx} d={child.attrs?.d as string} />
+      ))}
+    </svg>
+  )
+}
 
 const { Text } = Typography
 
@@ -433,7 +476,17 @@ function SemicircleGauge({
   return (
     <article className={loadingPanelClass(`analytics-card gauge-card ${tone === 'danger' ? 'failure-gauge-card' : 'success-gauge-card'}`, loading)}>
       <DashboardPanelLoader active={loading} />
-      <header><strong>{title}</strong> <span>{chip}</span></header>
+      <header>
+        <div className="card-title-flex">
+          {tone === 'danger' ? (
+            <PanelIcon icon={CloseCircleIcon} className="card-icon" />
+          ) : (
+            <PanelIcon icon={CheckCircleIcon} className="card-icon" />
+          )}
+          <strong>{title}</strong>
+        </div>
+        <span>{chip}</span>
+      </header>
       <div className="gauge-shell">
         <div
           className={`css-gauge${active ? ' gauge-active' : ''}`}
@@ -446,13 +499,23 @@ function SemicircleGauge({
           onFocus={() => setActive(true)}
           onBlur={() => setActive(false)}
         >
+          {pct >= 100 && (
+            <>
+              <span className="gauge-cap gauge-cap-start" aria-hidden="true" />
+              <span
+                className="gauge-cap gauge-cap-end"
+                style={{ transform: `rotate(${arcDeg}deg)` }}
+                aria-hidden="true"
+              />
+            </>
+          )}
           <b>{pct.toFixed(1)}%</b>
           <span className={`gauge-tooltip${active ? ' is-active' : ''}`} role="tooltip" aria-hidden={!active}>
             <b>{pct.toFixed(1)}%</b><span>{safeCount.toLocaleString()} of {safeDenominator.toLocaleString()} completed pipelines</span>
           </span>
         </div>
       </div>
-      <p>{safeCount.toLocaleString()} {countLabel}</p>
+      <p><span className="gauge-rate-badge">{safeCount.toLocaleString()} {countLabel}</span></p>
     </article>
   )
 }
@@ -475,7 +538,7 @@ function PipelineAnalyticsDashboard({
   const runnerTotal = summary.runner_running_count + summary.runner_idle_count + summary.runner_paused_count + summary.runner_stale_count + summary.runner_offline_count
   const runnerPercent = (value: number) => runnerTotal > 0 ? (value / runnerTotal) * 100 : 0
   const failedRate = total > 0 ? percent(summary.failed_count) : 0
-  const history = [...summary.history].reverse()
+  const history = [...(summary.history ?? [])].reverse()
   const maxHistory = history.reduce((max, point) => Math.max(max, toFinite(point.pipeline_count)), 0)
   const statusRows = [
     ['Success', summary.success_count, 'success'],
@@ -514,9 +577,9 @@ function PipelineAnalyticsDashboard({
     <div className="pipeline-analytics-grid">
       <article className={loadingPanelClass('analytics-card pipeline-runs-card', loading || historyLoading)}>
         <DashboardPanelLoader active={loading || historyLoading} />
-        <header><strong>Total Pipelines</strong><span>History</span></header>
-        <div className="analytics-big-number">{(fullHistoryPipelineCount ?? summary.pipeline_count).toLocaleString()}</div>
-        <p>Overall pipelines</p>
+        <header><div className="card-title-flex"><PanelIcon icon={BranchesIcon} className="card-icon" /><strong>Total Pipelines</strong></div><span>History</span></header>
+        <div className="analytics-big-number">{(fullHistoryPipelineCount ?? summary.pipeline_count ?? 0).toLocaleString()}</div>
+        <p>Runs captured in PostgreSQL</p>
         {history.length > 0 && (
           <div className="analytics-spark-bars" aria-label="Pipeline runs by time period">
             {history.map((point, index) => {
@@ -575,14 +638,14 @@ function PipelineAnalyticsDashboard({
 
       <article className={loadingPanelClass('analytics-card inventory-card', loading)}>
         <DashboardPanelLoader active={loading} />
-        <header><strong>Group inventory</strong><span>Configured</span></header>
+        <header><div className="card-title-flex"><PanelIcon icon={TeamIcon} className="card-icon" /><strong>Group inventory</strong></div><span>Configured</span></header>
         <div className="analytics-big-number">{summary.group_count}</div><p>GitLab groups linked to this environment</p>
-        <i className="inventory-swatch" /><small>Active groups per period</small>
+        <small className="inventory-bottom-badge"><i className="inventory-swatch" />Active groups per period</small>
       </article>
 
       <article className={loadingPanelClass('analytics-card donut-card', loading)}>
         <DashboardPanelLoader active={loading} />
-        <header><strong>Pipeline status mix</strong><span>Distribution</span></header>
+        <header><div className="card-title-flex"><PanelIcon icon={PieChartIcon} className="card-icon" /><strong>Pipeline status mix</strong></div><span>Distribution</span></header>
         <div className="analytics-donut">
           <svg className={`donut-svg${activeDonutArc ? ' has-active' : ''}`} viewBox="0 0 142 142" aria-hidden="true">
             <g transform="rotate(-90 71 71)">
@@ -627,7 +690,7 @@ function PipelineAnalyticsDashboard({
 
       <article className={loadingPanelClass('analytics-card distribution-card', loading)}>
         <DashboardPanelLoader active={loading} />
-        <header><div><strong>Status distribution</strong><small>Share of collected pipeline runs</small></div><span>PostgreSQL</span></header>
+        <header><div><div className="card-title-flex"><PanelIcon icon={BarChartIcon} className="card-icon" /><strong>Status distribution</strong></div><small>Share of collected pipeline runs</small></div><span>PostgreSQL</span></header>
         <div className="analytics-bar-list">
           {statusRows.map(([label, value, kind]) => <div className="analytics-bar-row" key={kind}>
             <span><i className={`metric-dot ${kind}`} />{label}</span><div className="analytics-bar-track"><i className={kind} style={{ width: `${percent(value)}%` }} /></div><b>{value}</b><small>{percent(value).toFixed(1)}%</small>
@@ -637,14 +700,14 @@ function PipelineAnalyticsDashboard({
 
       <article className={loadingPanelClass('analytics-card inventory-card', loading)}>
         <DashboardPanelLoader active={loading} />
-        <header><strong>Project inventory</strong><span>Synced</span></header>
+        <header><div className="card-title-flex"><PanelIcon icon={FolderIcon} className="card-icon" /><strong>Project inventory</strong></div><span>Synced</span></header>
         <div className="analytics-big-number">{summary.project_count}</div><p>Projects tracked in this group</p>
-        <i className="inventory-swatch" /><small>Active projects per period</small>
+        <small className="inventory-bottom-badge"><i className="inventory-swatch" />Active projects per period</small>
       </article>
 
       <article className={loadingPanelClass('analytics-card runner-status-card', loading)}>
         <DashboardPanelLoader active={loading} />
-        <header><div><strong>Runner status</strong><small>Latest synchronized runner availability</small></div><span>Runner state</span></header>
+        <header><div><div className="card-title-flex"><PanelIcon icon={ThunderboltIcon} className="card-icon" /><strong>Runner status</strong></div><small>Latest synchronized runner availability</small></div><span>Runner state</span></header>
         <div className="analytics-bar-list">
           {runnerRows.map(([label, value, kind]) => <div className="analytics-bar-row" key={kind}>
             <span><i className={`metric-dot runner-${kind}`} />{label}</span><div className="analytics-bar-track"><i className={`runner-${kind}`} style={{ width: `${runnerPercent(value)}%` }} /></div><b>{value}</b><small>{runnerPercent(value).toFixed(1)}%</small>
@@ -654,7 +717,7 @@ function PipelineAnalyticsDashboard({
 
       <article className={loadingPanelClass('analytics-card delivery-card', loading)}>
         <DashboardPanelLoader active={loading} />
-        <header><strong>Delivery activity</strong><span>Live state</span></header>
+        <header><div className="card-title-flex"><PanelIcon icon={RocketIcon} className="card-icon" /><strong>Delivery activity</strong></div><span>Live state</span></header>
         <div className="delivery-value"><b>{summary.active_count}</b><small>active now</small></div>
         <div className="delivery-row"><span><i className="metric-dot active" />Running</span><b>{summary.active_count}</b></div>
         <div className="delivery-row"><span><i className="metric-dot canceled" />Canceled</span><b>{summary.canceled_count}</b></div>
@@ -662,9 +725,9 @@ function PipelineAnalyticsDashboard({
 
       <article className={loadingPanelClass('analytics-card inventory-card runner-inventory-card', loading)}>
         <DashboardPanelLoader active={loading} />
-        <header><strong>Runner inventory</strong><span>Synced</span></header>
+        <header><div className="card-title-flex"><PanelIcon icon={ClusterIcon} className="card-icon" /><strong>Runner inventory</strong></div><span>Synced</span></header>
         <div className="analytics-big-number">{summary.runner_count}</div><p>Self-hosted runners in this group</p>
-        <i className="inventory-swatch" /><small>{summary.runner_running_count + summary.runner_idle_count} currently online</small>
+        <small className="inventory-bottom-badge"><i className="inventory-swatch" />{summary.runner_running_count + summary.runner_idle_count} currently online</small>
       </article>
     </div>
   )
@@ -849,19 +912,25 @@ export function UsersAnalyticsDashboard({ users, loading }: { users: UserActivit
 
   return (
     <div className="users-analytics-view">
-      <div className="users-analytics-top-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) minmax(320px, 1.5fr) minmax(280px, 1fr)', gap: '10px' }}>
+      <div className="users-analytics-top-grid">
         
         {/* LEFT: DONUT */}
-        <div className="users-analytics-donut-wrap" style={{ height: '100%' }}>
-          <div className="analytics-donut-card" style={{ height: '100%' }}>
+        <div className="users-analytics-donut-wrap">
+          <div className="analytics-donut-card">
             <header>
-              <strong>🍩 Activity Mix</strong>
-              <small>Distribution by event type</small>
+              <div>
+                <strong className="panel-title-with-icon">
+                  <PieChartOutlined className="panel-title-icon" aria-hidden />
+                  Activity Mix
+                </strong>
+                <small>Distribution by event type</small>
+              </div>
+              <span className="panel-header-badge">Distribution</span>
             </header>
-            <div className="analytics-donut-body" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <div className="analytics-donut-body">
               <div className="analytics-donut-chart">
-                <div className="analytics-donut" style={{ width: '100%', height: '100%', position: 'relative', margin: 0 }}>
-                  <svg className={`donut-svg${activeDonutArc ? ' has-active' : ''}`} viewBox="0 0 142 142" aria-hidden="true" style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }}>
+                <div className="analytics-donut">
+                  <svg className={`donut-svg${activeDonutArc ? ' has-active' : ''}`} viewBox="0 0 142 142" aria-hidden="true">
                     <g transform="rotate(-90 71 71)">
                       <circle className="donut-track" cx="71" cy="71" r="62.5" fill="none" strokeWidth="17" />
                       {donutArcs.map((arc, index) => {
@@ -878,6 +947,7 @@ export function UsersAnalyticsDashboard({ users, loading }: { users: UserActivit
                             fill="none"
                             strokeWidth="17"
                             tabIndex={0}
+                            role="img"
                             aria-label={`${arc.label}: ${arc.value}`}
                             onMouseEnter={() => setActiveDonut(index)}
                             onMouseLeave={() => setActiveDonut(null)}
@@ -888,9 +958,9 @@ export function UsersAnalyticsDashboard({ users, loading }: { users: UserActivit
                       })}
                     </g>
                   </svg>
-                  <div className="donut-center" style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <b style={{ fontSize: '1.4rem', fontWeight: 600, color: 'var(--dashboard-text)', lineHeight: 1.1 }}>{totalActivity.toLocaleString()}</b>
-                    <small style={{ marginTop: '2px', color: 'var(--dashboard-muted)', fontSize: '0.65rem', textTransform: 'uppercase' }}>events</small>
+                  <div className="donut-center">
+                    <b>{totalActivity.toLocaleString()}</b>
+                    <small>events</small>
                   </div>
                   <span className={`donut-tooltip${activeDonutArc ? ' is-active' : ''}`} role="tooltip" aria-hidden={!activeDonutArc}>
                     {activeDonutArc && (
@@ -903,67 +973,84 @@ export function UsersAnalyticsDashboard({ users, loading }: { users: UserActivit
                 </div>
               </div>
               <div className="analytics-donut-legend">
-                <span className="legend-item"><i className="legend-dot" style={{ background: '#18D99A' }} />Pushes · {totalPushes.toLocaleString()}</span>
-                <span className="legend-item"><i className="legend-dot" style={{ background: '#FFC21C' }} />MRs · {totalMRS.toLocaleString()}</span>
-                <span className="legend-item"><i className="legend-dot" style={{ background: '#39A0FF' }} />Merged · {totalMerged.toLocaleString()}</span>
-                <span className="legend-item"><i className="legend-dot" style={{ background: 'var(--dashboard-muted)' }} />Comments · {totalComments.toLocaleString()}</span>
-                <span className="legend-item"><i className="legend-dot" style={{ background: '#FF5267' }} />Issues · {totalIssues.toLocaleString()}</span>
+                <span className="donut-badge donut-badge-pushes"><i className="legend-dot" style={{ background: '#18D99A' }} />Pushes · {totalPushes.toLocaleString()}</span>
+                <span className="donut-badge donut-badge-mrs"><i className="legend-dot" style={{ background: '#FFC21C' }} />MRs · {totalMRS.toLocaleString()}</span>
+                <span className="donut-badge donut-badge-merged"><i className="legend-dot" style={{ background: '#39A0FF' }} />Merged · {totalMerged.toLocaleString()}</span>
+                <span className="donut-badge donut-badge-comments"><i className="legend-dot" style={{ background: 'var(--dashboard-muted)' }} />Comments · {totalComments.toLocaleString()}</span>
+                <span className="donut-badge donut-badge-issues"><i className="legend-dot" style={{ background: '#FF5267' }} />Issues · {totalIssues.toLocaleString()}</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* MIDDLE: 6 CARDS */}
-        <div className="users-palette-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', gridAutoRows: '1fr' }}>
+        {/* RIGHT: 8 BALANCED STAT CARDS */}
+        <div className="users-palette-grid">
+          <article className="compact-user-card user-dashboard-card total-activity-card">
+            <header>
+              <span className="card-title-flex"><ThunderboltOutlined className="card-icon" />Total activity</span>
+              <small className="stat-header-chip">All events</small>
+            </header>
+            <div className="stat-value-row"><b className="big-stat accent">{totalActivity.toLocaleString()}</b></div>
+            <small className="stat-card-subtext">Total recorded events</small>
+          </article>
           <article className="compact-user-card user-dashboard-card active-users-card">
-            <header><span>Active users</span><small>Current</small></header>
+            <header>
+              <span className="card-title-flex"><UserOutlined className="card-icon" />Active users</span>
+              <small className="stat-header-chip">Current</small>
+            </header>
             <div className="stat-value-row"><b className="big-stat accent">{activeUsers}</b></div>
+            <small className="stat-card-subtext">{dedupedUsers.length > 0 ? `${((activeUsers / dedupedUsers.length) * 100).toFixed(0)}% members active` : 'Active members'}</small>
+          </article>
+          <article className="compact-user-card user-dashboard-card avg-activity-card">
+            <header>
+              <span className="card-title-flex"><RiseOutlined className="card-icon" />Avg per user</span>
+              <small className="stat-header-chip">Per active</small>
+            </header>
+            <div className="stat-value-row"><b className="big-stat accent">{activeUsers > 0 ? (totalActivity / activeUsers).toFixed(1) : '0'}</b></div>
+            <small className="stat-card-subtext">Events / active member</small>
           </article>
           <article className="compact-user-card user-dashboard-card merged-users-card">
-            <header><span>Merged</span><small>Users</small></header>
+            <header>
+              <span className="card-title-flex"><CheckCircleOutlined className="card-icon" />Merged</span>
+              <small className="stat-header-chip">Users</small>
+            </header>
             <div className="stat-value-row"><b className="big-stat accent">{totalMerged.toLocaleString()}</b></div>
+            <small className="stat-card-subtext">{totalActivity > 0 ? `${((totalMerged / totalActivity) * 100).toFixed(1)}% of total` : 'Merged MRs'}</small>
           </article>
           <article className="compact-user-card user-dashboard-card pushes-card">
-            <header><span>Pushes</span><small>Activity</small></header>
+            <header>
+              <span className="card-title-flex"><UploadOutlined className="card-icon" />Pushes</span>
+              <small className="stat-header-chip">Activity</small>
+            </header>
             <div className="stat-value-row"><b className="big-stat accent">{totalPushes.toLocaleString()}</b></div>
-          </article>
-          <article className="compact-user-card user-dashboard-card comments-card">
-            <header><span>Comments</span><small>Activity</small></header>
-            <div className="stat-value-row"><b className="big-stat accent">{totalComments.toLocaleString()}</b></div>
+            <small className="stat-card-subtext">{totalActivity > 0 ? `${((totalPushes / totalActivity) * 100).toFixed(1)}% of total` : 'Code pushes'}</small>
           </article>
           <article className="compact-user-card user-dashboard-card merge-requests-card">
-            <header><span>Merge requests</span><small>Activity</small></header>
+            <header>
+              <span className="card-title-flex"><BranchesOutlined className="card-icon" />Merge requests</span>
+              <small className="stat-header-chip">Activity</small>
+            </header>
             <div className="stat-value-row"><b className="big-stat accent">{totalMRS.toLocaleString()}</b></div>
+            <small className="stat-card-subtext">{totalActivity > 0 ? `${((totalMRS / totalActivity) * 100).toFixed(1)}% of total` : 'MR submissions'}</small>
+          </article>
+          <article className="compact-user-card user-dashboard-card comments-card">
+            <header>
+              <span className="card-title-flex"><MessageOutlined className="card-icon" />Comments</span>
+              <small className="stat-header-chip">Activity</small>
+            </header>
+            <div className="stat-value-row"><b className="big-stat accent">{totalComments.toLocaleString()}</b></div>
+            <small className="stat-card-subtext">{totalActivity > 0 ? `${((totalComments / totalActivity) * 100).toFixed(1)}% of total` : 'Discussions'}</small>
           </article>
           <article className="compact-user-card user-dashboard-card issues-card">
-            <header><span>Issues</span><small>Activity</small></header>
+            <header>
+              <span className="card-title-flex"><ExclamationCircleOutlined className="card-icon" />Issues</span>
+              <small className="stat-header-chip">Activity</small>
+            </header>
             <div className="stat-value-row"><b className="big-stat accent">{totalIssues.toLocaleString()}</b></div>
+            <small className="stat-card-subtext">{totalActivity > 0 ? `${((totalIssues / totalActivity) * 100).toFixed(1)}% of total` : 'Reported issues'}</small>
           </article>
         </div>
 
-        {/* RIGHT: TOP 5 USER ACTIVE & TOTAL */}
-        <article className="compact-user-card user-dashboard-card total-activity-card" style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '8px' }}>
-          <div>
-            <header style={{ marginBottom: '4px' }}><span>Total activity</span><small>All events</small></header>
-            <div className="stat-value-row"><b className="big-stat accent">{totalActivity.toLocaleString()}</b></div>
-          </div>
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto' }}>
-            <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--dashboard-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Top 5 Active Users</span>
-            {engagementLeader.length > 0 ? engagementLeader.map((u, i) => (
-              <div key={u.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 8px', background: 'color-mix(in srgb, var(--dashboard-surface) 50%, transparent)', borderRadius: '6px', border: '1px solid color-mix(in srgb, var(--dashboard-border) 50%, transparent)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--dashboard-muted)' }}>{i + 1}</span>
-                  <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--dashboard-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.name || u.username}</span>
-                  </div>
-                </div>
-                <b style={{ fontSize: '13px', color: 'var(--dashboard-accent)', fontWeight: 700 }}>{u._total}</b>
-              </div>
-            )) : (
-              <div style={{ fontSize: '12px', color: 'var(--dashboard-muted)' }}>No activity</div>
-            )}
-          </div>
-        </article>
       </div>
 
       <div className="users-top5-wrap">
@@ -971,15 +1058,15 @@ export function UsersAnalyticsDashboard({ users, loading }: { users: UserActivit
           <div className="leaderboard-card-container" key={m.label}>
             <header>
               <strong>{m.label}</strong>
-              <small>Top 5 {m.label.endsWith('s') ? m.label : `${m.label}s`}</small>
+              <small className="leaderboard-category-chip">Top 5</small>
             </header>
-            <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+            <div className="leaderboard-table-scroll">
               <table className="users-top5-table">
                 <thead>
                   <tr>
-                    <th style={{ width: 32 }}>#</th>
+                    <th style={{ width: 34 }}>#</th>
                     <th>User</th>
-                    <th style={{ width: 50 }}>{m.label}</th>
+                    <th style={{ width: 64, textAlign: 'right' }}>{m.label}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -988,7 +1075,9 @@ export function UsersAnalyticsDashboard({ users, loading }: { users: UserActivit
                     if (u) {
                       return (
                         <tr key={u.id}>
-                          <td className={`users-top5-rank rank-${i + 1}`}>{i + 1}</td>
+                          <td className="users-top5-rank-cell">
+                            <span className={`users-top5-rank-pill rank-${i + 1}`}>{i + 1}</span>
+                          </td>
                           <td className="users-top5-identity">
                             <div className="users-top5-name">
                               {u.web_url ? (
@@ -999,15 +1088,21 @@ export function UsersAnalyticsDashboard({ users, loading }: { users: UserActivit
                               <small>@{u.username}</small>
                             </div>
                           </td>
-                          <td className="users-top5-metric">{m.getVal(u)}</td>
+                          <td className="users-top5-metric">
+                            <span className="users-top5-metric-badge" style={{ '--metric-color': m.color } as React.CSSProperties}>
+                              {m.getVal(u).toLocaleString()}
+                            </span>
+                          </td>
                         </tr>
                       )
                     }
                     return (
-                      <tr key={`empty-${i + 1}`}>
-                        <td className="users-top5-rank" style={{ color: 'var(--dashboard-muted)' }}>{i + 1}</td>
-                        <td colSpan={2} style={{ textAlign: 'center', color: 'var(--dashboard-muted)' }}>
-                          -
+                      <tr key={`empty-${i + 1}`} className="empty-row">
+                        <td className="users-top5-rank-cell">
+                          <span className="users-top5-rank-pill rank-empty">{i + 1}</span>
+                        </td>
+                        <td colSpan={2} className="users-top5-empty-cell">
+                          <span className="empty-dash">—</span>
                         </td>
                       </tr>
                     )
@@ -1045,8 +1140,11 @@ function GroupSelector({ envId, selected, onChange }: { envId: number; selected:
 function DashboardPage() {
   const { selectedGroupId, selectedEnvId, setSelectedGroupId } = useGroupContext()
 
-  const [rangeHours, setRangeHours] = useState(getDefaultHours(LOCAL_STORAGE_RANGE_KEY))
+  const [pipelineRangeHours, setPipelineRangeHours] = useState(() => getDefaultHours('analytics_range_pipelines'))
+  const [userRangeHours, setUserRangeHours] = useState(() => getDefaultHours('analytics_range_users'))
   const [activeTab, setActiveTab] = useState('pipelines')
+
+  const rangeHours = activeTab === 'pipelines' ? pipelineRangeHours : userRangeHours
 
   const { data: config } = useQuery({
     queryKey: ['global-config'],
@@ -1067,14 +1165,14 @@ function DashboardPage() {
   })
 
   const { data: summaryData, isLoading: summaryLoading } = useQuery({
-    queryKey: ['analytics-summary', selectedEnvId, selectedGroupId, rangeHours, config?.pipeline_view],
-    queryFn: () => api.getAnalyticsSummary(selectedGroupId ?? 0, rangeHours, config?.pipeline_view || 'latest'),
+    queryKey: ['analytics-summary', selectedEnvId, selectedGroupId, pipelineRangeHours, config?.pipeline_view],
+    queryFn: () => api.getAnalyticsSummary(selectedGroupId ?? 0, pipelineRangeHours, config?.pipeline_view || 'latest'),
     enabled: !!selectedEnvId && !!selectedGroupId,
   })
 
   const { data: usersData, isLoading: usersLoading, isFetching: usersFetching } = useQuery({
-    queryKey: ['analytics-users', selectedEnvId, selectedGroupId, rangeHours, 'both'],
-    queryFn: () => api.getUsersAnalytics(selectedGroupId ?? 0, rangeHours),
+    queryKey: ['analytics-users', selectedEnvId, selectedGroupId, userRangeHours, 'both'],
+    queryFn: () => api.getUsersAnalytics(selectedGroupId ?? 0, userRangeHours),
     enabled: !!selectedEnvId && !!selectedGroupId,
   })
 
@@ -1091,7 +1189,7 @@ function DashboardPage() {
 
   const pipelineLoading = summaryLoading || !!pipelineReadyQuery.isLoading || datasetIsPending(pipelineReadyQuery.data, 'pipelines', pipelineReadyQuery.isLoading)
 
-  const hasNoGroup = !selectedEnvId || !selectedGroupId
+  const hasNoGroup = !selectedGroupId
 
   /* ── Auto-hide scrollbar after 1.5s idle ───────────────────────── */
   useEffect(() => {
@@ -1119,8 +1217,8 @@ function DashboardPage() {
           <div className="summary-bar-title">
             <span className="page-header-icon"><DashboardMark aria-hidden /></span>
             <div className="page-header-copy">
-              <span>DASHBOARD</span>
-              <small>Analytics overview</small>
+              <span>Dashboard</span>
+              <small>Historical performance and delivery health for the selected GitLab group.</small>
             </div>
           </div>
         </section>
@@ -1135,7 +1233,7 @@ function DashboardPage() {
         <div className="summary-bar-title">
           <span className="page-header-icon"><DashboardMark aria-hidden /></span>
           <div className="page-header-copy">
-            <span>DASHBOARD</span>
+            <span>Dashboard</span>
             <small>Historical performance and delivery health for the selected GitLab group.</small>
           </div>
         </div>
@@ -1149,26 +1247,32 @@ function DashboardPage() {
             items={[
               {
                 key: 'pipelines',
-                label: 'Pipeline Analytics',
+                label: 'Pipelines analytics',
               },
               {
                 key: 'users',
-                label: 'User Analytics',
+                label: 'Users analytics',
               },
             ]}
           />
-          <div className="pipeline-range-control">
+          <div className="dashboard-range-control pipeline-range-control">
             <span>Range</span>
             <Select
               className="range-select"
               value={rangeHours}
               onChange={(v) => {
                 const hour = typeof v === 'string' ? Number(v) : v
-                setRangeHours(hour)
-                try { localStorage.setItem(LOCAL_STORAGE_RANGE_KEY, String(hour)) } catch { /* ignore */ }
+                if (activeTab === 'pipelines') {
+                  setPipelineRangeHours(hour)
+                  try { localStorage.setItem('analytics_range_pipelines', String(hour)) } catch { /* ignore */ }
+                } else {
+                  setUserRangeHours(hour)
+                  try { localStorage.setItem('analytics_range_users', String(hour)) } catch { /* ignore */ }
+                }
               }}
               options={TIME_RANGES.map((r) => ({ label: formatTimeRangeLabel(r.hours), value: r.hours }))}
-              classNames={{ popup: { root: 'range-select-dropdown' } }}
+              popupClassName="dashboard-range-dropdown"
+              classNames={{ popup: { root: 'dashboard-range-dropdown range-select-dropdown' } }}
             />
           </div>
         </div>

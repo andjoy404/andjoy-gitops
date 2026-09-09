@@ -226,7 +226,7 @@ describe('DashboardPage', () => {
       document.body.setAttribute('data-theme', 'dark')
       renderDashboard()
       expect(document.querySelectorAll('.page-header-icon').length).toBe(1)
-      expect(screen.getByText('Analytics overview')).toBeInTheDocument()
+      expect(screen.queryByText('Analytics overview')).not.toBeInTheDocument()
       expect(screen.getByText('Historical performance and delivery health for the selected GitLab group.')).toBeInTheDocument()
       document.body.removeAttribute('data-theme')
     })
@@ -727,7 +727,7 @@ describe('DashboardPage', () => {
     it('renders the exact page header wording', () => {
       renderDashboard(123)
       expect(screen.getByText('Dashboard')).toBeInTheDocument()
-      expect(screen.getByText('Analytics overview')).toBeInTheDocument()
+      expect(screen.queryByText('Analytics overview')).not.toBeInTheDocument()
       expect(screen.getByText('Historical performance and delivery health for the selected GitLab group.')).toBeInTheDocument()
     })
 

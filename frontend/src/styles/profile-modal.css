@@ -1,0 +1,369 @@
+/* Self-service profile edit modal — styled with global font template & dashboard tokens.
+   Color accents blend with light/dark palettes without being conspicuous. */
+
+.profile-modal .ant-modal-mask {
+  background: rgb(0 0 0 / 62%) !important;
+  backdrop-filter: blur(4px);
+}
+
+.profile-modal .ant-modal-content {
+  padding: 1.1rem 1.25rem 1.1rem !important;
+  color: var(--dashboard-text) !important;
+  background: var(--dashboard-surface) !important;
+  border: 1px solid var(--dashboard-border) !important;
+  border-radius: var(--dashboard-radius-lg, 12px) !important;
+  box-shadow: var(--dashboard-shadow-lg) !important;
+  font-family: var(--font-sans);
+  font-size: var(--gitops-table-cell-font-size, 0.75rem);
+}
+
+.profile-modal .ant-modal-header {
+  margin-bottom: 0.85rem !important;
+  padding-bottom: 0.65rem !important;
+  color: var(--dashboard-text) !important;
+  background: var(--dashboard-surface) !important;
+  border-bottom: 1px solid var(--dashboard-border) !important;
+}
+
+.profile-modal .ant-modal-title {
+  color: var(--dashboard-text) !important;
+  font-family: var(--font-heading);
+  font-size: 0.9375rem; /* 15px */
+  font-weight: 600;
+  line-height: 1.3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-modal-title-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--dashboard-accent) 14%, var(--dashboard-surface));
+  color: var(--dashboard-accent);
+  font-size: 12px;
+}
+
+.profile-modal .ant-modal-close {
+  color: var(--dashboard-muted) !important;
+  top: 1rem;
+  inset-inline-end: 1rem;
+}
+
+.profile-modal .ant-modal-close:hover {
+  color: var(--dashboard-text) !important;
+  background: var(--dashboard-surface-hover) !important;
+}
+
+html.dark-theme .profile-modal .ant-modal-content {
+  color-scheme: dark;
+}
+
+/* User account summary card */
+.profile-account-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding: 0.6rem 0.85rem;
+  background: color-mix(in srgb, var(--dashboard-accent) 5%, var(--dashboard-surface-subtle));
+  border: 1px solid color-mix(in srgb, var(--dashboard-accent) 22%, var(--dashboard-border));
+  border-radius: var(--dashboard-radius-md, 8px);
+}
+
+.profile-account-info {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.profile-avatar {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  color: #ffffff;
+  border: 1px solid color-mix(in srgb, var(--dashboard-accent) 65%, transparent);
+  border-radius: 7px;
+  background: linear-gradient(135deg, var(--dashboard-accent) 0%, color-mix(in srgb, var(--dashboard-accent) 55%, #180d2e) 100%);
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  place-items: center;
+  box-shadow: 0 2px 5px color-mix(in srgb, var(--dashboard-accent) 26%, transparent);
+}
+
+.profile-account-username {
+  font-size: 0.8125rem; /* 13px */
+  font-weight: 600;
+  color: var(--dashboard-text);
+  font-family: var(--font-sans);
+  line-height: 1.25;
+}
+
+.profile-account-display-name {
+  font-size: 0.6875rem; /* 11px */
+  color: var(--dashboard-muted);
+  line-height: 1.25;
+  margin-top: 1px;
+}
+
+/* Role badges */
+.profile-role-badge {
+  margin: 0;
+  padding: 1px 7px;
+  border: 1px solid;
+  border-radius: 5px;
+  font-size: 10px;
+  line-height: 18px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.profile-role-badge.admin {
+  color: color-mix(in srgb, #fb7185 88%, var(--dashboard-text));
+  border-color: color-mix(in srgb, #e11d48 65%, var(--dashboard-border));
+  background: color-mix(in srgb, #e11d48 16%, var(--dashboard-surface));
+}
+
+.profile-role-badge.editor {
+  color: color-mix(in srgb, #60a5fa 88%, var(--dashboard-text));
+  border-color: color-mix(in srgb, #3b82f6 65%, var(--dashboard-border));
+  background: color-mix(in srgb, #3b82f6 16%, var(--dashboard-surface));
+}
+
+/* Form items & labels — matching global font template */
+.profile-modal .ant-form-item-label {
+  padding-bottom: 3px !important;
+}
+
+.profile-modal .ant-form-item-label > label {
+  color: var(--dashboard-text) !important;
+  font-family: var(--font-sans);
+  font-size: var(--gitops-table-cell-font-size, 0.75rem); /* 12px */
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.profile-modal .ant-form-item {
+  margin-bottom: 0.75rem;
+}
+
+.profile-modal .ant-form-item-explain-error {
+  color: var(--dashboard-danger) !important;
+  font-size: 0.6875rem; /* 11px */
+  line-height: 1.3;
+  margin-top: 3px;
+}
+
+/* Inputs & Affix wrappers */
+.profile-modal .ant-input-affix-wrapper,
+.profile-modal .ant-input {
+  font-family: var(--font-sans);
+  font-size: var(--gitops-table-cell-font-size, 0.75rem); /* 12px */
+  color: var(--dashboard-text) !important;
+  border-color: var(--dashboard-border) !important;
+  background: var(--dashboard-surface-subtle) !important;
+  border-radius: var(--dashboard-radius-sm, 6px);
+  box-shadow: none !important;
+  transition: border-color 150ms ease, background 150ms ease, box-shadow 150ms ease;
+}
+
+.profile-modal .ant-input-affix-wrapper {
+  padding: 0.32rem 0.6rem;
+}
+
+.profile-modal .ant-input {
+  background: transparent !important;
+  font-size: var(--gitops-table-cell-font-size, 0.75rem);
+  line-height: 1.4;
+}
+
+.profile-modal .ant-input::placeholder {
+  color: var(--dashboard-muted) !important;
+  font-size: var(--gitops-table-cell-font-size, 0.75rem);
+}
+
+/* Tasteful, colorful input prefix icons */
+.profile-input-icon {
+  font-size: 13px;
+  margin-right: 3px;
+  transition: opacity 150ms ease, color 150ms ease;
+}
+
+.profile-input-icon-user {
+  color: var(--dashboard-accent);
+  opacity: 0.85;
+}
+
+.profile-input-icon-mail {
+  color: var(--dashboard-info);
+  opacity: 0.85;
+}
+
+.profile-input-icon-lock {
+  color: color-mix(in srgb, var(--dashboard-warning) 70%, var(--dashboard-accent));
+  opacity: 0.85;
+}
+
+.profile-modal .ant-input-affix-wrapper-focused .profile-input-icon {
+  opacity: 1;
+}
+
+.profile-modal .ant-input-password-icon {
+  color: var(--dashboard-muted) !important;
+  transition: color 150ms ease;
+}
+
+.profile-modal .ant-input-password-icon:hover {
+  color: var(--dashboard-text) !important;
+}
+
+.profile-modal .ant-input-affix-wrapper:hover,
+.profile-modal .ant-input:hover {
+  border-color: color-mix(in srgb, var(--dashboard-accent) 55%, var(--dashboard-border)) !important;
+  background: color-mix(in srgb, var(--dashboard-accent) 2%, var(--dashboard-surface-subtle)) !important;
+}
+
+.profile-modal .ant-input-affix-wrapper-focused,
+.profile-modal .ant-input:focus,
+.profile-modal .ant-input-focused {
+  border-color: var(--dashboard-accent) !important;
+  background: color-mix(in srgb, var(--dashboard-accent) 3%, var(--dashboard-surface-subtle)) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--dashboard-accent) 20%, transparent) !important;
+}
+
+.profile-modal .ant-input-affix-wrapper-status-error,
+.profile-modal .ant-input-affix-wrapper-status-error:hover {
+  border-color: var(--dashboard-danger) !important;
+}
+
+.profile-modal .ant-input-affix-wrapper-status-error.ant-input-affix-wrapper-focused {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--dashboard-danger) 20%, transparent) !important;
+}
+
+/* Password section divider with accent badge */
+.profile-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 1rem 0 0.75rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--dashboard-border);
+}
+
+.profile-section-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--dashboard-warning) 16%, var(--dashboard-surface));
+  border: 1px solid color-mix(in srgb, var(--dashboard-warning) 35%, transparent);
+  color: var(--dashboard-warning);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.profile-section-title {
+  color: var(--dashboard-text);
+  font-size: 0.75rem; /* 12px */
+  font-weight: 600;
+  display: block;
+  line-height: 1.25;
+}
+
+.profile-section-sub {
+  color: var(--dashboard-muted);
+  font-size: 0.6875rem; /* 11px */
+  line-height: 1.25;
+}
+
+/* Alerts */
+.profile-modal .ant-alert {
+  border-radius: var(--dashboard-radius-sm, 6px);
+  padding: 6px 12px;
+  font-size: 0.75rem;
+}
+
+.profile-modal .ant-alert-error {
+  background: color-mix(in srgb, var(--dashboard-danger) 12%, var(--dashboard-surface)) !important;
+  border-color: color-mix(in srgb, var(--dashboard-danger) 45%, var(--dashboard-border)) !important;
+  color: var(--dashboard-danger) !important;
+}
+
+.profile-modal .ant-alert-error .ant-alert-message,
+.profile-modal .ant-alert-error .anticon {
+  color: var(--dashboard-danger) !important;
+  font-size: 0.75rem;
+}
+
+.profile-modal .ant-alert-success {
+  background: color-mix(in srgb, var(--dashboard-success) 12%, var(--dashboard-surface)) !important;
+  border-color: color-mix(in srgb, var(--dashboard-success) 45%, var(--dashboard-border)) !important;
+  color: var(--dashboard-success) !important;
+}
+
+.profile-modal .ant-alert-success .ant-alert-message,
+.profile-modal .ant-alert-success .anticon {
+  color: var(--dashboard-success) !important;
+  font-size: 0.75rem;
+}
+
+/* Modal Footer */
+.profile-modal .ant-modal-footer {
+  border-top: 1px solid var(--dashboard-border);
+  padding-top: 0.75rem;
+  margin-top: 1rem;
+}
+
+.profile-modal .ant-modal-footer .ant-btn {
+  height: 2rem; /* 32px */
+  font-size: var(--gitops-table-cell-font-size, 0.75rem);
+  font-family: var(--font-sans);
+  border-radius: var(--dashboard-radius-sm, 6px);
+  padding: 0 14px;
+}
+
+.profile-modal .ant-modal-footer .ant-btn-default {
+  color: var(--dashboard-text) !important;
+  background: var(--dashboard-surface-subtle) !important;
+  border-color: var(--dashboard-border) !important;
+}
+
+.profile-modal .ant-modal-footer .ant-btn-default:hover {
+  color: var(--dashboard-text) !important;
+  background: var(--dashboard-surface-hover) !important;
+  border-color: var(--dashboard-accent) !important;
+}
+
+.profile-modal .ant-modal-footer .ant-btn-primary {
+  background: var(--dashboard-accent) !important;
+  border-color: var(--dashboard-accent) !important;
+  color: #ffffff !important;
+  font-weight: 600;
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--dashboard-accent) 35%, transparent);
+}
+
+.profile-modal .ant-modal-footer .ant-btn-primary:hover {
+  background: color-mix(in srgb, var(--dashboard-accent) 85%, #ffffff) !important;
+  border-color: color-mix(in srgb, var(--dashboard-accent) 85%, #ffffff) !important;
+}
+
+/* Browser autofill */
+html.dark-theme .profile-modal .ant-input:-webkit-autofill,
+html.dark-theme .profile-modal .ant-input:-webkit-autofill:hover,
+html.dark-theme .profile-modal .ant-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--dashboard-surface-subtle) inset !important;
+  -webkit-text-fill-color: var(--dashboard-text) !important;
+  caret-color: var(--dashboard-text) !important;
+  transition: background-color 999999s ease-in-out 0s;
+}

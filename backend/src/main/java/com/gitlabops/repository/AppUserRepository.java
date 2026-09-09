@@ -138,6 +138,16 @@ public class AppUserRepository {
             .execute();
     }
 
+    public void updateProfile(Long id, String displayName, String email) {
+        dsl
+            .update(table(TABLE))
+            .set(field(name("display_name")), displayName)
+            .set(field(name("email")), email)
+            .set(field(name("updated_at")), currentTimestamp())
+            .where(field(name("id")).eq(id))
+            .execute();
+    }
+
     public void delete(Long id) {
         dsl
             .delete(table(TABLE))

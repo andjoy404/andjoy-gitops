@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, Form, Input, Modal, message } from 'antd'
+import { LockOutlined, KeyOutlined } from '@ant-design/icons'
 import { api, queryClient } from '../services/api'
 import '../styles/password-change.css'
 
@@ -79,7 +80,11 @@ export default function PasswordChangeModal({ open, onClose }: Props) {
             { min: 8, message: 'Password must be at least 8 characters' },
           ]}
         >
-          <Input.Password placeholder="Enter new password" autoComplete="new-password" />
+          <Input.Password
+            prefix={<LockOutlined style={{ color: '#8b5cf6', fontSize: 13, marginRight: 4 }} />}
+            placeholder="Enter new password"
+            autoComplete="new-password"
+          />
         </Form.Item>
 
         <Form.Item
@@ -98,7 +103,11 @@ export default function PasswordChangeModal({ open, onClose }: Props) {
             }),
           ]}
         >
-          <Input.Password placeholder="Confirm new password" autoComplete="new-password" />
+          <Input.Password
+            prefix={<KeyOutlined style={{ color: '#6366f1', fontSize: 13, marginRight: 4 }} />}
+            placeholder="Confirm new password"
+            autoComplete="new-password"
+          />
         </Form.Item>
 
         <Form.Item>

@@ -1,7 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Form, Input, Select, Button, Tooltip, type InputRef } from 'antd'
-import { SettingOutlined, UploadOutlined, LinkOutlined, PictureOutlined, DeleteOutlined, SunOutlined, MoonOutlined } from '@ant-design/icons'
+import {
+  SettingOutlined,
+  UploadOutlined,
+  LinkOutlined,
+  PictureOutlined,
+  DeleteOutlined,
+  SunOutlined,
+  MoonOutlined,
+  ShopOutlined,
+  BranchesOutlined,
+  BgColorsOutlined,
+} from '@ant-design/icons'
 import { api } from '../services/api'
 import AdminOnly from '../components/AdminOnly'
 import PageHeader from '../components/PageHeader'
@@ -192,6 +203,14 @@ export default function GlobalConfigPage() {
               onFinish={handleSubmit}
               initialValues={{ pipeline_view: 'latest' }}
             >
+              {/* Branding Section */}
+              <div className={styles.sectionHeader}>
+                <span className={styles.sectionBadge}>
+                  <ShopOutlined />
+                </span>
+                <span className={styles.sectionTitle}>Branding & Identity</span>
+              </div>
+
               {/* Company name */}
               <Form.Item
                 name="company_name"
@@ -203,7 +222,10 @@ export default function GlobalConfigPage() {
                 rules={[{ required: true, message: 'Company name is required' }]}
                 tooltip="Display name shown in the dashboard header and app chrome."
               >
-                <Input placeholder="Your company" />
+                <Input
+                  prefix={<ShopOutlined className={styles.inputIconCompany} />}
+                  placeholder="Your company"
+                />
               </Form.Item>
 
               {/* Company logo */}
@@ -238,6 +260,7 @@ export default function GlobalConfigPage() {
                 {logoTab === 'url' ? (
                   <Input
                     ref={urlInputRef}
+                    prefix={<LinkOutlined className={styles.inputIconUrl} />}
                     placeholder="https://example.com/logo.svg"
                     onChange={handleLogoUrlChange}
                   />
@@ -252,7 +275,7 @@ export default function GlobalConfigPage() {
                       onChange={handleFileChange}
                     />
                     <label htmlFor="logo-file-input" className={styles.uploadLabel}>
-                      <UploadOutlined />
+                      <UploadOutlined className={styles.uploadIcon} />
                       <span>Click to choose a file</span>
                       <small>PNG, JPG, SVG, GIF — max 512 KB</small>
                     </label>
@@ -261,6 +284,14 @@ export default function GlobalConfigPage() {
                 )}
               </Form.Item>
 
+              {/* Pipeline Defaults Section */}
+              <div className={styles.sectionHeader} style={{ marginTop: '1.25rem' }}>
+                <span className={styles.sectionBadge}>
+                  <BranchesOutlined />
+                </span>
+                <span className={styles.sectionTitle}>Pipeline Defaults</span>
+              </div>
+
               {/* Pipeline view */}
               <Form.Item
                 name="pipeline_view"
@@ -268,7 +299,7 @@ export default function GlobalConfigPage() {
                 tooltip="Show only the latest pipeline per project, or all pipelines."
               >
                 <Select
-                  popupClassName="pipeline-view-dropdown"
+                  classNames={{ popup: { root: 'pipeline-view-dropdown' } }}
                   options={PIPELINE_VIEWS}
                 />
               </Form.Item>
@@ -276,6 +307,13 @@ export default function GlobalConfigPage() {
               {/* Theme: client-side only. Picking a theme is a live preview —
                   it restyles the UI immediately but is NOT persisted until the
                   user clicks Save. If they leave without saving it reverts. */}
+              <div className={styles.sectionHeader} style={{ marginTop: '1.25rem' }}>
+                <span className={styles.sectionBadge}>
+                  <BgColorsOutlined />
+                </span>
+                <span className={styles.sectionTitle}>Interface Appearance</span>
+              </div>
+
               <Form.Item
                 label="Theme"
                 tooltip="Appearance for this browser. A live preview until you click Save; stored locally, not sent to the server."
@@ -288,7 +326,7 @@ export default function GlobalConfigPage() {
                     aria-label="Light theme"
                     onClick={() => setThemePreview('light')}
                   >
-                    <SunOutlined aria-hidden />
+                    <SunOutlined className={styles.sunIcon} aria-hidden />
                     <span>Light</span>
                   </button>
                   <button
@@ -298,13 +336,13 @@ export default function GlobalConfigPage() {
                     aria-label="Dark theme"
                     onClick={() => setThemePreview('dark')}
                   >
-                    <MoonOutlined aria-hidden />
+                    <MoonOutlined className={styles.moonIcon} aria-hidden />
                     <span>Dark</span>
                   </button>
                 </div>
               </Form.Item>
 
-              <Form.Item style={{ marginBottom: 0 }}>
+              <div className={styles.formFooter}>
                 <Button
                   type="primary"
                   htmlType="submit"
@@ -312,7 +350,7 @@ export default function GlobalConfigPage() {
                 >
                   Save settings
                 </Button>
-              </Form.Item>
+              </div>
             </Form>
           </div>
 

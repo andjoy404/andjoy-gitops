@@ -220,17 +220,17 @@
 }
 
 /* Theme-aware user editor drawer. */
-.userDrawer :global(.ant-drawer-mask) { background:rgb(0 0 0 / 62%); backdrop-filter:blur(4px); }
+.userDrawer :global(.ant-drawer-mask) { background: rgb(0 0 0 / 62%); backdrop-filter: blur(4px); }
 .userDrawer :global(.ant-drawer-content),
 .userDrawer :global(.ant-drawer-header),
-.userDrawer :global(.ant-drawer-body) { color:var(--dashboard-text); background:var(--dashboard-surface); }
-.userDrawer :global(.ant-drawer-content) { border-left:1px solid var(--dashboard-border); box-shadow:-24px 0 70px rgb(0 0 0 / 45%); }
-.userDrawer :global(.ant-drawer-header) { padding:20px; border-bottom:1px solid var(--dashboard-border); }
-.userDrawer :global(.ant-drawer-header-title) { min-width:0; }
-.userDrawer :global(.ant-drawer-title) { color:var(--dashboard-text); }
-.userDrawer :global(.ant-drawer-extra .ant-btn) { color:var(--dashboard-muted); }
-.userDrawer :global(.ant-drawer-extra .ant-btn:hover) { color:var(--dashboard-text) !important; background:var(--dashboard-surface-hover) !important; }
-.userDrawer :global(.ant-drawer-body) { display:flex; flex-direction:column; min-height:0; padding:20px; }
+.userDrawer :global(.ant-drawer-body) { color: var(--dashboard-text); background: var(--dashboard-surface); }
+.userDrawer :global(.ant-drawer-content) { border-left: 1px solid var(--dashboard-border); box-shadow: -24px 0 70px rgb(0 0 0 / 45%); }
+.userDrawer :global(.ant-drawer-header) { padding: 16px 20px; border-bottom: 1px solid var(--dashboard-border); }
+.userDrawer :global(.ant-drawer-header-title) { min-width: 0; }
+.userDrawer :global(.ant-drawer-title) { color: var(--dashboard-text); }
+.userDrawer :global(.ant-drawer-extra .ant-btn) { color: var(--dashboard-muted); }
+.userDrawer :global(.ant-drawer-extra .ant-btn:hover) { color: var(--dashboard-text) !important; background: var(--dashboard-surface-hover) !important; }
+.userDrawer :global(.ant-drawer-body) { display: flex; flex-direction: column; min-height: 0; padding: 18px 20px; }
 .userDrawer,
 .userDrawer :global(.ant-btn),
 .userDrawer :global(.ant-input),
@@ -240,81 +240,244 @@
 .userDrawer legend,
 .userDrawer fieldset p,
 .userDrawer small {
-  font-size:var(--gitops-table-cell-font-size);
-  font-weight:var(--gitops-table-cell-font-weight);
-  line-height:var(--gitops-table-cell-line-height);
-}
-.drawerHeading { display:flex; flex-direction:column; gap:4px; }
-.drawerHeading strong { color:var(--dashboard-text); font-size:20px; }
-.drawerHeading small { color:var(--dashboard-muted); font-size:var(--gitops-table-cell-font-size); font-weight:var(--gitops-table-cell-font-weight); }
-.userForm { overflow-y:auto; min-height:0; padding-right:4px; }
-
-.formField {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  margin-bottom: 1rem;
-}
-
-.formField small {
-  color: var(--dashboard-muted);
-}
-
-.formField input {
-  padding: 0.65rem;
-  color: var(--dashboard-text);
-  border: 1px solid var(--dashboard-border);
-  border-radius: 7px;
-  outline: 0;
-  background: var(--dashboard-surface-subtle);
-  font-size: var(--gitops-table-cell-font-size);
+  font-size: var(--gitops-table-cell-font-size, 0.75rem);
   font-weight: var(--gitops-table-cell-font-weight);
   line-height: var(--gitops-table-cell-line-height);
 }
 
-.formField input::placeholder { color:var(--dashboard-muted); }
-.formField input:hover { border-color:color-mix(in srgb,var(--dashboard-accent) 65%,var(--dashboard-border)); }
-.formField input:focus { border-color:var(--dashboard-accent); box-shadow:0 0 0 2px color-mix(in srgb,var(--dashboard-accent) 18%,transparent); }
+.drawerHeading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.drawerTitleIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: var(--dashboard-accent-soft);
+  color: var(--dashboard-accent);
+  border: 1px solid color-mix(in srgb, var(--dashboard-accent) 25%, transparent);
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.drawerHeadingText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.drawerHeadingText strong {
+  color: var(--dashboard-text);
+  font-family: var(--font-heading);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.drawerHeadingText small {
+  color: var(--dashboard-muted);
+  font-size: 0.6875rem;
+  font-weight: var(--gitops-table-cell-font-weight);
+  line-height: 1.25;
+}
+
+.userForm {
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.fieldLabel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-sans);
+  font-size: var(--gitops-table-cell-font-size, 0.75rem);
+  font-weight: 600;
+  color: var(--dashboard-text);
+}
+
+.fieldLabel strong {
+  font-size: var(--gitops-table-cell-font-size, 0.75rem);
+  font-weight: 600;
+  color: var(--dashboard-text);
+}
+
+.requiredStar {
+  color: var(--dashboard-danger);
+  font-size: 0.75rem;
+}
+
+.fieldHelp {
+  color: var(--dashboard-muted);
+  font-size: 0.6875rem;
+  line-height: 1.25;
+  margin-bottom: 2px;
+}
+
+/* Styled AntD Inputs inside user drawer */
+.userDrawer :global(.ant-input),
+.userDrawer :global(.ant-input-affix-wrapper),
+.userDrawer :global(.ant-input-password) {
+  color: var(--dashboard-text) !important;
+  border-color: var(--dashboard-border) !important;
+  background: var(--dashboard-surface-subtle) !important;
+  font-family: var(--font-sans);
+  font-size: var(--gitops-table-cell-font-size, 0.75rem);
+  border-radius: var(--dashboard-radius-sm, 6px);
+  transition: border-color 150ms ease, background 150ms ease, box-shadow 150ms ease;
+}
+
+.userDrawer :global(.ant-input-affix-wrapper) {
+  padding: 0.32rem 0.6rem;
+}
+
+.userDrawer :global(.ant-input::placeholder) {
+  color: var(--dashboard-muted) !important;
+  font-size: var(--gitops-table-cell-font-size, 0.75rem);
+}
+
+.userDrawer :global(.ant-input:hover),
+.userDrawer :global(.ant-input-affix-wrapper:hover) {
+  border-color: color-mix(in srgb, var(--dashboard-accent) 55%, var(--dashboard-border)) !important;
+  background: color-mix(in srgb, var(--dashboard-accent) 2%, var(--dashboard-surface-subtle)) !important;
+}
+
+.userDrawer :global(.ant-input:focus),
+.userDrawer :global(.ant-input-affix-wrapper-focused) {
+  border-color: var(--dashboard-accent) !important;
+  background: color-mix(in srgb, var(--dashboard-accent) 3%, var(--dashboard-surface-subtle)) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--dashboard-accent) 20%, transparent) !important;
+}
+
+.userDrawer :global(.ant-input-password-icon),
+.userDrawer :global(.ant-input-suffix .anticon) {
+  color: var(--dashboard-muted) !important;
+}
+
+.userDrawer :global(.ant-input-password-icon:hover) {
+  color: var(--dashboard-text) !important;
+}
+
+/* Input prefix semantic icon tints */
+.inputIconUser {
+  color: var(--dashboard-accent);
+  font-size: 13px;
+  margin-right: 4px;
+  opacity: 0.85;
+}
+
+.inputIconPass {
+  color: color-mix(in srgb, var(--dashboard-warning) 75%, var(--dashboard-accent));
+  font-size: 13px;
+  margin-right: 4px;
+  opacity: 0.85;
+}
+
+.inputIconName {
+  color: var(--dashboard-info);
+  font-size: 13px;
+  margin-right: 4px;
+  opacity: 0.85;
+}
+
+.inputIconEmail {
+  color: color-mix(in srgb, var(--dashboard-info) 70%, var(--dashboard-accent));
+  font-size: 13px;
+  margin-right: 4px;
+  opacity: 0.85;
+}
+
+.userDrawer :global(.ant-input-affix-wrapper-focused) .inputIconUser,
+.userDrawer :global(.ant-input-affix-wrapper-focused) .inputIconPass,
+.userDrawer :global(.ant-input-affix-wrapper-focused) .inputIconName,
+.userDrawer :global(.ant-input-affix-wrapper-focused) .inputIconEmail {
+  opacity: 1;
+}
+
+.sectionBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--dashboard-accent) 14%, var(--dashboard-surface));
+  color: var(--dashboard-accent);
+  font-size: 10px;
+}
 
 fieldset {
-  margin: 0;
-  padding: 0.85rem;
+  margin: 0.25rem 0 0;
+  padding: 0.75rem;
   border: 1px solid var(--dashboard-border);
-  border-radius: 9px;
-  gap: 0.55rem;
+  border-radius: var(--dashboard-radius-md, 8px);
+  background: color-mix(in srgb, var(--dashboard-surface-subtle) 60%, var(--dashboard-surface));
+  gap: 0.5rem;
   display: flex;
   flex-direction: column;
 }
 
-.userDrawer fieldset > p { color:var(--dashboard-muted); }
+.userDrawer fieldset > p {
+  color: var(--dashboard-muted);
+  font-size: 0.6875rem;
+  line-height: 1.3;
+}
 
 legend {
+  font-size: 0.75rem;
   font-weight: 600;
+  color: var(--dashboard-text);
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .roleChoices {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.45rem;
 }
 
 .roleChoice {
   display: flex;
-  padding: 0.75rem;
+  align-items: flex-start;
+  padding: 0.6rem 0.75rem;
   color: var(--dashboard-text);
   border: 1px solid var(--dashboard-border);
-  border-radius: 8px;
-  background: var(--dashboard-surface-subtle);
+  border-radius: 7px;
+  background: var(--dashboard-surface);
   text-align: left;
-  gap: 0.65rem;
+  gap: 0.6rem;
   cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease, box-shadow 150ms ease;
 }
 
-.roleChoice:not(.disabled):hover { border-color:var(--dashboard-accent); background:var(--dashboard-surface-hover); }
+.roleChoice:not(.disabled):hover {
+  border-color: color-mix(in srgb, var(--dashboard-accent) 60%, var(--dashboard-border));
+  background: color-mix(in srgb, var(--dashboard-accent) 4%, var(--dashboard-surface));
+}
 
 .roleChoice.selected {
   border-color: var(--dashboard-accent);
-  background: var(--dashboard-accent-soft);
+  background: var(--dashboard-accent-soft, color-mix(in srgb, var(--dashboard-accent) 12%, var(--dashboard-surface)));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--dashboard-accent) 30%, transparent);
 }
 
 .roleChoice.disabled {
@@ -326,11 +489,21 @@ legend {
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: center;
-  gap: 0.25rem 0.55rem;
+  gap: 0.2rem 0.5rem;
+  min-width: 0;
 }
 
-.roleChoice > div > small {
+.roleChoice strong {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--dashboard-text);
+}
+
+.roleChoice small {
   grid-column: 1 / -1;
+  font-size: 0.6875rem;
+  color: var(--dashboard-muted);
+  line-height: 1.25;
 }
 
 .roleRadio {
@@ -340,18 +513,49 @@ legend {
   border: 2px solid var(--dashboard-muted);
   border-radius: 50%;
   flex: 0 0 auto;
+  transition: all 150ms ease;
 }
 
 .roleChoice.selected .roleRadio {
   border: 4px solid var(--dashboard-accent);
+  background: #fff;
 }
 
 .enabledRow {
   display: flex;
   flex-direction: row !important;
   align-items: center;
-  gap: 0.5rem !important;
-  margin-top: 1rem;
+  justify-content: space-between;
+  gap: 0.75rem !important;
+  margin-top: 0.25rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 7px;
+  background: var(--dashboard-surface-subtle);
+}
+
+.enabledInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.enabledLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--dashboard-text);
+}
+
+.enabledDesc {
+  font-size: 0.6875rem;
+  color: var(--dashboard-muted);
+  line-height: 1.25;
+}
+
+.enabledRow :global(.ant-checkbox-wrapper) {
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 .enabledRow :global(.ant-checkbox) {
@@ -388,15 +592,36 @@ legend {
 .formFooter {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-top: auto;
-  padding-top: 1rem;
+  padding-top: 0.85rem;
   border-top: 1px solid var(--dashboard-border);
   gap: 0.65rem;
 }
 
-.formFooter :global(.ant-btn) { flex:1; color:var(--dashboard-text); border-color:var(--dashboard-border); background:var(--dashboard-surface-subtle); }
-.formFooter :global(.ant-btn-primary) { border-color:var(--dashboard-accent); background:var(--dashboard-accent); }
+.formFooter :global(.ant-btn) {
+  font-size: 0.75rem;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: var(--dashboard-radius-sm, 6px);
+  color: var(--dashboard-text);
+  border-color: var(--dashboard-border);
+  background: var(--dashboard-surface-subtle);
+}
+.formFooter :global(.ant-btn:hover) {
+  border-color: var(--dashboard-accent) !important;
+  color: var(--dashboard-accent) !important;
+  background: var(--dashboard-surface-hover) !important;
+}
+.formFooter :global(.ant-btn-primary) {
+  border-color: var(--dashboard-accent) !important;
+  background: var(--dashboard-accent) !important;
+  color: #ffffff !important;
+}
+.formFooter :global(.ant-btn-primary:hover) {
+  border-color: color-mix(in srgb, var(--dashboard-accent) 85%, #000) !important;
+  background: color-mix(in srgb, var(--dashboard-accent) 85%, #000) !important;
+}
 
 .newUserHighlight {
   --user-highlight-active: 1;

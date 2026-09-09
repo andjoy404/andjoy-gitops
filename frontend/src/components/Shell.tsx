@@ -20,6 +20,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../services/api'
 import Header from './Header'
 import GroupSelectorModal from './GroupSelector'
+import ProfileModal from './ProfileModal'
 import { GroupContext } from '../contexts/GroupContext'
 import type { EnvironmentDTO, GlobalConfigDTO, GroupDTO } from '../types'
 import { isAdminRole } from '../utils/role'
@@ -32,17 +33,17 @@ const { Text } = Typography
 
 // Admin-only entries, grouped under the single collapsible SETTINGS section
 const SETTINGS_TABS = [
-  { id: '/users', label: 'Users', icon: <UserOutlined /> },
-  { id: '/environments', label: 'Environments', icon: <CloudServerOutlined /> },
-  { id: '/global-config', label: 'Configurations', icon: <SettingOutlined /> },
+  { id: '/users', label: 'Users', icon: <UserOutlined style={{ color: 'var(--dashboard-accent)' }} /> },
+  { id: '/environments', label: 'Environments', icon: <CloudServerOutlined style={{ color: 'var(--dashboard-info)' }} /> },
+  { id: '/global-config', label: 'Configurations', icon: <SettingOutlined style={{ color: 'color-mix(in srgb, var(--dashboard-warning) 75%, var(--dashboard-accent))' }} /> },
 ]
 
 const ALL_TABS = [
-  { id: '/dashboard', label: 'Dashboard', icon: <DashboardMark style={{ width: 16, height: 16 }} /> },
-  { id: '/pipelines', label: 'Pipelines', icon: <PipelineExchangeMark style={{ width: 16, height: 16 }} /> },
-  { id: '/runners', label: 'Runners', icon: <ThunderboltOutlined /> },
-  { id: '/user-activity', label: 'User Activity', icon: <TeamOutlined /> },
-  { id: '/relations-map', label: 'Relations Map', icon: <ClusterOutlined /> },
+  { id: '/dashboard', label: 'Dashboard', icon: <DashboardMark style={{ width: 16, height: 16, color: 'var(--dashboard-accent)' }} /> },
+  { id: '/pipelines', label: 'Pipelines', icon: <PipelineExchangeMark style={{ width: 16, height: 16, color: 'var(--dashboard-info)' }} /> },
+  { id: '/runners', label: 'Runners', icon: <ThunderboltOutlined style={{ color: 'var(--dashboard-warning)' }} /> },
+  { id: '/user-activity', label: 'User Activity', icon: <TeamOutlined style={{ color: 'var(--dashboard-success)' }} /> },
+  { id: '/relations-map', label: 'Relations Map', icon: <ClusterOutlined style={{ color: 'color-mix(in srgb, var(--dashboard-info) 70%, var(--dashboard-accent))' }} /> },
 ]
 
 /* All tabs (includes SETTINGS) — used by mobile nav and the sidebar "Show all"
@@ -111,6 +112,7 @@ export default function Shell({ onLogout }: { onLogout?: () => void }) {
   const navigate = useNavigate()
   const location = useLocation()
   const [groupsModalOpen, setGroupsModalOpen] = useState(false)
+  const [profileModalOpen, setProfileModalOpen] = useState(false)
   const [envSelectorOpen, setEnvSelectorOpen] = useState(false)
   const [environmentHintOpen, setEnvironmentHintOpen] = useState(true)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -305,7 +307,9 @@ export default function Shell({ onLogout }: { onLogout?: () => void }) {
   )
 
   const handleUserMenuClick: MenuProps['onClick'] = ({ key }) => {
-    if (key === 'logout') {
+    if (key === 'profile') {
+      setProfileModalOpen(true)
+    } else if (key === 'logout') {
       api.logout().catch(() => {})
       localStorage.removeItem('user_role')
       localStorage.removeItem('user_username')
@@ -596,7 +600,7 @@ export default function Shell({ onLogout }: { onLogout?: () => void }) {
           <Button
             block
             type="text"
-            icon={<FolderMark style={{ width: 16, height: 16 }} />}
+            icon={<FolderMark style={{ width: 16, height: 16, color: 'var(--dashboard-info)' }} />}
             onClick={handleOpenEnvSelector}
             style={{
               justifyContent: 'flex-start',
@@ -615,7 +619,7 @@ export default function Shell({ onLogout }: { onLogout?: () => void }) {
           <Button
             block
             type="text"
-            icon={<FolderMark style={{ width: 16, height: 16 }} />}
+            icon={<FolderMark style={{ width: 16, height: 16, color: 'var(--dashboard-accent)' }} />}
             onClick={handleOpenGroupsModal}
             style={{
               justifyContent: 'flex-start',
@@ -726,6 +730,14 @@ export default function Shell({ onLogout }: { onLogout?: () => void }) {
               menu={{
                 items: [
                   {
+                    key: 'profile',
+                    icon: <UserOutlined />,
+                    label: 'Edit Profile',
+                  },
+                  {
+                    type: 'divider',
+                  },
+                  {
                     key: 'logout',
                     icon: <LogoutOutlined />,
                     label: 'Sign out',
@@ -806,6 +818,11 @@ export default function Shell({ onLogout }: { onLogout?: () => void }) {
             setSelectedGroup(id)
           }}
           groups={availableGroups}
+        />
+
+        <ProfileModal
+          open={profileModalOpen}
+          onClose={() => setProfileModalOpen(false)}
         />
       </div>
     </GroupContext.Provider>

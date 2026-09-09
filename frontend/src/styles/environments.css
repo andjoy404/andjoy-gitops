@@ -244,8 +244,15 @@
 /* Keep antd icon glyphs on the same 16px footing as the custom SVG marks so
    every sidebar label starts at the same x position. Antd already pads
    button icons by 8px, so only the font size is overridden here. */
-.shell-sidebar .ant-btn .anticon {
+.shell-sidebar .ant-btn .anticon,
+.shell-sidebar .ant-btn > svg:not(.anticon) {
   font-size: 16px;
+  transition: transform 140ms ease, filter 140ms ease;
+}
+
+.shell-sidebar .ant-btn:hover .anticon,
+.shell-sidebar .ant-btn:hover > svg:not(.anticon) {
+  transform: scale(1.08);
 }
 
 .shell-sidebar .sidebar-pin.ant-btn .anticon,
@@ -283,7 +290,7 @@ html:not(.dark-theme) .shell-sidebar .ant-btn-primary:not(:disabled):active {
   box-shadow: inset 3px 0 0 #7c5ac7, 0 2px 8px rgb(76 47 110 / 12%) !important;
 }
 
-html:not(.dark-theme) .shell-sidebar .ant-btn-primary .anticon {
+html:not(.dark-theme) .shell-sidebar .ant-btn-primary .anticon:not([style*="color"]) {
   color: #6542aa !important;
 }
 

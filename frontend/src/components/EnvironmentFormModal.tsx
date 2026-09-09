@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Button, Drawer, Form, Input, Tag, Switch, Select } from 'antd'
-import { CloseOutlined, InfoCircleOutlined } from '@ant-design/icons'
+import {
+  CloseOutlined,
+  CloudServerOutlined,
+  GlobalOutlined,
+  KeyOutlined,
+  SettingOutlined,
+} from '@ant-design/icons'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../services/api'
 import { useGroupContext } from '../contexts/GroupContext'
@@ -97,7 +103,7 @@ export default function EnvironmentFormModal({ open, onClose, editingEnv, onSave
         base_url: values.base_url,
         token: values.token ?? '',
         group_ids: Array.isArray(values.group_ids)
-          ? values.group_ids.map((s: string) => Number(s)).filter((n: number) => !isNaN(n) && n > 0)
+          ? values.group_ids.map((s: string) => Number(String(s).trim())).filter((n: number) => !isNaN(n) && n > 0)
           : [],
         enabled: values.enabled,
         only_top_level: values.only_top_level,
@@ -130,12 +136,17 @@ export default function EnvironmentFormModal({ open, onClose, editingEnv, onSave
       rootClassName={styles.envDrawer}
       title={
         <div className={styles.drawerHeading}>
-          <strong>{isEdit ? 'Edit Environment' : 'Add Environment'}</strong>
-          <small>
-            {isEdit
-              ? 'Update environment details and access settings'
-              : 'Connect a new GitLab instance to start collecting analytics'}
-          </small>
+          <span className={styles.drawerTitleIcon}>
+            <CloudServerOutlined />
+          </span>
+          <div className={styles.drawerHeadingText}>
+            <strong>{isEdit ? 'Edit Environment' : 'Add Environment'}</strong>
+            <small>
+              {isEdit
+                ? 'Update environment details and access settings'
+                : 'Connect a new GitLab instance to start collecting analytics'}
+            </small>
+          </div>
         </div>
       }
       extra={
@@ -169,7 +180,10 @@ export default function EnvironmentFormModal({ open, onClose, editingEnv, onSave
             label="Environment name"
             rules={[{ required: true, message: 'Name is required' }]}
           >
-            <Input placeholder="Production GitLab" />
+            <Input
+              prefix={<CloudServerOutlined className={styles.inputIconServer} />}
+              placeholder="Production GitLab"
+            />
           </Form.Item>
 
           <Form.Item
@@ -177,7 +191,10 @@ export default function EnvironmentFormModal({ open, onClose, editingEnv, onSave
             label="GitLab URL"
             rules={[{ required: true, message: 'URL is required' }]}
           >
-            <Input placeholder="https://gitlab.example.com" />
+            <Input
+              prefix={<GlobalOutlined className={styles.inputIconUrl} />}
+              placeholder="https://gitlab.example.com"
+            />
           </Form.Item>
 
           <Form.Item
@@ -197,7 +214,11 @@ export default function EnvironmentFormModal({ open, onClose, editingEnv, onSave
               </span>
             }
           >
-            <Input.Password placeholder="glpat-xxxxxxxx" autoComplete="new-password" />
+            <Input.Password
+              prefix={<KeyOutlined className={styles.inputIconToken} />}
+              placeholder="glpat-xxxxxxxx"
+              autoComplete="new-password"
+            />
           </Form.Item>
 
           <Form.Item
@@ -207,7 +228,7 @@ export default function EnvironmentFormModal({ open, onClose, editingEnv, onSave
             rules={[
               {
                 validator: (_, values?: string[]) => {
-                  const invalid = (values ?? []).some((value) => !/^\d+$/.test(String(value)) || Number(value) <= 0)
+                  const invalid = (values ?? []).some((value) => !/^\d+$/.test(String(value).trim()) || Number(String(value).trim()) <= 0)
                   return invalid
                     ? Promise.reject(new Error('Group IDs must be positive numbers'))
                     : Promise.resolve()
@@ -243,17 +264,47 @@ export default function EnvironmentFormModal({ open, onClose, editingEnv, onSave
             />
           </Form.Item>
 
-          <Form.Item name="enabled" label="Enabled" valuePropName="checked" className={styles.statusForm}>
-            <Switch />
-          </Form.Item>
+          <div className={styles.sectionHeader}>
+            <div className={styles.sectionBadge}>
+              <SettingOutlined />
+            </div>
+            <div>
+              <strong className={styles.sectionTitle}>Pipeline & Scope Settings</strong>
+              <span className={styles.sectionSub}>Configure synchronization behaviour for this environment</span>
+            </div>
+          </div>
 
-          <Form.Item name="only_top_level" label="Only top-level pipelines" valuePropName="checked">
-            <Switch />
-          </Form.Item>
+          <div className={styles.switchGroup}>
+            <div className={styles.switchRow}>
+              <div className={styles.switchText}>
+                <span className={styles.switchLabel}>Enabled</span>
+                <span className={styles.switchDesc}>Active and synchronizing pipeline analytics</span>
+              </div>
+              <Form.Item name="enabled" valuePropName="checked" noStyle>
+                <Switch size="small" aria-label="Enabled" />
+              </Form.Item>
+            </div>
 
-          <Form.Item name="include_subgroups" label="Include subgroups" valuePropName="checked">
-            <Switch />
-          </Form.Item>
+            <div className={styles.switchRow}>
+              <div className={styles.switchText}>
+                <span className={styles.switchLabel}>Only top-level pipelines</span>
+                <span className={styles.switchDesc}>Exclude downstream and child pipeline executions</span>
+              </div>
+              <Form.Item name="only_top_level" valuePropName="checked" noStyle>
+                <Switch size="small" aria-label="Only top-level pipelines" />
+              </Form.Item>
+            </div>
+
+            <div className={styles.switchRow}>
+              <div className={styles.switchText}>
+                <span className={styles.switchLabel}>Include subgroups</span>
+                <span className={styles.switchDesc}>Recursively inspect all nested groups and sub-projects</span>
+              </div>
+              <Form.Item name="include_subgroups" valuePropName="checked" noStyle>
+                <Switch size="small" aria-label="Include subgroups" />
+              </Form.Item>
+            </div>
+          </div>
         </Form>
       </div>
 

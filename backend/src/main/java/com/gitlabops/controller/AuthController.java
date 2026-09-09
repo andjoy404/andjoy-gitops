@@ -205,6 +205,74 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/profile")
+    public ResponseEntity<?> getProfile(
+            @CookieValue(value = "gcd_session", required = false) String sessionCookie) {
+        if (sessionCookie == null || sessionCookie.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        SessionStore.SessionInfo session = sessionStore.getSession(sessionCookie);
+        if (session == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        AppUserDTO user = userRepository.findById(session.userId());
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        java.util.Map<String, Object> result = new java.util.LinkedHashMap<>();
+        result.put("id", user.id);
+        result.put("username", user.username);
+        result.put("display_name", user.displayName != null ? user.displayName : "");
+        result.put("email", user.email != null ? user.email : "");
+        result.put("role", user.role);
+        return ResponseEntity.ok(result);
+    }
+
+    public ResponseEntity<?> updateProfile(
+            String sessionCookie,
+            Map<String, Object> body,
+            HttpServletResponse response) {
+        return updateProfile(sessionCookie, body, null, response);
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(
+            @CookieValue(value = "gcd_session", required = false) String sessionCookie,
+            @RequestBody Map<String, Object> body,
+            HttpServletRequest httpRequest,
+            HttpServletResponse response) {
+        if (sessionCookie == null || sessionCookie.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        SessionStore.SessionInfo session = sessionStore.getSession(sessionCookie);
+        if (session == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        AppUserDTO user = userRepository.findById(session.userId());
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        String displayName = body.get("display_name") != null ? body.get("display_name").toString().trim() : "";
+        String email = body.get("email") != null ? body.get("email").toString().trim() : "";
+        String currentPassword = body.get("current_password") != null ? body.get("current_password").toString() : null;
+        String newPassword = body.get("new_password") != null ? body.get("new_password").toString() : null;
+
+        if (newPassword != null && !newPassword.trim().isEmpty()) {
+            if (newPassword.length() < 8) {
+                return ResponseEntity.badRequest().body(Map.of("error", "New password must be at least 8 characters"));
+            }
+            if (currentPassword == null || currentPassword.isEmpty() || !authService.verifyPassword(currentPassword, user.passwordHash)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Current password is incorrect"));
+            }
+            String hash = authService.hashNewPassword(newPassword);
+            userRepository.updatePassword(user.id, hash);
+        }
+
+        userRepository.updateProfile(user.id, displayName, email);
+        return ResponseEntity.ok(Map.of("message", "Profile updated successfully"));
+    }
+
     public static int getSessionCookieMaxAge() {
         if (SessionStore.ABSOLUTE_TIMEOUT_MS == Long.MAX_VALUE) {
             return 365 * 24 * 3600; // 1 year when timeout disabled

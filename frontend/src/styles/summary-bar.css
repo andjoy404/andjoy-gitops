@@ -9,8 +9,13 @@
   padding: 16px;
   border: 1px solid var(--dashboard-border);
   border-radius: 12px;
-  background: var(--dashboard-surface);
+  background: linear-gradient(180deg, var(--dashboard-surface) 0%, color-mix(in srgb, var(--dashboard-surface-subtle) 80%, var(--dashboard-surface)) 100%);
   box-shadow: var(--dashboard-shadow);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.summary-bar:hover {
+  border-color: color-mix(in srgb, var(--dashboard-accent) 25%, var(--dashboard-border));
 }
 
 .summary-bar-title { display: flex; align-items: center; gap: 0.8rem; min-width: 0; }

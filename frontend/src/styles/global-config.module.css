@@ -20,20 +20,59 @@
   flex: 1;
   min-width: 0;
   max-width: 580px;
-  padding: 1.5rem;
+  padding: 1.25rem 1.4rem;
   border: 1px solid var(--dashboard-border);
-  border-radius: 12px;
+  border-radius: var(--dashboard-radius-lg, 12px);
   background: var(--dashboard-surface);
   box-shadow: var(--dashboard-shadow);
-  font-size: var(--gitops-table-cell-font-size);
+  font-size: var(--gitops-table-cell-font-size, 0.75rem);
   font-weight: var(--gitops-table-cell-font-weight);
   line-height: var(--gitops-table-cell-line-height);
 }
 
+/* ── Section headers ── */
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 0.55rem;
+}
+
+.sectionBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--dashboard-accent) 14%, var(--dashboard-surface));
+  color: var(--dashboard-accent);
+  font-size: 11px;
+}
+
+.sectionTitle {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--dashboard-text);
+  letter-spacing: -0.01em;
+}
+
 /* ── Theme-aware Ant form controls ── */
+.configCard :global(.ant-form-item) {
+  margin-bottom: 0.8rem;
+}
+
+.configCard :global(.ant-form-item-label) {
+  padding-bottom: 3px !important;
+}
+
 .configCard :global(.ant-form-item-label > label) {
   color: var(--dashboard-text);
-  font-size: var(--gitops-table-cell-font-size);
+  font-family: var(--font-sans);
+  font-size: var(--gitops-table-cell-font-size, 0.75rem);
+  font-weight: 600;
+  line-height: 1.25;
 }
 
 .configCard :global(.ant-input),
@@ -43,16 +82,20 @@
 .configCard :global(.ant-form-item-extra),
 .configCard :global(.ant-form-item-explain-error),
 .configCard :global(.ant-btn) {
-  font-size: var(--gitops-table-cell-font-size);
+  font-size: var(--gitops-table-cell-font-size, 0.75rem);
   font-weight: var(--gitops-table-cell-font-weight);
 }
 
 .configCard :global(.ant-form-item-explain-error) {
   color: var(--dashboard-danger);
+  font-size: 0.6875rem;
+  line-height: 1.3;
+  margin-top: 3px;
 }
 
 .configCard :global(.ant-form-item-extra) {
   color: var(--dashboard-muted) !important;
+  font-size: 0.6875rem;
 }
 
 .configCard :global(.ant-form-item-tooltip) {
@@ -71,22 +114,53 @@
   color: var(--dashboard-text) !important;
   border-color: var(--dashboard-border) !important;
   background: var(--dashboard-surface-subtle) !important;
+  font-family: var(--font-sans);
+  font-size: var(--gitops-table-cell-font-size, 0.75rem);
+  border-radius: var(--dashboard-radius-sm, 6px);
+  transition: border-color 150ms ease, background 150ms ease, box-shadow 150ms ease;
+}
+
+.configCard :global(.ant-input-affix-wrapper) {
+  padding: 0.32rem 0.6rem;
 }
 
 .configCard :global(.ant-input::placeholder) {
   color: var(--dashboard-muted) !important;
+  font-size: var(--gitops-table-cell-font-size, 0.75rem);
 }
 
 .configCard :global(.ant-input:hover),
 .configCard :global(.ant-input-affix-wrapper:hover) {
-  border-color: var(--dashboard-accent) !important;
+  border-color: color-mix(in srgb, var(--dashboard-accent) 55%, var(--dashboard-border)) !important;
+  background: color-mix(in srgb, var(--dashboard-accent) 2%, var(--dashboard-surface-subtle)) !important;
 }
 
 .configCard :global(.ant-input:focus),
 .configCard :global(.ant-input-focused),
 .configCard :global(.ant-input-affix-wrapper-focused) {
   border-color: var(--dashboard-accent) !important;
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--dashboard-accent) 18%, transparent) !important;
+  background: color-mix(in srgb, var(--dashboard-accent) 3%, var(--dashboard-surface-subtle)) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--dashboard-accent) 20%, transparent) !important;
+}
+
+/* Input prefix icons */
+.inputIconCompany {
+  color: var(--dashboard-accent);
+  font-size: 13px;
+  margin-right: 4px;
+  opacity: 0.85;
+}
+
+.inputIconUrl {
+  color: var(--dashboard-info);
+  font-size: 13px;
+  margin-right: 4px;
+  opacity: 0.85;
+}
+
+.configCard :global(.ant-input-affix-wrapper-focused) .inputIconCompany,
+.configCard :global(.ant-input-affix-wrapper-focused) .inputIconUrl {
+  opacity: 1;
 }
 
 /* Pipeline view Select trigger */
@@ -94,30 +168,35 @@
   color: var(--dashboard-text) !important;
   border-color: var(--dashboard-border) !important;
   background: var(--dashboard-surface-subtle) !important;
+  font-family: var(--font-sans);
+  font-size: var(--gitops-table-cell-font-size, 0.75rem);
+  border-radius: var(--dashboard-radius-sm, 6px);
+  padding: 0.15rem 0.6rem !important;
+  height: 32px !important;
 }
 
 .configCard :global(.ant-select-selection-item) {
   color: var(--dashboard-text) !important;
+  line-height: 28px !important;
 }
 
 .configCard :global(.ant-select-selection-placeholder) {
   color: var(--dashboard-muted) !important;
+  line-height: 28px !important;
 }
 
 .configCard :global(.ant-select:not(.ant-select-disabled):hover .ant-select-selector) {
-  border-color: var(--dashboard-accent) !important;
+  border-color: color-mix(in srgb, var(--dashboard-accent) 55%, var(--dashboard-border)) !important;
 }
 
 .configCard :global(.ant-select-focused .ant-select-selector) {
   border-color: var(--dashboard-accent) !important;
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--dashboard-accent) 18%, transparent) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--dashboard-accent) 20%, transparent) !important;
 }
 
 .configCard :global(.ant-select-arrow) {
   color: var(--dashboard-muted);
 }
-
-
 
 /* ── Inline save error (near the form, mirrors users page pattern) ── */
 .formError {
@@ -127,7 +206,7 @@
   border: 1px solid color-mix(in srgb, var(--dashboard-danger) 65%, var(--dashboard-border));
   border-radius: 7px;
   background: color-mix(in srgb, var(--dashboard-danger) 12%, var(--dashboard-surface));
-  font-size: var(--gitops-table-cell-font-size);
+  font-size: var(--gitops-table-cell-font-size, 0.75rem);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -155,25 +234,28 @@
 /* ── Logo tabs (URL / Upload switcher) ── */
 .logoTabs {
   display: flex;
-  gap: 0;
+  gap: 3px;
   margin-bottom: 0.5rem;
   border: 1px solid var(--dashboard-border);
-  border-radius: 7px;
-  overflow: hidden;
+  border-radius: var(--dashboard-radius-sm, 6px);
+  padding: 2px;
+  background: var(--dashboard-surface-subtle);
   width: fit-content;
 }
 
 .logoTab {
-  padding: 0.35rem 0.8rem;
+  padding: 0.28rem 0.65rem;
   color: var(--dashboard-muted);
   border: 0;
-  background: var(--dashboard-surface-subtle);
+  border-radius: 4px;
+  background: transparent;
   cursor: pointer;
-  font-size: var(--gitops-table-cell-font-size);
+  font-size: var(--gitops-table-cell-font-size, 0.75rem);
+  font-weight: 500;
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  transition: color 120ms, background 120ms;
+  transition: color 120ms ease, background 120ms ease;
 }
 
 .logoTab:hover {
@@ -184,15 +266,16 @@
 .logoTabActive {
   color: var(--dashboard-accent);
   background: var(--dashboard-accent-soft);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 /* ── Theme switch (compact light/dark segmented toggle) ── */
 .themeSwitch {
   display: flex;
   border: 1px solid var(--dashboard-border);
-  border-radius: 7px;
-  overflow: hidden;
+  border-radius: var(--dashboard-radius-sm, 6px);
+  padding: 2px;
+  gap: 3px;
   width: fit-content;
   background: var(--dashboard-surface-subtle);
 }
@@ -203,13 +286,15 @@
   justify-content: center;
   gap: 0.4rem;
   min-width: 4.8rem;
-  padding: 0.4rem 0.8rem;
-  border: 0;
+  padding: 0.32rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 4px;
   background: transparent;
   color: var(--dashboard-muted);
-  font-size: var(--gitops-table-cell-font-size);
+  font-size: var(--gitops-table-cell-font-size, 0.75rem);
+  font-weight: 500;
   cursor: pointer;
-  transition: color 120ms, background 120ms;
+  transition: color 120ms ease, background 120ms ease, border-color 120ms ease;
 }
 
 .themeSwitchBtn:hover {
@@ -218,15 +303,27 @@
 }
 
 .themeSwitchBtnActive {
-  color: var(--dashboard-accent);
-  background: var(--dashboard-accent-soft);
-  font-weight: 500;
+  color: var(--dashboard-text);
+  background: var(--dashboard-surface);
+  border-color: var(--dashboard-border);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 10%);
+  font-weight: 600;
 }
 
 .themeSwitchBtn:focus-visible {
   outline: none;
-  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--dashboard-accent) 35%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--dashboard-accent) 35%, transparent);
   color: var(--dashboard-text);
+}
+
+.sunIcon {
+  color: #f59e0b;
+  font-size: 13px;
+}
+
+.moonIcon {
+  color: #818cf8;
+  font-size: 13px;
 }
 
 /* ── File upload area ── */
@@ -250,15 +347,20 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
-  padding: 1rem;
+  gap: 0.3rem;
+  padding: 0.85rem;
   border: 1px dashed var(--dashboard-border);
-  border-radius: 8px;
+  border-radius: var(--dashboard-radius-sm, 6px);
   background: var(--dashboard-surface-subtle);
   color: var(--dashboard-muted);
   cursor: pointer;
-  font-size: var(--gitops-table-cell-font-size);
-  transition: border-color 120ms, background 120ms;
+  font-size: var(--gitops-table-cell-font-size, 0.75rem);
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.uploadIcon {
+  font-size: 16px;
+  color: var(--dashboard-accent);
 }
 
 .uploadLabel:hover {
@@ -267,22 +369,55 @@
   color: var(--dashboard-text);
 }
 
+.uploadLabel span {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--dashboard-text);
+}
+
 .uploadLabel small {
-  font-size: var(--gitops-table-cell-font-size);
+  font-size: 0.6875rem;
   color: var(--dashboard-muted);
 }
 
 .uploadError {
   margin: 0;
-  font-size: var(--gitops-table-cell-font-size);
+  font-size: 0.6875rem;
   color: var(--dashboard-danger);
 }
 
 /* ── Logo hint below the upload/url field ── */
 .logoHint {
-  font-size: 0.5625rem;
-  line-height: 1.3;
+  font-size: 0.6875rem;
+  line-height: 1.35;
   color: var(--dashboard-muted);
+  margin-top: 3px;
+  display: inline-block;
+}
+
+/* ── Form footer ── */
+.formFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--dashboard-border);
+  margin-top: 1.25rem;
+}
+
+.formFooter :global(.ant-btn) {
+  height: 32px;
+  font-size: 0.75rem;
+  padding: 0 16px;
+  border-radius: var(--dashboard-radius-sm, 6px);
+  background: var(--dashboard-accent);
+  border-color: var(--dashboard-accent);
+  color: #ffffff;
+}
+
+.formFooter :global(.ant-btn:hover) {
+  background: color-mix(in srgb, var(--dashboard-accent) 85%, #000) !important;
+  border-color: color-mix(in srgb, var(--dashboard-accent) 85%, #000) !important;
 }
 
 /* ── Logo preview box (right column) ── */
@@ -291,10 +426,10 @@
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  padding: 1rem;
+  padding: 1.1rem;
   min-width: 140px;
   border: 1px solid var(--dashboard-border);
-  border-radius: 12px;
+  border-radius: var(--dashboard-radius-lg, 12px);
   background: var(--dashboard-surface);
   box-shadow: var(--dashboard-shadow);
   align-self: flex-start;
@@ -302,12 +437,12 @@
 }
 
 .logoPreviewLabel {
-  margin: 0;
-  font-size: var(--gitops-table-header-font-size);
-  font-weight: var(--gitops-table-header-font-weight);
+  margin: 0 0 0.2rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
   color: var(--dashboard-muted);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
 }
 
 .logoPreviewWrap {
@@ -316,8 +451,8 @@
 }
 
 .logoPreviewImg {
-  width: 96px;
-  height: 96px;
+  width: 104px;
+  height: 104px;
   object-fit: contain;
   border-radius: 8px;
   border: 1px solid var(--dashboard-border);
@@ -326,8 +461,8 @@
 
 .logoRemoveBtn {
   position: absolute;
-  top: -9px;
-  right: -9px;
+  top: -8px;
+  right: -8px;
   display: grid;
   place-items: center;
   width: 22px;
@@ -337,7 +472,7 @@
   border-radius: 50%;
   background: var(--dashboard-surface);
   color: var(--dashboard-danger);
-  font-size: var(--gitops-table-cell-font-size);
+  font-size: var(--gitops-table-cell-font-size, 0.75rem);
   cursor: pointer;
   box-shadow: var(--dashboard-shadow);
   transition: background 120ms, border-color 120ms;
@@ -355,8 +490,8 @@
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  width: 96px;
-  height: 96px;
+  width: 104px;
+  height: 104px;
   border-radius: 8px;
   border: 1px dashed var(--dashboard-border);
   background: var(--dashboard-surface-subtle);
@@ -365,7 +500,7 @@
 }
 
 .logoPreviewEmpty small {
-  font-size: var(--gitops-table-cell-font-size);
+  font-size: 0.6875rem;
   color: var(--dashboard-muted);
 }
 
