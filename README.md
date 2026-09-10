@@ -26,7 +26,10 @@
 | 🏃 **Runner Fleet** | Real-time availability tracking, active job assignments, executor tags, and version inventories |
 | 👥 **User Analytics** | Leaderboards for pushes, merge requests, review comments, and issue interactions with CSV exports |
 | 🕸 **Relations Map** | Interactive force-directed graph tracing entity relationships from groups and projects to branches, pipelines, and jobs |
-| 🛡 **Multi-Tenant** | Namespace-isolated GitLab instance routing, encrypted credentials (AES-GCM-256), and session-based RBAC |
+| 🔐 **SSO & OIDC** | Enterprise Single Sign-On via OpenID Connect (Keycloak, Microsoft Entra ID, Okta) with JIT provisioning and group claim role mapping |
+| 👤 **User Management & RBAC** | Multi-user administration with Administrator/Editor roles, live permission sync, and root admin protection |
+| 🛡 **Multi-Environment** | Namespace-isolated GitLab instance routing, AES-GCM-256 encrypted access tokens, and group scope filtering |
+| 🎨 **Custom Branding** | Dynamic dashboard personalization with organization name, custom logo, and local vs. SSO login policies |
 
 ---
 
@@ -126,12 +129,14 @@ See the full [Configuration Reference](docs/reference/configuration.md).
 
 ## 📖 Documentation
 
+- [SSO & OIDC Integration Guide](docs/operations/sso-integration.md)
 - [Architecture Overview](docs/architecture/overview.md)
 - [Code Map](docs/architecture/code-map.md)
 - [Database Schema](docs/architecture/database.md)
 - [Deployment Guide](docs/architecture/deployment.md)
 - [Security Operations](docs/operations/security.md)
 - [Troubleshooting Runbook](docs/operations/troubleshooting.md)
+- [Configuration Reference](docs/reference/configuration.md)
 
 ---
 
