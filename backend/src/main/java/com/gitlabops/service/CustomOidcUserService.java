@@ -76,23 +76,35 @@ public class CustomOidcUserService implements OAuth2UserService<OidcUserRequest,
         String preferredUsername = getStringAttribute(attributes, "preferred_username");
         String name = getStringAttribute(attributes, "name");
 
+        if (email == null || email.trim().isEmpty()) {
+            String upn = getStringAttribute(attributes, "upn");
+            if (upn != null && upn.contains("@")) {
+                email = upn.trim();
+            } else if (preferredUsername != null && preferredUsername.contains("@")) {
+                email = preferredUsername.trim();
+            }
+        }
+
         if (sub == null && email == null) {
             throw new OAuth2AuthenticationException("OIDC response missing both 'sub' and 'email'");
         }
 
         // Upsert local user from OIDC identity
-        AppUserDTO appUser = findByProviderOrUpsert(sub, email, preferredUsername, name);
+        AppUserDTO appUser = findByProviderOrUpsert(sub, email, preferredUsername, name, attributes);
         String username = appUser.username != null ? appUser.username : email;
 
-        // Determine role based on OIDC group claim
+        // Determine role based on OIDC group claim or existing local database role
         List<String> groupClaimValues = extractGroupClaimValues(attributes, groupClaimName);
-        boolean isAdmin = groupClaimValues.contains(adminGroupValue);
+        boolean isOidcAdmin = groupClaimValues.contains(adminGroupValue);
+        boolean isLocalAdmin = "admin".equals(appUser.role);
+        boolean isAdmin = isOidcAdmin || isLocalAdmin;
         String dbRole = isAdmin ? "admin" : "editor";
 
         // Update local user role if needed
         if (!dbRole.equals(appUser.role)) {
             userRepository.update(appUser.id, appUser.username, appUser.displayName,
                 appUser.email, dbRole, appUser.enabled != null && appUser.enabled);
+            appUser.role = dbRole;
         }
 
         // Build authorities list from determined role
@@ -116,12 +128,76 @@ public class CustomOidcUserService implements OAuth2UserService<OidcUserRequest,
         return val != null ? val.toString() : null;
     }
 
+    private String resolveDisplayName(Map<String, Object> attributes, String name,
+                                       String preferredUsername, String email) {
+        if (name != null && !name.trim().isEmpty()) {
+            return name.trim();
+        }
+        String givenName = getStringAttribute(attributes, "given_name");
+        String familyName = getStringAttribute(attributes, "family_name");
+        if (givenName != null || familyName != null) {
+            String full = ((givenName != null ? givenName : "") + " " + (familyName != null ? familyName : "")).trim();
+            if (!full.isEmpty()) {
+                return full;
+            }
+        }
+        if (preferredUsername != null && !preferredUsername.trim().isEmpty() && !preferredUsername.contains("@")) {
+            return preferredUsername.trim();
+        }
+        if (email != null && !email.trim().isEmpty()) {
+            int atIndex = email.indexOf('@');
+            return atIndex > 0 ? email.substring(0, atIndex) : email;
+        }
+        return "User";
+    }
+
+    private String resolveUsername(String email, String preferredUsername, String sub) {
+        if (email != null && !email.trim().isEmpty()) {
+            return email.trim().toLowerCase();
+        }
+        if (preferredUsername != null && !preferredUsername.trim().isEmpty()) {
+            return preferredUsername.trim().toLowerCase();
+        }
+        return sub != null ? "user_" + sub.substring(0, Math.min(sub.length(), 8)) : "user";
+    }
+
     private AppUserDTO findByProviderOrUpsert(String sub, String email,
-                                              String preferredUsername, String name) {
+                                              String preferredUsername, String name,
+                                              Map<String, Object> attributes) {
+        String displayName = resolveDisplayName(attributes, name, preferredUsername, email);
+        String targetUsername = resolveUsername(email, preferredUsername, sub);
+
         // 1. Lookup by provider_user_id (sub)
         if (sub != null) {
             AppUserDTO existing = userRepository.findByProviderUserId(sub);
             if (existing != null) {
+                boolean updated = false;
+                String currentUsername = existing.username;
+                String currentDisplayName = existing.displayName;
+
+                // Fix username if it had the old oidc_ prefix
+                if (currentUsername != null && currentUsername.startsWith("oidc_") && targetUsername != null) {
+                    AppUserDTO collision = userRepository.findByUsername(targetUsername);
+                    if (collision == null || collision.id.equals(existing.id)) {
+                        currentUsername = targetUsername;
+                        updated = true;
+                    }
+                }
+
+                // Fix displayName if it was previously email or oidc_ prefix
+                if (displayName != null && !displayName.isEmpty() &&
+                    (currentDisplayName == null || currentDisplayName.isEmpty() ||
+                     currentDisplayName.equals(existing.email) || currentDisplayName.startsWith("oidc_"))) {
+                    currentDisplayName = displayName;
+                    updated = true;
+                }
+
+                if (updated) {
+                    userRepository.update(existing.id, currentUsername, currentDisplayName,
+                        existing.email, existing.role, existing.enabled != null && existing.enabled);
+                    existing.username = currentUsername;
+                    existing.displayName = currentDisplayName;
+                }
                 return existing;
             }
         }
@@ -134,27 +210,28 @@ public class CustomOidcUserService implements OAuth2UserService<OidcUserRequest,
                     userRepository.updateProviderUserId(byEmail.id, sub);
                     byEmail.providerUserId = sub;
                 }
+                if (displayName != null && !displayName.isEmpty() &&
+                    (byEmail.displayName == null || byEmail.displayName.isEmpty() ||
+                     byEmail.displayName.equals(byEmail.email) || byEmail.displayName.startsWith("oidc_"))) {
+                    userRepository.update(byEmail.id, byEmail.username, displayName,
+                        byEmail.email, byEmail.role, byEmail.enabled != null && byEmail.enabled);
+                    byEmail.displayName = displayName;
+                }
                 return byEmail;
             }
         }
 
         // 3. Create new OIDC user
-        String displayName = preferredUsername != null ? preferredUsername : name;
-        if (displayName == null || displayName.isEmpty()) {
-            displayName = email != null
-                ? email.substring(0, Math.min(email.indexOf('@'), 30))
-                : "oidc_user_" + (sub != null ? sub.substring(0, Math.min(sub.length(), 8)) : "unknown");
+        String finalDisplayName = displayName;
+        String baseUsername = targetUsername;
+        String username = baseUsername;
+        int counter = 1;
+        while (userRepository.findByUsername(username) != null && counter < 100) {
+            username = baseUsername + "_" + counter;
+            counter++;
         }
 
-        String username;
-        int counter = 0;
-        do {
-            username = "oidc_" + displayName + (counter == 0 ? "" : "_" + counter);
-            counter++;
-        } while (userRepository.findByUsername(username) != null && counter < 100);
-
         String finalUsername = username;
-        String finalDisplayName = displayName;
         AppUserDTO created = new AppUserDTO();
         created.id = userRepository.createOidcUser(finalUsername, finalDisplayName,
             email, sub, "editor");

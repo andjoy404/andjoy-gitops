@@ -20,10 +20,13 @@ public class OidcAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
     private static final Logger log = LoggerFactory.getLogger(OidcAuthenticationSuccessHandler.class);
 
     private final SessionStore sessionStore;
+    private final com.gitlabops.repository.AppUserRepository userRepository;
 
-    public OidcAuthenticationSuccessHandler(SessionStore sessionStore) {
+    public OidcAuthenticationSuccessHandler(SessionStore sessionStore,
+                                           com.gitlabops.repository.AppUserRepository userRepository) {
         this.sessionStore = sessionStore;
-        this.setDefaultTargetUrl("/dashboard");
+        this.userRepository = userRepository;
+        this.setDefaultTargetUrl("/");
     }
 
     @Override
@@ -39,11 +42,27 @@ public class OidcAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
             return;
         }
 
-        String username = extractUsername(authentication);
-        String role = extractRole(authentication);
+        String sub = null;
+        String email = null;
+        if (authentication.getPrincipal() instanceof OidcUser oidcUser) {
+            sub = oidcUser.getAttribute("sub");
+            email = oidcUser.getAttribute("email");
+        }
+
+        com.gitlabops.model.dto.AppUserDTO appUser = null;
+        if (sub != null) {
+            appUser = userRepository.findByProviderUserId(sub);
+        }
+        if (appUser == null && email != null) {
+            appUser = userRepository.findByEmail(email);
+        }
+
+        Long userId = appUser != null ? appUser.id : null;
+        String username = appUser != null ? appUser.username : extractUsername(authentication);
+        String role = appUser != null && appUser.role != null ? appUser.role : extractRole(authentication);
 
         String sessionId = sessionStore.createSession(
-            null, username, role, false);
+            userId, username, role, false);
 
         Cookie cookie = new Cookie("gcd_session", sessionId);
         cookie.setPath("/");

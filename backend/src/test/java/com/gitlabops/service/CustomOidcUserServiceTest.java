@@ -76,11 +76,11 @@ class CustomOidcUserServiceTest {
 
         when(userRepository.findByProviderUserId("oidc_sub_123")).thenReturn(null);
         when(userRepository.findByEmail("user@example.com")).thenReturn(null);
-        when(userRepository.createOidcUser(eq("oidc_user"), eq("User"), eq("user@example.com"),
+        when(userRepository.createOidcUser(anyString(), anyString(), eq("user@example.com"),
                 eq("oidc_sub_123"), eq("admin"))).thenReturn(1L);
         AppUserDTO createdUser = new AppUserDTO();
         createdUser.id = 1L;
-        createdUser.username = "oidc_user";
+        createdUser.username = "user@example.com";
         createdUser.displayName = "User";
         createdUser.email = "user@example.com";
         createdUser.role = "editor";
@@ -112,10 +112,10 @@ class CustomOidcUserServiceTest {
 
         when(userRepository.findByProviderUserId("oidc_sub_456")).thenReturn(null);
         when(userRepository.findByEmail("viewer@example.com")).thenReturn(null);
-        when(userRepository.createOidcUser(eq("oidc_user"), eq("User"), eq("viewer@example.com"),
+        when(userRepository.createOidcUser(anyString(), anyString(), eq("viewer@example.com"),
                 eq("oidc_sub_456"), eq("editor"))).thenReturn(2L);
         AppUserDTO u2 = new AppUserDTO();
-        u2.id = 2L; u2.username = "oidc_user"; u2.displayName = "User";
+        u2.id = 2L; u2.username = "viewer@example.com"; u2.displayName = "User";
         u2.email = "viewer@example.com"; u2.role = "editor"; u2.enabled = true;
         when(userRepository.findById(anyLong())).thenReturn(u2);
 
@@ -146,10 +146,10 @@ class CustomOidcUserServiceTest {
 
         when(userRepository.findByProviderUserId("oidc_sub_789")).thenReturn(null);
         when(userRepository.findByEmail("novice@example.com")).thenReturn(null);
-        when(userRepository.createOidcUser(eq("oidc_user"), eq("User"), eq("novice@example.com"),
+        when(userRepository.createOidcUser(anyString(), anyString(), eq("novice@example.com"),
                 eq("oidc_sub_789"), eq("editor"))).thenReturn(3L);
         AppUserDTO u3 = new AppUserDTO();
-        u3.id = 3L; u3.username = "oidc_user"; u3.displayName = "User";
+        u3.id = 3L; u3.username = "novice@example.com"; u3.displayName = "User";
         u3.email = "novice@example.com"; u3.role = "editor"; u3.enabled = true;
         when(userRepository.findById(anyLong())).thenReturn(u3);
 
@@ -174,10 +174,10 @@ class CustomOidcUserServiceTest {
 
         when(userRepository.findByProviderUserId("oidc_sub_000")).thenReturn(null);
         when(userRepository.findByEmail("nobody@example.com")).thenReturn(null);
-        when(userRepository.createOidcUser(eq("oidc_user"), eq("User"), eq("nobody@example.com"),
+        when(userRepository.createOidcUser(anyString(), anyString(), eq("nobody@example.com"),
                 eq("oidc_sub_000"), eq("editor"))).thenReturn(4L);
         AppUserDTO u4 = new AppUserDTO();
-        u4.id = 4L; u4.username = "oidc_user"; u4.displayName = "User";
+        u4.id = 4L; u4.username = "nobody@example.com"; u4.displayName = "User";
         u4.email = "nobody@example.com"; u4.role = "editor"; u4.enabled = true;
         when(userRepository.findById(anyLong())).thenReturn(u4);
 
@@ -203,10 +203,10 @@ class CustomOidcUserServiceTest {
 
         when(userRepository.findByProviderUserId("oidc_sub_111")).thenReturn(null);
         when(userRepository.findByEmail("roleuser@example.com")).thenReturn(null);
-        when(userRepository.createOidcUser(eq("oidc_user"), eq("User"), eq("roleuser@example.com"),
+        when(userRepository.createOidcUser(anyString(), anyString(), eq("roleuser@example.com"),
                 eq("oidc_sub_111"), eq("admin"))).thenReturn(5L);
         AppUserDTO u5 = new AppUserDTO();
-        u5.id = 5L; u5.username = "oidc_user"; u5.displayName = "User";
+        u5.id = 5L; u5.username = "roleuser@example.com"; u5.displayName = "User";
         u5.email = "roleuser@example.com"; u5.role = "editor"; u5.enabled = true;
         when(userRepository.findById(anyLong())).thenReturn(u5);
 
@@ -228,6 +228,7 @@ class CustomOidcUserServiceTest {
         AppUserDTO existingUser = new AppUserDTO();
         existingUser.id = 10L;
         existingUser.username = "existing_user";
+        existingUser.displayName = "Existing User";
         existingUser.email = "ex@example.com";
         existingUser.role = "admin";
         existingUser.enabled = true;
@@ -246,5 +247,69 @@ class CustomOidcUserServiceTest {
 
         verify(userRepository, never()).createOidcUser(anyString(), anyString(), anyString(), anyString(), anyString());
         verify(userRepository, never()).findByEmail(anyString());
+    }
+
+    @Test
+    void loadUser_newOidcUser_usesEmailAsUsernameAndNameAsDisplayName() throws Exception {
+        when(environmentRepository.getGlobalConfig()).thenReturn(Optional.empty());
+        when(userRepository.findByProviderUserId("sub_abc")).thenReturn(null);
+        when(userRepository.findByEmail("alice@example.com")).thenReturn(null);
+        when(userRepository.createOidcUser(eq("alice@example.com"), eq("Alice Wonderland"),
+                eq("alice@example.com"), eq("sub_abc"), eq("editor"))).thenReturn(20L);
+
+        AppUserDTO created = new AppUserDTO();
+        created.id = 20L;
+        created.username = "alice@example.com";
+        created.displayName = "Alice Wonderland";
+        created.email = "alice@example.com";
+        created.role = "editor";
+        created.enabled = true;
+        when(userRepository.findById(20L)).thenReturn(created);
+
+        Map<String, Object> claims = Map.of(
+                "sub", "sub_abc",
+                "email", "alice@example.com",
+                "name", "Alice Wonderland",
+                "preferred_username", "alice@example.com");
+        OidcIdToken idToken = new OidcIdToken("token",
+                Instant.now().minusSeconds(60), Instant.now().plusSeconds(300), claims);
+        when(userRequest.getIdToken()).thenReturn(idToken);
+        when(mockDelegate.loadUser(any(OidcUserRequest.class))).thenReturn(
+                new DefaultOidcUser(new ArrayList<>(), idToken));
+
+        service.loadUser(userRequest);
+
+        verify(userRepository).createOidcUser("alice@example.com", "Alice Wonderland",
+                "alice@example.com", "sub_abc", "editor");
+    }
+
+    @Test
+    void loadUser_existingOidcUserWithPrefix_migratesUsernameAndDisplayName() throws Exception {
+        AppUserDTO existingUser = new AppUserDTO();
+        existingUser.id = 30L;
+        existingUser.username = "oidc_bob@example.com";
+        existingUser.displayName = "bob@example.com";
+        existingUser.email = "bob@example.com";
+        existingUser.role = "editor";
+        existingUser.enabled = true;
+
+        when(environmentRepository.getGlobalConfig()).thenReturn(Optional.empty());
+        when(userRepository.findByProviderUserId("sub_bob")).thenReturn(existingUser);
+        when(userRepository.findByUsername("bob@example.com")).thenReturn(null);
+
+        Map<String, Object> claims = Map.of(
+                "sub", "sub_bob",
+                "email", "bob@example.com",
+                "name", "Bob Builder");
+        OidcIdToken idToken = new OidcIdToken("token",
+                Instant.now().minusSeconds(60), Instant.now().plusSeconds(300), claims);
+        when(userRequest.getIdToken()).thenReturn(idToken);
+        when(mockDelegate.loadUser(any(OidcUserRequest.class))).thenReturn(
+                new DefaultOidcUser(new ArrayList<>(), idToken));
+
+        service.loadUser(userRequest);
+
+        verify(userRepository).update(30L, "bob@example.com", "Bob Builder",
+                "bob@example.com", "editor", true);
     }
 }

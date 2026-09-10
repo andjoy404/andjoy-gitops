@@ -96,10 +96,13 @@ function AppContent() {
     })
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await api.logout()
+    } catch {}
+    queryClient.clear()
     setAuthState({ authenticated: false, mustChangePassword: false, loading: false })
-    api.logout().catch(() => {})
-    navigate('/login', { replace: true })
+    window.location.replace('/')
   }
 
   useEffect(() => {

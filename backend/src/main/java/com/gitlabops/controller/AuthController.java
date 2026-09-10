@@ -103,8 +103,27 @@ public class AuthController {
                 status.setAuthenticated(true);
                 status.setEnabled(true);
                 status.setUsername(session.username());
-                status.setRole(session.role());
                 status.setMustChangePassword(session.mustChangePassword());
+
+                AppUserDTO user = null;
+                if (session.userId() != null) {
+                    user = userRepository.findById(session.userId());
+                } else if (session.username() != null) {
+                    user = userRepository.findByUsername(session.username());
+                }
+
+                if (user != null) {
+                    if (Boolean.FALSE.equals(user.enabled)) {
+                        status.setAuthenticated(false);
+                        status.setEnabled(false);
+                        return ResponseEntity.ok(status);
+                    }
+                    status.setRole(user.role);
+                    status.setUsername(user.username);
+                } else {
+                    status.setRole(session.role());
+                }
+
                 return ResponseEntity.ok(status);
             }
         }
@@ -195,11 +214,12 @@ public class AuthController {
             sessionStore.invalidate(sessionCookie);
         }
 
-        Cookie cookie = new Cookie("gcd_session", null);
+        Cookie cookie = new Cookie("gcd_session", "");
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         cookie.setSecure(SecurityConfig.isSecure(request));
         cookie.setMaxAge(0);
+        cookie.setAttribute("SameSite", "Lax");
         response.addCookie(cookie);
     }
 

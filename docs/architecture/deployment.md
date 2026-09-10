@@ -9,7 +9,7 @@
 │  ┌───────────────┐      ┌─────────────────────────────────┐      │
 │  │ Browser (SPA) │ ───▶ │ docker-compose.yml              │      │
 │  └───────────────┘      │                                 │      │
-│                         │ andjoy-gitops (Spring Boot)        │      │
+│                         │ andjoy-gitops (Spring Boot)     │      │
 │                         │ ├─ React SPA (embedded)         │      │
 │                         │ ├─ REST API                     │      │
 │                         │ └─ Sync scheduler               │      │
@@ -25,7 +25,7 @@
 │                                                                  │
 │  ┌───────────────┐      ┌─────────────────────────────────┐      │
 │  │ Browser (SPA) │ ───▶ │ docker-compose.yml              │      │
-│  └───────────────┘      │ andjoy-gitops (Spring Boot)        │      │
+│  └───────────────┘      │ andjoy-gitops (Spring Boot)     │      │
 │                         └─────────────────────────────────┘      │
 │                                        │                         │
 │                                        ▼                         │

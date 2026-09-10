@@ -75,13 +75,64 @@ html.dark-theme .ant-btn-text {
   background: var(--dashboard-surface-hover) !important;
 }
 
-/* Sign-out menu: a little gap below the username button and a smaller
-   menu (box + font) than the username trigger. !important needed to beat
-   antd's runtime-injected cssinjs rules. */
-.header-user-dropdown { margin-top: 6px; }
-.ant-dropdown.header-user-dropdown .ant-dropdown-menu { padding: 2px 4px !important; font-size: 12px !important; }
-.ant-dropdown.header-user-dropdown .ant-dropdown-menu-item { height: 26px !important; line-height: 26px !important; padding: 0 8px !important; font-size: 12px !important; border-radius: 6px; min-height: 26px !important; }
-.ant-dropdown.header-user-dropdown .ant-dropdown-menu-item .anticon { font-size: 12px !important; margin-right: 6px; }
+/* User header button: expands/shrinks to fit full username without cutting */
+.app-header .header-user-btn {
+  width: auto !important;
+  min-width: unset !important;
+  max-width: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
+  padding: 0 10px !important;
+}
+
+.app-header .header-user-btn .anticon {
+  flex-shrink: 0;
+  margin-right: 6px;
+}
+
+.app-header .header-user-btn .header-user-text {
+  display: inline-block;
+  white-space: nowrap;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  max-width: none !important;
+}
+
+.header-user-dropdown {
+  margin-top: 6px;
+}
+
+.ant-dropdown.header-user-dropdown {
+  width: 160px !important;
+  min-width: 160px !important;
+  max-width: 160px !important;
+}
+
+.ant-dropdown.header-user-dropdown .ant-dropdown-menu {
+  width: 160px !important;
+  min-width: 160px !important;
+  max-width: 160px !important;
+  box-sizing: border-box !important;
+  padding: 4px !important;
+  font-size: 12px !important;
+}
+
+.ant-dropdown.header-user-dropdown .ant-dropdown-menu-item {
+  height: 28px !important;
+  line-height: 28px !important;
+  padding: 0 10px !important;
+  font-size: 12px !important;
+  border-radius: 6px;
+  min-height: 28px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.ant-dropdown.header-user-dropdown .ant-dropdown-menu-item .anticon {
+  font-size: 12px !important;
+  margin-right: 6px;
+}
 
 .user-activity-user-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
   color: var(--dashboard-text) !important;

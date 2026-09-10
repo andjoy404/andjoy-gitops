@@ -125,8 +125,8 @@ public class UsersController {
             return ResponseEntity.status(403).body(Map.of("message", "Admin access required"));
         }
 
-        AppUserDTO currentUser = userRepository.findById(id);
-        if (currentUser == null) {
+        AppUserDTO targetUser = userRepository.findById(id);
+        if (targetUser == null) {
             return ResponseEntity.status(404).body(Map.of("message", "User not found"));
         }
 
@@ -146,9 +146,16 @@ public class UsersController {
             return ResponseEntity.badRequest().body(Map.of("message", "Invalid role"));
         }
 
-        // Admin role cannot be changed
-        if ("admin".equals(currentUser.role) && !"admin".equals(role)) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Administrator role cannot be changed"));
+        // Root admin account is immutable by other admins
+        if ("admin".equalsIgnoreCase(targetUser.username) && !Boolean.TRUE.equals(isCurrentUser)) {
+            return ResponseEntity.status(403).body(Map.of("message", "The root admin account cannot be modified by other users"));
+        }
+
+        // Root admin self-lock: cannot demote or disable self
+        if ("admin".equalsIgnoreCase(targetUser.username) && Boolean.TRUE.equals(isCurrentUser)) {
+            if (!"admin".equals(role) || !enabled) {
+                return ResponseEntity.badRequest().body(Map.of("message", "The root admin role and status cannot be changed"));
+            }
         }
 
         // Cannot disable yourself
@@ -157,7 +164,7 @@ public class UsersController {
         }
 
         // Cannot change role of self
-        if (isCurrentUser && !Objects.equals(role, currentUser.role)) {
+        if (isCurrentUser && !Objects.equals(role, targetUser.role)) {
             return ResponseEntity.badRequest().body(Map.of("message", "Cannot change your own role"));
         }
 
@@ -184,11 +191,16 @@ public class UsersController {
             return ResponseEntity.status(404).body(Map.of("message", "User not found"));
         }
 
+        // Root admin account cannot be deleted by anyone
+        if ("admin".equalsIgnoreCase(user.username)) {
+            return ResponseEntity.badRequest().body(Map.of("message", "The root admin account cannot be deleted"));
+        }
+
         if (isCurrentUser) {
             return ResponseEntity.badRequest().body(Map.of("message", "Cannot delete your own account"));
         }
 
-        if ("admin".equals(user.role) && Boolean.TRUE.equals(user.enabled)) {
+        if (Boolean.TRUE.equals(user.enabled)) {
             if (!userRepository.canUserBeDeleted(id)) {
                 return ResponseEntity.badRequest().body(Map.of("message", "Cannot delete the last administrator"));
             }

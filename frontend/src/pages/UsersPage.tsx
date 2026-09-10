@@ -13,7 +13,6 @@ import {
 } from '@ant-design/icons'
 import styles from '../styles/users.module.css'
 import { api } from '../services/api'
-import { isAdminRole } from '../utils/role'
 import SearchSuggestInput from '../components/SearchSuggestInput'
 import PageHeader from '../components/PageHeader'
 
@@ -48,6 +47,8 @@ export default function UsersPage() {
   const [editing, setEditing] = useState<AppUser | null>(null)
   const [highlightedUser, setHighlightedUser] = useState('')
   const [selectedUserIds, setSelectedUserIds] = useState<Set<number>>(new Set())
+  const currentUsername = localStorage.getItem('user_username') ?? ''
+  const isAdminLocked = editing !== null && (editing.username.toLowerCase() === 'admin' || editing.username === currentUsername)
 
   const [form, setForm] = useState<UserInput>({
     username: '',
@@ -57,7 +58,6 @@ export default function UsersPage() {
     role: 'editor',
     enabled: true,
   })
-  const isAdminLocked = editing !== null && isAdminRole(editing.role)
 
   const fetchUsers = useCallback(async () => {
     setLoading(true)
@@ -105,8 +105,8 @@ export default function UsersPage() {
   }, [users])
 
   const selectableFiltered = useMemo(
-    () => filtered.filter((user) => user.role !== 'admin'),
-    [filtered]
+    () => filtered.filter((user) => user.username.toLowerCase() !== 'admin' && user.username !== currentUsername),
+    [filtered, currentUsername],
   )
 
   const create = () => {
@@ -291,7 +291,7 @@ export default function UsersPage() {
                   <td className={styles.selectColumn}>
                     <Checkbox
                       checked={selectedUserIds.has(user.id)}
-                      disabled={user.role === 'admin'}
+                      disabled={user.username.toLowerCase() === 'admin' || user.username === currentUsername}
                       onChange={(event) => toggleUserSelection(user.id, event.target.checked)}
                       aria-label={`Select ${user.username}`}
                     />

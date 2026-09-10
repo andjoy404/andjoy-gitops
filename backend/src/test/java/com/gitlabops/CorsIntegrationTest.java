@@ -63,6 +63,21 @@ class CorsIntegrationTest {
     @MockBean
     private GroupService groupService;
 
+    @MockBean
+    private com.gitlabops.repository.EnvironmentRepository environmentRepository;
+
+    @MockBean
+    private com.gitlabops.service.CustomOidcUserService customOidcUserService;
+
+    @MockBean
+    private com.gitlabops.filter.OidcAuthenticationSuccessHandler oidcSuccessHandler;
+
+    @MockBean
+    private com.gitlabops.filter.OidcAuthenticationFailureHandler oidcFailureHandler;
+
+    @MockBean
+    private com.gitlabops.config.DynamicClientRegistrationRepository clientRegistrationRepository;
+
     @Test
     void loginAllowedOrigin_returnsCorsHeadersAndNotForbiddenCors() throws Exception {
         mockMvc.perform(post("/api/auth/login")

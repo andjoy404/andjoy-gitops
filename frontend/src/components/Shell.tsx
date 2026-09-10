@@ -308,11 +308,12 @@ export default function Shell({ onLogout }: { onLogout?: () => void }) {
     [],
   )
 
-  const handleUserMenuClick: MenuProps['onClick'] = ({ key }) => {
+  const handleUserMenuClick: MenuProps['onClick'] = async ({ key }) => {
     if (key === 'profile') {
       setProfileModalOpen(true)
     } else if (key === 'logout') {
-      api.logout().catch(() => {})
+      await api.logout().catch(() => {})
+      queryClient.clear()
       localStorage.removeItem('user_role')
       localStorage.removeItem('user_username')
       localStorage.removeItem('gcd_selected_env_id')
@@ -320,9 +321,7 @@ export default function Shell({ onLogout }: { onLogout?: () => void }) {
       Object.keys(localStorage)
         .filter((key) => key.startsWith('gcd_selected_group_id_'))
         .forEach((key) => localStorage.removeItem(key))
-      if (onLogout) {
-        onLogout()
-      }
+      window.location.replace('/')
     }
   }
 
@@ -750,8 +749,13 @@ export default function Shell({ onLogout }: { onLogout?: () => void }) {
               placement="bottomRight"
               overlayClassName="header-user-dropdown"
             >
-              <Button type="text" icon={<UserOutlined />}>
-                {sessionUsername || 'User'}
+              <Button
+                type="text"
+                icon={<UserOutlined />}
+                className="header-user-btn"
+                title={sessionUsername || 'User'}
+              >
+                <span className="header-user-text">{sessionUsername || 'User'}</span>
               </Button>
             </Dropdown>
           </Space>
