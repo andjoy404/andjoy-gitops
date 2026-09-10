@@ -65,16 +65,27 @@ public class AuthController {
                 if (ssoEnabled) {
                     String issuer = dto.getOidcIssuerUri();
                     if (issuer != null && !issuer.isEmpty()) {
-                        for (String part : issuer.split("://")) {
-                            String[] tokens = part.split("\\.");
-                            if (tokens.length > 0) {
-                                ssoProviderName = tokens[0];
-                                break;
+                        try {
+                            java.net.URI uri = java.net.URI.create(issuer);
+                            String host = uri.getHost();
+                            if (host != null) {
+                                host = host.toLowerCase();
+                                if (host.contains("microsoft") || host.contains("login.microsoftonline.com")) {
+                                    ssoProviderName = "Microsoft";
+                                } else if (host.contains("google")) {
+                                    ssoProviderName = "Google";
+                                } else if (host.contains("gitlab")) {
+                                    ssoProviderName = "GitLab";
+                                } else if (host.contains("github")) {
+                                    ssoProviderName = "GitHub";
+                                } else if (host.contains("keycloak")) {
+                                    ssoProviderName = "Keycloak";
+                                } else {
+                                    ssoProviderName = "SSO";
+                                }
                             }
-                        }
-                        if ("login.microsoftonline.com".equals(issuer.split("://")[0]) ||
-                            "login.microsoftonline.com".equals(issuer.split("//")[1] == null ? "" : issuer.split("//")[1])) {
-                            ssoProviderName = "Microsoft";
+                        } catch (Exception e) {
+                            ssoProviderName = "SSO";
                         }
                     }
                 }

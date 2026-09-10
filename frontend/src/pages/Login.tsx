@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Button, Input, Typography, message } from 'antd'
+import { Button, Input, Typography, message, Spin } from 'antd'
 import { UserOutlined, LockOutlined, EyeOutlined, EyeInvisibleOutlined, SafetyCertificateOutlined } from '@ant-design/icons'
 import type { AuthConfig, AuthStatus } from '../types'
 import logoAnimated from '../assets/andjoy-gitops-logo-animated-v2.gif'
@@ -40,7 +40,7 @@ export default function Login({ onSuccessfulLogin }: {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [showSSOError, setShowSSOError] = useState(false)
-  const authConfigLoading = useState(true)
+  const [configLoading, setConfigLoading] = useState(true)
   const [authConfig, setAuthConfig] = useState<AuthConfig | null>(null)
   const reducedMotion = usePrefersReducedMotion()
 
@@ -56,7 +56,7 @@ export default function Login({ onSuccessfulLogin }: {
         setAuthConfig({ sso_enabled: false, local_login_enabled: true, sso_provider_name: null })
       })
       .finally(() => {
-        // No explicit loading state; show the auth configuration once loaded
+        setConfigLoading(false)
       })
   }, [])
 
@@ -98,7 +98,9 @@ export default function Login({ onSuccessfulLogin }: {
 
   const ssoEnabled = authConfig?.sso_enabled ?? false
   const localLoginEnabled = authConfig?.local_login_enabled ?? true
-  const ssoProviderName = authConfig?.sso_provider_name ?? 'SSO'
+  const ssoProviderName = (!authConfig?.sso_provider_name || authConfig.sso_provider_name === 'https')
+    ? 'SSO'
+    : authConfig.sso_provider_name
 
   useEffect(() => {
     setShowSSOError(searchParams.get('error') === 'sso_failed')
@@ -138,104 +140,113 @@ export default function Login({ onSuccessfulLogin }: {
             <Text type="secondary">Sign in to continue</Text>
           </div>
 
-          {showSSOError && (
-            <div className="login-error login-sso-error" role="alert">
-              <span>{error || ssoErrorValue}</span>
-              <button
-                type="button"
-                className="login-error-close"
-                onClick={() => {
-                  setShowSSOError(false)
-                  setError('')
-                }}
-                aria-label="Dismiss error"
-              >
-                ×
-              </button>
+          {/* Login card content: hide while auth config is loading to prevent form flickering */}
+          {configLoading ? (
+            <div style={{ minHeight: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Spin size="large" />
             </div>
-          )}
+          ) : (
+            <>
+              {showSSOError && (
+                <div className="login-error login-sso-error" role="alert">
+                  <span>{error || ssoErrorValue}</span>
+                  <button
+                    type="button"
+                    className="login-error-close"
+                    onClick={() => {
+                      setShowSSOError(false)
+                      setError('')
+                    }}
+                    aria-label="Dismiss error"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
 
-          {/* SSO Button */}
-          {ssoEnabled && localLoginEnabled && (
-            <Button
-              type="primary"
-              block
-              icon={<SafetyCertificateOutlined />}
-              href="/oauth2/authorization/oidc"
-              size="large"
-              className="login-sso-btn"
-            >
-              Sign in with {ssoProviderName}
-            </Button>
-          )}
+              {/* SSO Button */}
+              {ssoEnabled && localLoginEnabled && (
+                <Button
+                  type="primary"
+                  block
+                  icon={<SafetyCertificateOutlined />}
+                  href="/oauth2/authorization/oidc"
+                  size="large"
+                  className="login-sso-btn"
+                >
+                  Sign in with {ssoProviderName}
+                </Button>
+              )}
 
-          {ssoEnabled && !localLoginEnabled && (
-            <div className="login-sso-only-block">
-              <Button
-                type="primary"
-                block
-                icon={<SafetyCertificateOutlined />}
-                href="/oauth2/authorization/oidc"
-                size="large"
-                className="login-sso-btn login-sso-btn-only"
-              >
-                Sign in with {ssoProviderName}
-              </Button>
-              <p className="login-sso-only-text">
-                Use your {ssoProviderName} account to sign in
-              </p>
-            </div>
-          )}
+              {ssoEnabled && !localLoginEnabled && (
+                <div className="login-sso-only-block">
+                  <Button
+                    type="primary"
+                    block
+                    icon={<SafetyCertificateOutlined />}
+                    href="/oauth2/authorization/oidc"
+                    size="large"
+                    className="login-sso-btn login-sso-btn-only"
+                  >
+                    Sign in with {ssoProviderName}
+                  </Button>
+                  <p className="login-sso-only-text">
+                    Use your {ssoProviderName} account to sign in
+                  </p>
+                </div>
+              )}
 
-          {/* Divider when both are shown */}
-          {ssoEnabled && localLoginEnabled && (
-            <div className="login-divider">
-              <span>or</span>
-            </div>
-          )}
+              {/* Divider when both are shown */}
+              {ssoEnabled && localLoginEnabled && (
+                <div className="login-divider">
+                  <span>or</span>
+                </div>
+              )}
 
-          {/* Password form - only when local login is enabled */}
-          {localLoginEnabled && (
-            <form onSubmit={handleSubmit}>
-              <div className="login-field">
-                <label htmlFor="username">Username</label>
-                <Input
-                  id="username"
-                  name="username"
-                  prefix={<UserOutlined className="login-input-icon-user" />}
-                  autoComplete="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  autoFocus={!ssoEnabled || !localLoginEnabled}
-                />
-              </div>
+              {/* Password form - only when local login is enabled */}
+              {localLoginEnabled && (
+                <form onSubmit={handleSubmit}>
+                  <div className="login-field">
+                    <label htmlFor="username">Username</label>
+                    <Input
+                      id="username"
+                      name="username"
+                      prefix={<UserOutlined className="login-input-icon-user" />}
+                      autoComplete="username"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      autoFocus={!ssoEnabled || !localLoginEnabled}
+                    />
+                  </div>
 
-              <div className="login-field">
-                <label htmlFor="password">Password</label>
-                <Input.Password
-                  id="password"
-                  name="password"
-                  prefix={<LockOutlined className="login-input-icon-pass" />}
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Password"
-                />
-              </div>
+                  <div className="login-field">
+                    <label htmlFor="password">Password</label>
+                    <Input.Password
+                      id="password"
+                      name="password"
+                      prefix={<LockOutlined className="login-input-icon-pass" />}
+                      autoComplete="current-password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Password"
+                    />
+                  </div>
 
-              {!showSSOError && error && <div className="login-error" role="alert">{error}</div>}
+                  {!showSSOError && error && <div className="login-error" role="alert">{error}</div>}
 
-              <Button
-                type="primary"
-                block
-                htmlType="submit"
-                loading={loading}
-                disabled={!username || !password}
-                size="large"
-              >
-                Sign in
-              </Button>
-            </form>
+                  <Button
+                    type="primary"
+                    block
+                    htmlType="submit"
+                    loading={loading}
+                    disabled={!username || !password}
+                    size="large"
+                  >
+                    Sign in
+                  </Button>
+                </form>
+              )}
+            </>
           )}
         </div>
       </div>

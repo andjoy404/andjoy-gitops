@@ -23,6 +23,11 @@ function fillCredentials(username = 'admin', password = 'secret') {
   fireEvent.change(screen.getByLabelText('Password'), { target: { value: password } })
 }
 
+async function fillCredentialsAsync(username = 'admin', password = 'secret') {
+  fireEvent.change(await screen.findByLabelText('Username'), { target: { value: username } })
+  fireEvent.change(await screen.findByLabelText('Password'), { target: { value: password } })
+}
+
 beforeEach(() => {
   cleanup()
   mockFetch.mockReset()
@@ -101,14 +106,15 @@ describe('Login page', () => {
       }
     })
 
-    it('keeps keyboard focus on the username field on load', () => {
+    it('keeps keyboard focus on the username field on load', async () => {
       const { container } = renderLogin()
+      await screen.findByLabelText('Username')
       expect(container.querySelector('input#username')).toHaveFocus()
     })
 
-    it('toggles password visibility', () => {
+    it('toggles password visibility', async () => {
       renderLogin()
-      const passwordInput = screen.getByLabelText('Password')
+      const passwordInput = await screen.findByLabelText('Password')
       expect(passwordInput).toHaveAttribute('type', 'password')
       const toggleOnce = () =>
         fireEvent.click(document.querySelector('.ant-input-password-icon') as Element)
@@ -126,8 +132,8 @@ describe('Login page', () => {
         } as Response),
       )
       renderLogin()
-      fillCredentials()
-      fireEvent.click(screen.getByRole('button', { name: /sign in/i }))
+      await fillCredentialsAsync()
+      fireEvent.click(await screen.findByRole('button', { name: /sign in/i }))
       expect(await screen.findByRole('alert')).toHaveTextContent('Invalid username or password')
     })
 
@@ -146,8 +152,8 @@ describe('Login page', () => {
       })
       const onSuccessfulLogin = vi.fn()
       renderLogin(onSuccessfulLogin)
-      fillCredentials()
-      fireEvent.click(screen.getByRole('button', { name: /sign in/i }))
+      await fillCredentialsAsync()
+      fireEvent.click(await screen.findByRole('button', { name: /sign in/i }))
       await waitFor(() => expect(onSuccessfulLogin).toHaveBeenCalledWith({ authenticated: true, must_change_password: false }))
       expect(calls.some((u) => u.includes('/api/auth/login'))).toBe(true)
       expect(calls.some((u) => u.includes('/api/csrf'))).toBe(true)
@@ -156,8 +162,8 @@ describe('Login page', () => {
     it('shows a network error when the request fails', async () => {
       mockFetch.mockImplementation(() => Promise.reject(new Error('offline')))
       renderLogin()
-      fillCredentials()
-      fireEvent.click(screen.getByRole('button', { name: /sign in/i }))
+      await fillCredentialsAsync()
+      fireEvent.click(await screen.findByRole('button', { name: /sign in/i }))
       expect(await screen.findByRole('alert')).toHaveTextContent('Network error')
     })
   })
@@ -265,8 +271,8 @@ describe('Login page', () => {
       mockFetch.mockImplementation(() => Promise.reject(new Error('network down')))
       renderLogin()
       // Should still show username/password fields
-      const usernameInput = screen.getByLabelText('Username')
-      const passwordInput = screen.getByLabelText('Password')
+      const usernameInput = await screen.findByLabelText('Username')
+      const passwordInput = await screen.findByLabelText('Password')
       expect(usernameInput).toBeInTheDocument()
       expect(passwordInput).toBeInTheDocument()
     })
@@ -283,7 +289,7 @@ describe('Login page', () => {
         return Promise.resolve({ ok: true, json: async () => ({}) } as Response)
       })
       renderLogin()
-      expect(screen.getByLabelText('Username')).toBeInTheDocument()
+      expect(await screen.findByLabelText('Username')).toBeInTheDocument()
       expect(screen.queryByText(/Sign in with/i, { selector: 'button' })).not.toBeInTheDocument()
     })
   })
