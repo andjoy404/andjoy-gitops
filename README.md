@@ -129,7 +129,6 @@ See the full [Configuration Reference](docs/reference/configuration.md).
 
 ## 📖 Documentation
 
-- [SSO & OIDC Integration Guide](docs/operations/sso-integration.md)
 - [Architecture Overview](docs/architecture/overview.md)
 - [Code Map](docs/architecture/code-map.md)
 - [Database Schema](docs/architecture/database.md)
@@ -137,6 +136,7 @@ See the full [Configuration Reference](docs/reference/configuration.md).
 - [Security Operations](docs/operations/security.md)
 - [Troubleshooting Runbook](docs/operations/troubleshooting.md)
 - [Configuration Reference](docs/reference/configuration.md)
+- [SSO & OIDC Integration Guide](docs/operations/sso-integration.md)
 
 ---
 

@@ -128,16 +128,6 @@ public class SecurityConfig {
         CsrfTokenRequestAttributeHandler baseHandler = new CsrfTokenRequestAttributeHandler();
         CsrfTokenRequestHandler dualHandler = new DualCsrfTokenRequestHandler(baseHandler);
 
-        boolean ssoEnabled = false;
-        try {
-            var ssoConfig = environmentRepository.getGlobalConfig();
-            if (ssoConfig.isPresent()) {
-                ssoEnabled = Boolean.TRUE.equals(ssoConfig.get().isSsoEnabled());
-            }
-        } catch (Exception e) {
-            log.debug("Could not load SSO config for security chain: {}", e.getMessage());
-        }
-
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .csrf(csrf -> csrf
@@ -182,6 +172,7 @@ public class SecurityConfig {
                                 "/andjoy-gitops-logo.ico", "/andjoy-gitops-logo.png",
                                 "/assets/**", "/robots.txt", "/manifest.json")
                                 .permitAll()
+                        .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sm -> sm
@@ -200,16 +191,14 @@ public class SecurityConfig {
                         })
                 );
 
-        if (ssoEnabled) {
-            http.oauth2Login(oauth2 -> {
-                oauth2.clientRegistrationRepository(clientRegistrationRepository);
-                oauth2.loginPage("/auth/oidc");
-                oauth2.userInfoEndpoint(userInfo ->
-                    userInfo.oidcUserService(customOidcUserService));
-                oauth2.successHandler(oidcSuccessHandler);
-                oauth2.failureHandler(oidcFailureHandler);
-            });
-        }
+        http.oauth2Login(oauth2 -> {
+            oauth2.clientRegistrationRepository(clientRegistrationRepository);
+            oauth2.loginPage("/auth/oidc");
+            oauth2.userInfoEndpoint(userInfo ->
+                userInfo.oidcUserService(customOidcUserService));
+            oauth2.successHandler(oidcSuccessHandler);
+            oauth2.failureHandler(oidcFailureHandler);
+        });
 
         return http.build();
     }
