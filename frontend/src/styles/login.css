@@ -335,6 +335,92 @@
   box-shadow: none !important;
 }
 
+/* ── SSO button ── */
+.login-sso-btn {
+  margin-bottom: 0.6rem;
+}
+
+/* Soften the SSO button to avoid the heavy primary gradient. */
+.login-card .login-sso-btn {
+  margin-bottom: 0.6rem;
+  background: rgb(124 90 199 / 0.12) !important;
+  background-color: rgb(124 90 199 / 0.12) !important;
+  border: 1px solid rgb(169 112 255 / 0.3) !important;
+  color: #e5dcfa !important;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.25) !important;
+  transition: all 0.2s ease;
+}
+
+.login-card .login-sso-btn:hover,
+.login-card .login-sso-btn:focus {
+  background: rgb(124 90 199 / 0.22) !important;
+  background-color: rgb(124 90 199 / 0.22) !important;
+  border-color: rgb(169 112 255 / 0.55) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgb(124 90 199 / 0.25) !important;
+}
+
+.login-card .login-sso-btn .ant-btn-icon {
+  font-size: 15px;
+}
+
+/* ── SSO-only block ── */
+.login-sso-only-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.login-sso-btn-only {
+  height: 2.5rem;
+}
+
+.login-sso-only-text {
+  margin: 0;
+  color: var(--login-muted);
+  font-size: 0.7rem;
+  font-weight: var(--gitops-table-cell-font-weight);
+  text-align: center;
+}
+
+/* ── Divider ── */
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+  color: var(--login-muted);
+  font-size: 0.7rem;
+  font-weight: var(--gitops-table-cell-font-weight);
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--login-card-border);
+}
+
+/* ── SSO error styling ── */
+.login-sso-error .login-error-close {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 2px;
+  opacity: 0.6;
+  transition: opacity 120ms ease;
+}
+
+.login-sso-error .login-error-close:hover {
+  opacity: 1;
+}
+
 @media (max-width: 480px) {
   .login-stand {
     gap: 0.75rem;

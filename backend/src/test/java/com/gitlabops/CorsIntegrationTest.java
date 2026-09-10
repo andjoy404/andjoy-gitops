@@ -34,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(controllers = {AuthController.class, EnvironmentController.class})
 @Import({SecurityConfig.class, CorsFilterConfig.class})
 @TestPropertySource(properties = {
-    "cors.allowed-origins=https://gitops.appfuxion.com",
+    "cors.allowed-origins=https://gitops.example.com",
     "server.forward-headers-strategy=framework"
 })
 class CorsIntegrationTest {
@@ -66,10 +66,10 @@ class CorsIntegrationTest {
     @Test
     void loginAllowedOrigin_returnsCorsHeadersAndNotForbiddenCors() throws Exception {
         mockMvc.perform(post("/api/auth/login")
-                .header("Origin", "https://gitops.appfuxion.com")
+                .header("Origin", "https://gitops.example.com")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"username\":\"admin\",\"password\":\"wrong\"}"))
-                .andExpect(header().string("Access-Control-Allow-Origin", "https://gitops.appfuxion.com"))
+                .andExpect(header().string("Access-Control-Allow-Origin", "https://gitops.example.com"))
                 .andExpect(header().string("Access-Control-Allow-Credentials", "true"))
                 .andExpect(status().isUnauthorized()); // Handled by AuthController, not 403 Invalid CORS request
     }
@@ -77,10 +77,10 @@ class CorsIntegrationTest {
     @Test
     void loginAllowedOriginWithTrailingSlash_returnsCorsHeaders() throws Exception {
         mockMvc.perform(post("/api/auth/login")
-                .header("Origin", "https://gitops.appfuxion.com/")
+                .header("Origin", "https://gitops.example.com/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"username\":\"admin\",\"password\":\"wrong\"}"))
-                .andExpect(header().string("Access-Control-Allow-Origin", "https://gitops.appfuxion.com/"))
+                .andExpect(header().string("Access-Control-Allow-Origin", "https://gitops.example.com/"))
                 .andExpect(header().string("Access-Control-Allow-Credentials", "true"))
                 .andExpect(status().isUnauthorized());
     }
@@ -98,10 +98,10 @@ class CorsIntegrationTest {
     @Test
     void optionsPreflightAllowedOrigin_returnsOk() throws Exception {
         mockMvc.perform(options("/api/auth/login")
-                .header("Origin", "https://gitops.appfuxion.com")
+                .header("Origin", "https://gitops.example.com")
                 .header("Access-Control-Request-Method", "POST"))
                 .andExpect(status().isOk())
-                .andExpect(header().string("Access-Control-Allow-Origin", "https://gitops.appfuxion.com"));
+                .andExpect(header().string("Access-Control-Allow-Origin", "https://gitops.example.com"));
     }
 
     @Test
@@ -116,10 +116,10 @@ class CorsIntegrationTest {
     @Test
     void loginSimulatingProxyForwardedHeaders_succeedsCors() throws Exception {
         mockMvc.perform(post("/api/auth/login")
-                .header("Host", "gitops.appfuxion.com")
-                .header("Origin", "https://gitops.appfuxion.com")
+                .header("Host", "gitops.example.com")
+                .header("Origin", "https://gitops.example.com")
                 .header("X-Forwarded-Proto", "https")
-                .header("X-Forwarded-Host", "gitops.appfuxion.com")
+                .header("X-Forwarded-Host", "gitops.example.com")
                 .header("X-Forwarded-Port", "443")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"username\":\"admin\",\"password\":\"wrong\"}"))
@@ -142,10 +142,10 @@ class CorsIntegrationTest {
                 new SessionStore.SessionInfo(1L, "admin", "admin", false, System.currentTimeMillis(), System.currentTimeMillis()));
 
         MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
-                .header("Host", "gitops.appfuxion.com")
-                .header("Origin", "https://gitops.appfuxion.com")
+                .header("Host", "gitops.example.com")
+                .header("Origin", "https://gitops.example.com")
                 .header("X-Forwarded-Proto", "https")
-                .header("X-Forwarded-Host", "gitops.appfuxion.com")
+                .header("X-Forwarded-Host", "gitops.example.com")
                 .header("X-Forwarded-Port", "443")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"username\":\"admin\",\"password\":\"admin123\"}"))
@@ -167,10 +167,10 @@ class CorsIntegrationTest {
 
         // Now perform GET /api/environments with that cookie
         mockMvc.perform(get("/api/environments")
-                .header("Host", "gitops.appfuxion.com")
-                .header("Origin", "https://gitops.appfuxion.com")
+                .header("Host", "gitops.example.com")
+                .header("Origin", "https://gitops.example.com")
                 .header("X-Forwarded-Proto", "https")
-                .header("X-Forwarded-Host", "gitops.appfuxion.com")
+                .header("X-Forwarded-Host", "gitops.example.com")
                 .header("X-Forwarded-Port", "443")
                 .cookie(sessionCookie))
                 .andExpect(status().isOk());

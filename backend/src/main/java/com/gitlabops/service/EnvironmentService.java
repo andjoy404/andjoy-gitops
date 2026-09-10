@@ -5,12 +5,15 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.gitlabops.config.DynamicClientRegistrationRepository;
 import com.gitlabops.model.dto.EnvironmentCreateRequest;
 import com.gitlabops.model.dto.EnvironmentDTO;
 import com.gitlabops.model.dto.EnvironmentUpdateRequest;
@@ -26,13 +29,23 @@ public class EnvironmentService {
     private final EnvironmentRepository environmentRepository;
     private final EncryptionService encryptionService;
     private final SessionStore sessionStore;
+    private final ObjectProvider<DynamicClientRegistrationRepository> oidcRegistrationRepoProvider;
 
     public EnvironmentService(EnvironmentRepository environmentRepository,
                               EncryptionService encryptionService,
                               SessionStore sessionStore) {
+        this(environmentRepository, encryptionService, sessionStore, null);
+    }
+
+    @Autowired
+    public EnvironmentService(EnvironmentRepository environmentRepository,
+                              EncryptionService encryptionService,
+                              SessionStore sessionStore,
+                              ObjectProvider<DynamicClientRegistrationRepository> oidcRegistrationRepoProvider) {
         this.environmentRepository = environmentRepository;
         this.encryptionService = encryptionService;
         this.sessionStore = sessionStore;
+        this.oidcRegistrationRepoProvider = oidcRegistrationRepoProvider;
     }
 
     public EnvironmentDTO getEnvironment(long id) {
@@ -151,11 +164,31 @@ public class EnvironmentService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid pipeline view: must be 'all' or 'latest'");
         }
 
-        environmentRepository.saveGlobalConfig(
-            companyName,
-            req.getCompanyLogo() != null ? req.getCompanyLogo() : "",
-            pipelineView
-        );
+        if (req.isSsoEnabled() || req.getOidcIssuerUri() != null || req.getOidcClientId() != null
+                || req.getOidcClientSecret() != null || req.getOidcAdminGroupClaim() != null
+                || req.getOidcAdminGroupValue() != null) {
+            environmentRepository.saveGlobalConfigSso(
+                companyName,
+                req.getCompanyLogo() != null ? req.getCompanyLogo() : "",
+                pipelineView,
+                req.isSsoEnabled(),
+                req.isLocalLoginEnabled(),
+                req.getOidcIssuerUri(),
+                req.getOidcClientId(),
+                req.getOidcClientSecret(),
+                req.getOidcAdminGroupClaim(),
+                req.getOidcAdminGroupValue()
+            );
+        } else {
+            environmentRepository.saveGlobalConfig(
+                companyName,
+                req.getCompanyLogo() != null ? req.getCompanyLogo() : "",
+                pipelineView
+            );
+        }
+        if (oidcRegistrationRepoProvider != null) {
+            oidcRegistrationRepoProvider.ifAvailable(DynamicClientRegistrationRepository::bustCache);
+        }
     }
 
     private void validateGitLabToken(String baseUrl, String token) {

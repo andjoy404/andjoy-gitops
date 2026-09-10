@@ -43,7 +43,7 @@ const SAMPLE_USERS: UserActivity[] = [
   },
   {
     id: 4,
-    name: 'Administrator Appfuxion',
+    name: 'Administrator Example',
     username: 'root',
     comment_count: 0,
     push_count: 0,
@@ -69,8 +69,8 @@ describe('UsersAnalyticsDashboard leaderboard panels', () => {
   it('renders top 5 leaderboard with active users and dash for empty slots', () => {
     render(<UsersAnalyticsDashboard users={SAMPLE_USERS} loading={false} />)
 
-    // Find the Comments table via its unique subtitle
-    const commentsHeader = screen.getByText('Top 5 Comments')
+    // Find the Comments table via its header
+    const commentsHeader = screen.getByText('Comments', { selector: 'strong' })
     const container = commentsHeader.closest('.leaderboard-card-container')
     expect(container).toBeTruthy()
 
@@ -89,28 +89,28 @@ describe('UsersAnalyticsDashboard leaderboard panels', () => {
 
     // Rows 3, 4, 5: empty dash
     expect(rows[2].textContent).toContain('3')
-    expect(rows[2].textContent).toContain('-')
+    expect(rows[2].textContent).toContain('—')
     expect(rows[2].textContent).not.toContain('Adhityo Priyambodo')
 
     expect(rows[3].textContent).toContain('4')
-    expect(rows[3].textContent).toContain('-')
-    expect(rows[3].textContent).not.toContain('Administrator Appfuxion')
+    expect(rows[3].textContent).toContain('—')
+    expect(rows[3].textContent).not.toContain('Administrator Example')
 
     expect(rows[4].textContent).toContain('5')
-    expect(rows[4].textContent).toContain('-')
+    expect(rows[4].textContent).toContain('—')
     expect(rows[4].textContent).not.toContain('Adrian Khoo Kai Xuan')
 
-    // Check center alignment on the empty dash td
+    // Check empty cell class
     const emptyTd = rows[2].querySelector('td[colspan="2"]') as HTMLElement
     expect(emptyTd).toBeTruthy()
-    expect(emptyTd.style.textAlign).toBe('center')
+    expect(emptyTd.classList.contains('users-top5-empty-cell')).toBe(true)
   })
 
   it('renders all dashes when all users have 0 for a metric', () => {
     const zeroUsers = SAMPLE_USERS.map((u) => ({ ...u, issue_count: 0, comment_count: 0 }))
     render(<UsersAnalyticsDashboard users={zeroUsers} loading={false} />)
 
-    const issuesHeader = screen.getByText('Top 5 Issues')
+    const issuesHeader = screen.getByText('Issues', { selector: 'strong' })
     const container = issuesHeader.closest('.leaderboard-card-container')
     expect(container).toBeTruthy()
 
@@ -118,7 +118,7 @@ describe('UsersAnalyticsDashboard leaderboard panels', () => {
     expect(rows).toHaveLength(5)
     for (let i = 0; i < 5; i++) {
       expect(rows[i].textContent).toContain(String(i + 1))
-      expect(rows[i].textContent).toContain('-')
+      expect(rows[i].textContent).toContain('—')
     }
   })
 })

@@ -195,18 +195,38 @@ public class EnvironmentRepository {
         jdbcTemplate.update(sql, companyName, companyLogo, pipelineView);
     }
 
+    public void saveGlobalConfigSso(String companyName, String companyLogo, String pipelineView,
+                                    boolean ssoEnabled, boolean localLoginEnabled,
+                                    String oidcIssuerUri, String oidcClientId, String oidcClientSecret,
+                                    String oidcAdminGroupClaim, String oidcAdminGroupValue) {
+        String sql = "INSERT INTO app_global_settings(singleton, company_name, company_logo, pipeline_view, sso_enabled, local_login_enabled, oidc_issuer_uri, oidc_client_id, oidc_client_secret, oidc_admin_group_claim, oidc_admin_group_value) VALUES(TRUE, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(singleton) DO UPDATE SET company_name=EXCLUDED.company_name, company_logo=EXCLUDED.company_logo, pipeline_view=EXCLUDED.pipeline_view, sso_enabled=EXCLUDED.sso_enabled, local_login_enabled=EXCLUDED.local_login_enabled, oidc_issuer_uri=EXCLUDED.oidc_issuer_uri, oidc_client_id=EXCLUDED.oidc_client_id, oidc_client_secret=EXCLUDED.oidc_client_secret, oidc_admin_group_claim=EXCLUDED.oidc_admin_group_claim, oidc_admin_group_value=EXCLUDED.oidc_admin_group_value, updated_at=NOW()";
+        jdbcTemplate.update(sql, companyName, companyLogo, pipelineView, ssoEnabled, localLoginEnabled,
+                oidcIssuerUri, oidcClientId, oidcClientSecret, oidcAdminGroupClaim, oidcAdminGroupValue);
+    }
+
     public Optional<GlobalConfigDTO> getGlobalConfig() {
-        String sql = "SELECT company_name, company_logo, pipeline_view FROM app_global_settings WHERE singleton = TRUE";
+        String sql = "SELECT company_name, company_logo, pipeline_view, sso_enabled, local_login_enabled, oidc_issuer_uri, oidc_client_id, oidc_client_secret, oidc_admin_group_claim, oidc_admin_group_value FROM app_global_settings WHERE singleton = TRUE";
         List<GlobalConfigDTO> results = jdbcTemplate.query(sql, (rs, rowNum) -> {
+            GlobalConfigDTO dto = new GlobalConfigDTO();
+            dto.setCompanyName(rs.getString("company_name"));
+            dto.setCompanyLogo(rs.getString("company_logo"));
             String pv = rs.getString("pipeline_view");
             if (pv == null || pv.isEmpty()) {
                 pv = "latest";
             }
-            return new GlobalConfigDTO(
-                rs.getString("company_name"),
-                rs.getString("company_logo"),
-                pv
-            );
+            dto.setPipelineView(pv);
+            Boolean ssoEnabled = rs.getBoolean("sso_enabled");
+            if (rs.wasNull()) ssoEnabled = false;
+            dto.setSsoEnabled(ssoEnabled);
+            Boolean localLoginEnabled = rs.getBoolean("local_login_enabled");
+            if (rs.wasNull()) localLoginEnabled = true;
+            dto.setLocalLoginEnabled(localLoginEnabled);
+            dto.setOidcIssuerUri(rs.getString("oidc_issuer_uri"));
+            dto.setOidcClientId(rs.getString("oidc_client_id"));
+            dto.setOidcClientSecret(rs.getString("oidc_client_secret"));
+            dto.setOidcAdminGroupClaim(rs.getString("oidc_admin_group_claim"));
+            dto.setOidcAdminGroupValue(rs.getString("oidc_admin_group_value"));
+            return dto;
         });
         return results.isEmpty() ? Optional.empty() : Optional.of(results.get(0));
     }

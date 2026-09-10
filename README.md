@@ -113,7 +113,7 @@ All runtime settings are configurable via `.env`:
 | `APP_PORT` | `8090` | Web dashboard & API port |
 | `DB_PASSWORD` | *Required* | PostgreSQL password |
 | `ENVIRONMENT_TOKEN_ENCRYPTION_KEY` | *Required* | 256-bit hex key (`openssl rand -hex 32`) for token encryption |
-| `CORS_ALLOWED_ORIGINS` | `https://gitops.appfuxion.com` | Comma-separated allowed CORS origins |
+| `CORS_ALLOWED_ORIGINS` | `https://gitops.example.com` | Comma-separated allowed CORS origins |
 | `SERVER_FORWARD_HEADERS_STRATEGY` | `framework` | Proxy forwarded header processing (`framework`, `native`, `none`) |
 | `SESSION_SECURE` | `false` | Set `true` behind HTTPS |
 | `ANALYTICS_SYNC_INTERVAL_SECONDS` | `60` | Background sync cadence |

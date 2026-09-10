@@ -466,7 +466,7 @@ export default function RunnersPage() {
                         <td>
                           {runner.projects.length > 0 ? (
                             <a
-                              href={`${selectedEnvBaseUrl || 'https://gitlab.appfuxion.com'}/${runner.projects[0].path_with_namespace}/-/runners`}
+                              href={`${selectedEnvBaseUrl || 'https://gitlab.example.com'}/${runner.projects[0].path_with_namespace}/-/runners`}
                               target="_blank"
                               rel="noopener noreferrer"
                               title="View runners for this project/group"
@@ -503,7 +503,7 @@ export default function RunnersPage() {
                                 <span key={tag}>
                                   {idx > 0 && ', '}
                                   <a
-                                    href={`${selectedEnvBaseUrl || 'https://gitlab.appfuxion.com'}/groups/${runner.scope_name}/-/runners/${runner.id}`}
+                                    href={`${selectedEnvBaseUrl || 'https://gitlab.example.com'}/groups/${runner.scope_name}/-/runners/${runner.id}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     style={{

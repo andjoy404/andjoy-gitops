@@ -18,6 +18,7 @@ Welcome to the AndJoy GitOps documentation. Start with the path that matches wha
 - [Release procedure](operations/release.md)
 - [Upgrade procedure](operations/upgrade.md)
 - [Cutover procedure](operations/cutover.md)
+- [SSO & OIDC integration](operations/sso-integration.md)
 
 ## Understand the system
 

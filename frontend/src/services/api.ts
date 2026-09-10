@@ -2,6 +2,7 @@ import { QueryClient } from '@tanstack/react-query'
 import type {
   AnalyticsReadiness,
   AnalyticsSummary,
+  AuthConfig,
   AuthStatus,
   CreateEnvironmentRequest,
   EnvironmentDTO,
@@ -131,6 +132,7 @@ export const api = {
   delete: <T>(path: string) => apiRequest<T>(path, { method: 'DELETE' }),
 
   // Auth
+  getAuthConfig: () => apiRequest<AuthConfig>('/api/auth/config'),
   getAuthStatus: () => apiRequest<AuthStatus>('/api/auth/status'),
   getProfile: () => api.get<UserProfileDTO>('/api/auth/profile'),
   updateProfile: (data: UpdateProfileRequest) =>

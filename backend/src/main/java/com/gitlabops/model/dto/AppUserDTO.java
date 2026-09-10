@@ -12,6 +12,8 @@ public class AppUserDTO {
     public Boolean enabled;
     public Boolean mustChangePassword;
     public OffsetDateTime created_at;
+    public String authProvider;
+    public String providerUserId;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -39,4 +41,10 @@ public class AppUserDTO {
 
     public OffsetDateTime getCreatedAt() { return created_at; }
     public void setCreatedAt(OffsetDateTime created_at) { this.created_at = created_at; }
+
+    public String getAuthProvider() { return authProvider; }
+    public void setAuthProvider(String authProvider) { this.authProvider = authProvider; }
+
+    public String getProviderUserId() { return providerUserId; }
+    public void setProviderUserId(String providerUserId) { this.providerUserId = providerUserId; }
 }

@@ -4,10 +4,13 @@ import com.gitlabops.controller.AuthController;
 import com.gitlabops.model.dto.AuthStatus;
 import com.gitlabops.model.dto.ChangePasswordRequest;
 import com.gitlabops.model.dto.AppUserDTO;
+import com.gitlabops.model.dto.GlobalConfigDTO;
+import com.gitlabops.model.dto.LoginRequest;
 import com.gitlabops.service.AuthService;
 import com.gitlabops.service.LoginAttemptStore;
 import com.gitlabops.service.SessionStore;
 import com.gitlabops.repository.AppUserRepository;
+import com.gitlabops.repository.EnvironmentRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -28,6 +32,7 @@ class AuthControllerTest {
     private SessionStore sessionStore;
     private AuthService authService;
     private LoginAttemptStore loginAttemptStore;
+    private EnvironmentRepository environmentRepository;
 
     @BeforeEach
     void setUp() {
@@ -35,6 +40,7 @@ class AuthControllerTest {
         sessionStore = new SessionStore();
         authService = mock(AuthService.class);
         loginAttemptStore = mock(LoginAttemptStore.class);
+        environmentRepository = mock(EnvironmentRepository.class);
     }
 
     private HttpServletResponse mockResponse() {
@@ -64,7 +70,8 @@ class AuthControllerTest {
 
         AuthController controller = new AuthController(
                 userRepository, sessionStore, authService,
-                new com.gitlabops.config.UiProperties(), loginAttemptStore
+                new com.gitlabops.config.UiProperties(), loginAttemptStore,
+                mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         ChangePasswordRequest request = new ChangePasswordRequest();
@@ -95,7 +102,8 @@ class AuthControllerTest {
 
         AuthController controller = new AuthController(
                 userRepository, sessionStore, authService,
-                new com.gitlabops.config.UiProperties(), loginAttemptStore
+                new com.gitlabops.config.UiProperties(), loginAttemptStore,
+                mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         ChangePasswordRequest request = new ChangePasswordRequest();
@@ -122,7 +130,8 @@ class AuthControllerTest {
 
         AuthController controller = new AuthController(
                 userRepository, sessionStore, authService,
-                new com.gitlabops.config.UiProperties(), loginAttemptStore
+                new com.gitlabops.config.UiProperties(), loginAttemptStore,
+                mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         ChangePasswordRequest request = new ChangePasswordRequest();
@@ -149,7 +158,8 @@ class AuthControllerTest {
 
         AuthController controller = new AuthController(
                 userRepository, sessionStore, authService,
-                new com.gitlabops.config.UiProperties(), loginAttemptStore
+                new com.gitlabops.config.UiProperties(), loginAttemptStore,
+                mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         ChangePasswordRequest request = new ChangePasswordRequest();
@@ -173,7 +183,8 @@ class AuthControllerTest {
 
         AuthController controller = new AuthController(
                 userRepository, sessionStore, authService,
-                new com.gitlabops.config.UiProperties(), loginAttemptStore
+                new com.gitlabops.config.UiProperties(), loginAttemptStore,
+                mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         ChangePasswordRequest request = new ChangePasswordRequest();
@@ -203,7 +214,8 @@ class AuthControllerTest {
 
         AuthController controller = new AuthController(
                 userRepository, sessionStore, authService,
-                new com.gitlabops.config.UiProperties(), loginAttemptStore
+                new com.gitlabops.config.UiProperties(), loginAttemptStore,
+                mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         ChangePasswordRequest request = new ChangePasswordRequest();
@@ -234,7 +246,8 @@ class AuthControllerTest {
 
         AuthController controller = new AuthController(
                 userRepository, sessionStore, authService,
-                new com.gitlabops.config.UiProperties(), loginAttemptStore
+                new com.gitlabops.config.UiProperties(), loginAttemptStore,
+                mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         ChangePasswordRequest request = new ChangePasswordRequest();
@@ -264,7 +277,8 @@ class AuthControllerTest {
 
         AuthController controller = new AuthController(
                 userRepository, sessionStore, authService,
-                new com.gitlabops.config.UiProperties(), loginAttemptStore
+                new com.gitlabops.config.UiProperties(), loginAttemptStore,
+                mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         ChangePasswordRequest request = new ChangePasswordRequest();
@@ -295,7 +309,8 @@ class AuthControllerTest {
 
         AuthController controller = new AuthController(
                 userRepository, sessionStore, authService,
-                new com.gitlabops.config.UiProperties(), loginAttemptStore
+                new com.gitlabops.config.UiProperties(), loginAttemptStore,
+                mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         ChangePasswordRequest request = new ChangePasswordRequest();
@@ -315,7 +330,8 @@ class AuthControllerTest {
 
         AuthController controller = new AuthController(
                 userRepository, sessionStore, authService,
-                new com.gitlabops.config.UiProperties(), loginAttemptStore
+                new com.gitlabops.config.UiProperties(), loginAttemptStore,
+                mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         ChangePasswordRequest request = new ChangePasswordRequest();
@@ -345,7 +361,8 @@ class AuthControllerTest {
 
         AuthController controller = new AuthController(
                 userRepository, sessionStore, authService,
-                new com.gitlabops.config.UiProperties(), loginAttemptStore
+                new com.gitlabops.config.UiProperties(), loginAttemptStore,
+                mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         ChangePasswordRequest request = new ChangePasswordRequest();
@@ -380,7 +397,8 @@ class AuthControllerTest {
 
         AuthController controller = new AuthController(
                 userRepository, sessionStore, authService,
-                new com.gitlabops.config.UiProperties(), loginAttemptStore
+                new com.gitlabops.config.UiProperties(), loginAttemptStore,
+                mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         ChangePasswordRequest request = new ChangePasswordRequest();
@@ -407,7 +425,8 @@ class AuthControllerTest {
 
         AuthController controller = new AuthController(
                 userRepository, sessionStore, authService,
-                new com.gitlabops.config.UiProperties(), loginAttemptStore
+                new com.gitlabops.config.UiProperties(), loginAttemptStore,
+                mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         ResponseEntity<AuthStatus> status = controller.status(sessionToken);
@@ -435,7 +454,8 @@ class AuthControllerTest {
 
         AuthController controller = new AuthController(
                 userRepository, sessionStore, authService,
-                new com.gitlabops.config.UiProperties(), loginAttemptStore
+                new com.gitlabops.config.UiProperties(), loginAttemptStore,
+                mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         ChangePasswordRequest request = new ChangePasswordRequest();
@@ -458,7 +478,8 @@ class AuthControllerTest {
 
         AuthController controller = new AuthController(
                 userRepository, sessionStore, authService,
-                new com.gitlabops.config.UiProperties(), loginAttemptStore
+                new com.gitlabops.config.UiProperties(), loginAttemptStore,
+                mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         ResponseEntity<AuthStatus> status = controller.status(null);
@@ -478,7 +499,8 @@ class AuthControllerTest {
 
         AuthController controller = new AuthController(
                 userRepository, sessionStore, authService,
-                new com.gitlabops.config.UiProperties(), loginAttemptStore
+                new com.gitlabops.config.UiProperties(), loginAttemptStore,
+                mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         ResponseEntity<AuthStatus> status = controller.status("");
@@ -505,7 +527,8 @@ class AuthControllerTest {
 
         AuthController controller = new AuthController(
                 userRepository, sessionStore, authService,
-                new com.gitlabops.config.UiProperties(), loginAttemptStore
+                new com.gitlabops.config.UiProperties(), loginAttemptStore,
+                mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         ResponseEntity<?> response = controller.getProfile(sessionToken);
@@ -524,7 +547,8 @@ class AuthControllerTest {
     void getProfile_unauthenticated_returnsUnauthorized() {
         AuthController controller = new AuthController(
                 userRepository, sessionStore, authService,
-                new com.gitlabops.config.UiProperties(), loginAttemptStore
+                new com.gitlabops.config.UiProperties(), loginAttemptStore,
+                mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         ResponseEntity<?> response = controller.getProfile(null);
@@ -544,7 +568,8 @@ class AuthControllerTest {
 
         AuthController controller = new AuthController(
                 userRepository, sessionStore, authService,
-                new com.gitlabops.config.UiProperties(), loginAttemptStore
+                new com.gitlabops.config.UiProperties(), loginAttemptStore,
+                mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         Map<String, Object> body = Map.of(
@@ -574,7 +599,8 @@ class AuthControllerTest {
 
         AuthController controller = new AuthController(
                 userRepository, sessionStore, authService,
-                new com.gitlabops.config.UiProperties(), loginAttemptStore
+                new com.gitlabops.config.UiProperties(), loginAttemptStore,
+                mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         Map<String, Object> body = Map.of(
@@ -604,7 +630,8 @@ class AuthControllerTest {
 
         AuthController controller = new AuthController(
                 userRepository, sessionStore, authService,
-                new com.gitlabops.config.UiProperties(), loginAttemptStore
+                new com.gitlabops.config.UiProperties(), loginAttemptStore,
+                mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         Map<String, Object> body = Map.of(
@@ -630,7 +657,8 @@ class AuthControllerTest {
 
         AuthController controller = new AuthController(
                 userRepository, sessionStore, authService,
-                new com.gitlabops.config.UiProperties(), loginAttemptStore
+                new com.gitlabops.config.UiProperties(), loginAttemptStore,
+                mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         Map<String, Object> body = Map.of(
@@ -642,5 +670,59 @@ class AuthControllerTest {
 
         ResponseEntity<?> response = controller.updateProfile(sessionToken, body, mockResponse());
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    // ===========================================================
+    // Local Login Disabled — SSO-Only Enforcement Tests
+    // ===========================================================
+
+    @Test
+    void login_localLoginDisabled_returns403() {
+        GlobalConfigDTO config = new GlobalConfigDTO();
+        config.setLocalLoginEnabled(false);
+
+        when(environmentRepository.getGlobalConfig()).thenReturn(Optional.of(config));
+
+        AuthController controller = new AuthController(
+                userRepository, sessionStore, authService,
+                new com.gitlabops.config.UiProperties(), loginAttemptStore,
+                environmentRepository
+        );
+
+        LoginRequest request = new LoginRequest();
+        request.setUsername("admin");
+        request.setPassword("secret");
+
+        ResponseEntity<?> response = controller.login(request, null, mockResponse());
+
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        @SuppressWarnings("unchecked")
+        Map<String, String> body = (Map<String, String>) response.getBody();
+        assertNotNull(body);
+        assertTrue(body.containsKey("error"));
+    }
+
+    @Test
+    void login_localLoginEnabled_proceeds() {
+        GlobalConfigDTO config = new GlobalConfigDTO();
+        config.setLocalLoginEnabled(true);
+
+        when(environmentRepository.getGlobalConfig()).thenReturn(Optional.of(config));
+        when(userRepository.findByUsername("admin")).thenReturn(new AppUserDTO());
+
+        AuthController controller = new AuthController(
+                userRepository, sessionStore, authService,
+                new com.gitlabops.config.UiProperties(), loginAttemptStore,
+                environmentRepository
+        );
+
+        LoginRequest request = new LoginRequest();
+        request.setUsername("admin");
+        request.setPassword("secret");
+
+        ResponseEntity<?> response = controller.login(request, null, mockResponse());
+
+        // Should NOT be 403 — proceeds to actual auth logic
+        assertNotEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
     }
 }

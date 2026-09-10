@@ -44,7 +44,8 @@ class ControllerUnitTest {
             mock(com.gitlabops.service.SessionStore.class),
             mock(com.gitlabops.service.AuthService.class),
             new UiProperties(),
-            mock(com.gitlabops.service.LoginAttemptStore.class)
+            mock(com.gitlabops.service.LoginAttemptStore.class),
+            mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         var authStatus = authController.status((String) null);
@@ -62,7 +63,8 @@ class ControllerUnitTest {
             sessionStore,
             mock(com.gitlabops.service.AuthService.class),
             new UiProperties(),
-            mock(com.gitlabops.service.LoginAttemptStore.class)
+            mock(com.gitlabops.service.LoginAttemptStore.class),
+            mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         var authStatus = authController.status(token);

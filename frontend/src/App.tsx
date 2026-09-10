@@ -9,6 +9,7 @@ import Shell from './components/Shell'
 import ErrorBoundary from './components/ErrorBoundary'
 import EnvironmentsPage from './pages/EnvironmentsPage'
 import GlobalConfigPage from './pages/GlobalConfigPage'
+import AuthenticationsPage from './pages/AuthenticationsPage'
 import type { AuthStatus, EnvironmentDTO } from './types'
 import { persistSessionRole, persistSessionUsername } from './utils/role'
 import { applyThemeClass } from './hooks/useTheme'
@@ -193,6 +194,7 @@ function AppContent() {
         <Route path="users" element={<UsersPage />} />
         <Route path="environments" element={<EnvironmentsPage />} />
         <Route path="global-config" element={<GlobalConfigPage />} />
+        <Route path="authentications" element={<AuthenticationsPage />} />
         <Route path="*" element={<Outlet />} />
       </Route>
     </Routes>

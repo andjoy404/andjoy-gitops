@@ -81,10 +81,22 @@ export default function GlobalConfigPage() {
       // Optimistic cache update so the header/sidebar logo refreshes
       // immediately, then invalidate so the server value wins.
       queryClient.setQueryData<GlobalConfigDTO>(['global-config'], (current) => ({
-        ...(current ?? { company_name: '', company_logo: '', pipeline_view: 'latest' }),
-        ...variables,
+        ...(current ?? {
+          company_name: '',
+          company_logo: '',
+          pipeline_view: 'latest',
+          sso_enabled: false,
+          local_login_enabled: true,
+          oidc_issuer_uri: null,
+          oidc_client_id: null,
+          oidc_client_secret: null,
+          oidc_admin_group_claim: null,
+          oidc_admin_group_value: null,
+        }),
+        company_name: variables.company_name ?? '',
         company_logo: variables.company_logo ?? '',
-      }))
+        pipeline_view: variables.pipeline_view ?? 'latest',
+      } as GlobalConfigDTO))
       void queryClient.invalidateQueries({ queryKey: ['global-config'] })
       setFormError('')
       notify('success', 'Settings saved')
@@ -148,7 +160,7 @@ export default function GlobalConfigPage() {
 
   // Fixed submit: use mutateAsync so errors are properly caught, no redundant saving state.
   // The rejection is caught here (antd Form ignores async onFinish errors); the
-  // failure is surfaced in the form via the mutation's onError → formError.
+  // failure is surfaced in the form via the mutation's onError -> formError.
   const handleSubmit = async (values: any) => {
     setFormError('')
     const previewTheme = theme
@@ -208,7 +220,7 @@ export default function GlobalConfigPage() {
                 <span className={styles.sectionBadge}>
                   <ShopOutlined />
                 </span>
-                <span className={styles.sectionTitle}>Branding & Identity</span>
+                <span className={styles.sectionTitle}>Br &amp; Identity</span>
               </div>
 
               {/* Company name */}
@@ -232,10 +244,10 @@ export default function GlobalConfigPage() {
               <Form.Item
                 name="company_logo"
                 label="Company logo"
-                tooltip="Square image recommended (128×128 px). Maximum file size: 512 KB."
+                tooltip="Square image recommended (128x128 px). Maximum file size: 512 KB."
                 extra={
                   <span className={styles.logoHint}>
-                    Accepted formats: PNG, JPG, SVG, GIF · Max 512 KB · Recommended 128×128 px
+                    Accepted formats: PNG, JPG, SVG, GIF · Max 512 KB · Recommended 128x128 px
                   </span>
                 }
               >

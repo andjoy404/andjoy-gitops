@@ -111,7 +111,7 @@ public class UsersController {
 
         String hashedPassword = authService.hashNewPassword(password);
 
-        Long id = userRepository.create(username, hashedPassword, displayName, email, role, enabled);
+        Long id = userRepository.create(username, hashedPassword, displayName, email, role, enabled, "local");
         if (id == null) {
             return ResponseEntity.status(500).body(Map.of("message", "Failed to create user"));
         }

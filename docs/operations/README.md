@@ -40,6 +40,11 @@ curl http://localhost:8090/health
 | GITLAB_API_TIMEOUT_SECONDS | `30` | GitLab API request timeout |
 | GITLAB_MAX_CONCURRENT_REQUESTS | `8` | Max concurrent GitLab API requests |
 | GITLAB_MAX_RETRIES | `3` | Max retries for transient errors |
+| SSO_OIDC_ISSUER_URI | (optional) | OIDC discovery issuer URL (e.g. Keycloak realm, Entra ID) |
+| SSO_OIDC_CLIENT_ID | (optional) | OIDC client identifier |
+| SSO_OIDC_CLIENT_SECRET | (optional) | OIDC client secret |
+
+For detailed Identity Provider setup (Keycloak, Microsoft Entra ID), see [SSO & OIDC Integration Guide](sso-integration.md).
 
 ## Architecture
 

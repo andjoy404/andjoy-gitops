@@ -67,12 +67,32 @@ export interface GlobalConfigDTO {
   company_name: string
   company_logo: string
   pipeline_view: string
+  sso_enabled: boolean
+  local_login_enabled: boolean
+  oidc_issuer_uri: string | null
+  oidc_client_id: string | null
+  oidc_client_secret: string | null
+  oidc_admin_group_claim: string | null
+  oidc_admin_group_value: string | null
 }
 
 export interface GlobalConfigRequest {
   company_name: string
   company_logo?: string
   pipeline_view: string
+  sso_enabled?: boolean
+  local_login_enabled?: boolean
+  oidc_issuer_uri?: string | null
+  oidc_client_id?: string | null
+  oidc_client_secret?: string | null
+  oidc_admin_group_claim?: string | null
+  oidc_admin_group_value?: string | null
+}
+
+export interface AuthConfig {
+  sso_enabled: boolean
+  local_login_enabled: boolean
+  sso_provider_name: string | null
 }
 
 // ── Analytics Types ──

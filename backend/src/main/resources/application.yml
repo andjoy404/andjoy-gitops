@@ -55,6 +55,16 @@ logging:
     com.gitlabops: DEBUG
     org.springframework.security: WARN
 
+# SSO / OIDC configuration (environment variable fallbacks)
+sso:
+  enabled: ${SSO_ENABLED:false}
+  local-login-enabled: ${LOCAL_LOGIN_ENABLED:true}
+  oidc-issuer-uri: ${SSO_ISSUER_URI:}
+  oidc-client-id: ${SSO_CLIENT_ID:}
+  oidc-client-secret: ${SSO_CLIENT_SECRET:}
+  oidc-admin-group-claim: ${OIDC_ADMIN_GROUP_CLAIM:groups}
+  oidc-admin-group-value: ${OIDC_ADMIN_GROUP_VALUE:admin}
+
 # Actuator
 management:
   endpoints:

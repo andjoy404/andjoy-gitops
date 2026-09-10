@@ -28,7 +28,8 @@ class EnvironmentAuthTest {
             appUserRepo, sessionStore,
             mock(com.gitlabops.service.AuthService.class),
             new com.gitlabops.config.UiProperties(),
-            mock(com.gitlabops.service.LoginAttemptStore.class)
+            mock(com.gitlabops.service.LoginAttemptStore.class),
+            mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         var status = authController.status(adminToken);
@@ -56,7 +57,8 @@ class EnvironmentAuthTest {
             appUserRepo, sessionStore,
             mock(com.gitlabops.service.AuthService.class),
             new com.gitlabops.config.UiProperties(),
-            mock(com.gitlabops.service.LoginAttemptStore.class)
+            mock(com.gitlabops.service.LoginAttemptStore.class),
+            mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         var status = authController.status(editorToken);
@@ -72,7 +74,8 @@ class EnvironmentAuthTest {
             new com.gitlabops.service.SessionStore(),
             mock(com.gitlabops.service.AuthService.class),
             new com.gitlabops.config.UiProperties(),
-            mock(com.gitlabops.service.LoginAttemptStore.class)
+            mock(com.gitlabops.service.LoginAttemptStore.class),
+            mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         var status = authController.status((String) null);
@@ -89,7 +92,8 @@ class EnvironmentAuthTest {
             sessionStore,
             mock(com.gitlabops.service.AuthService.class),
             new com.gitlabops.config.UiProperties(),
-            mock(com.gitlabops.service.LoginAttemptStore.class)
+            mock(com.gitlabops.service.LoginAttemptStore.class),
+            mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         var status = authController.status("completely-invalid-token");
@@ -117,7 +121,8 @@ class EnvironmentAuthTest {
             appUserRepo, sessionStore,
             mock(com.gitlabops.service.AuthService.class),
             new com.gitlabops.config.UiProperties(),
-            mock(com.gitlabops.service.LoginAttemptStore.class)
+            mock(com.gitlabops.service.LoginAttemptStore.class),
+            mock(com.gitlabops.repository.EnvironmentRepository.class)
         );
 
         var status = authController.status(token);

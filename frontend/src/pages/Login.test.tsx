@@ -26,6 +26,17 @@ function fillCredentials(username = 'admin', password = 'secret') {
 beforeEach(() => {
   cleanup()
   mockFetch.mockReset()
+  // Default response for the auth config endpoint used by Login
+  mockFetch.mockImplementation((url: string) => {
+    const urlStr = String(url)
+    if (urlStr.includes('/api/auth/config')) {
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({ sso_enabled: false, local_login_enabled: true, sso_provider_name: null }),
+      } as Response)
+    }
+    return Promise.resolve({ ok: true, json: async () => ({}) } as Response)
+  })
 })
 
 describe('Login page', () => {
@@ -148,6 +159,132 @@ describe('Login page', () => {
       fillCredentials()
       fireEvent.click(screen.getByRole('button', { name: /sign in/i }))
       expect(await screen.findByRole('alert')).toHaveTextContent('Network error')
+    })
+  })
+
+  describe('SSO login flow', () => {
+    it('renders "Sign in with SSO" button when sso_enabled is true', async () => {
+      mockFetch.mockImplementation((url: string) => {
+        const urlStr = String(url)
+        if (urlStr.includes('/api/auth/config')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ sso_enabled: true, local_login_enabled: true, sso_provider_name: 'Okta' }),
+          } as Response)
+        }
+        return Promise.resolve({ ok: true, json: async () => ({}) } as Response)
+      })
+      renderLogin()
+      await screen.findByText('Sign in with Okta')
+      const ssoBtn = screen.getByRole('link', { name: /sign in with okta/i })
+      expect(ssoBtn).toBeInTheDocument()
+      expect(ssoBtn.getAttribute('href')).toBe('/oauth2/authorization/oidc')
+    })
+
+    it('renders SSO button with default provider name when sso_provider_name is null', async () => {
+      mockFetch.mockImplementation((url: string) => {
+        const urlStr = String(url)
+        if (urlStr.includes('/api/auth/config')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ sso_enabled: true, local_login_enabled: true, sso_provider_name: null }),
+          } as Response)
+        }
+        return Promise.resolve({ ok: true, json: async () => ({}) } as Response)
+      })
+      renderLogin()
+      await screen.findByText('Sign in with SSO')
+    })
+
+    it('hides username and password inputs when sso_enabled is true and local_login_enabled is false', async () => {
+      mockFetch.mockImplementation((url: string) => {
+        const urlStr = String(url)
+        if (urlStr.includes('/api/auth/config')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ sso_enabled: true, local_login_enabled: false, sso_provider_name: 'Auth0' }),
+          } as Response)
+        }
+        return Promise.resolve({ ok: true, json: async () => ({}) } as Response)
+      })
+      const { container } = renderLogin()
+      await screen.findByText('Sign in with Auth0')
+      expect(screen.queryByLabelText('Username')).not.toBeInTheDocument()
+      expect(screen.queryByLabelText('Password')).not.toBeInTheDocument()
+      expect(container.querySelector('form')).toBeNull()
+      const ssoOnlyText = container.querySelector('.login-sso-only-text')
+      expect(ssoOnlyText).toHaveTextContent('Use your Auth0 account to sign in')
+    })
+
+    it('renders divider and both login methods when both sso_enabled and local_login_enabled are true', async () => {
+      mockFetch.mockImplementation((url: string) => {
+        const urlStr = String(url)
+        if (urlStr.includes('/api/auth/config')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ sso_enabled: true, local_login_enabled: true, sso_provider_name: 'Google' }),
+          } as Response)
+        }
+        return Promise.resolve({ ok: true, json: async () => ({}) } as Response)
+      })
+      renderLogin()
+      await screen.findByText('Sign in with Google')
+      expect(screen.getByLabelText('Username')).toBeInTheDocument()
+      expect(screen.getByLabelText('Password')).toBeInTheDocument()
+      expect(screen.getByText('or')).toBeInTheDocument()
+    })
+
+    it('displays dismissible error banner when URL query contains ?error=sso_failed', async () => {
+      mockFetch.mockImplementation((url: string) => {
+        const urlStr = String(url)
+        if (urlStr.includes('/api/auth/config')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ sso_enabled: true, local_login_enabled: false, sso_provider_name: 'Okta' }),
+          } as Response)
+        }
+        return Promise.resolve({ ok: true, json: async () => ({}) } as Response)
+      })
+      const { container } = render(
+        <MemoryRouter initialEntries={['/login?error=sso_failed&error_description=SSO+was+cancelled']}>
+          <Login onSuccessfulLogin={vi.fn()} />
+        </MemoryRouter>,
+      )
+      await screen.findByText(/SSO was cancelled/)
+      const banner = container.querySelector('.login-sso-error')
+      expect(banner).toBeInTheDocument()
+      const closeBtn = banner?.querySelector('button[aria-label="Dismiss error"]')
+      expect(closeBtn).toBeInTheDocument()
+      fireEvent.click(closeBtn!)
+      await waitFor(() => {
+        expect(container.querySelector('.login-sso-error')).not.toBeInTheDocument()
+      })
+    })
+
+    it('falls back to local login when getAuthConfig() fails', async () => {
+      mockFetch.mockImplementation(() => Promise.reject(new Error('network down')))
+      renderLogin()
+      // Should still show username/password fields
+      const usernameInput = screen.getByLabelText('Username')
+      const passwordInput = screen.getByLabelText('Password')
+      expect(usernameInput).toBeInTheDocument()
+      expect(passwordInput).toBeInTheDocument()
+    })
+
+    it('uses sso_enabled default false when config response is missing field', async () => {
+      mockFetch.mockImplementation((url: string) => {
+        const urlStr = String(url)
+        if (urlStr.includes('/api/auth/config')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ sso_enabled: false, local_login_enabled: true, sso_provider_name: null }),
+          } as Response)
+        }
+        return Promise.resolve({ ok: true, json: async () => ({}) } as Response)
+      })
+      renderLogin()
+      expect(screen.getByLabelText('Username')).toBeInTheDocument()
+      expect(screen.queryByText(/Sign in with/i, { selector: 'button' })).not.toBeInTheDocument()
     })
   })
 })

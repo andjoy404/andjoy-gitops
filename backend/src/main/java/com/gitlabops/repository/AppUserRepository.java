@@ -26,31 +26,35 @@ public class AppUserRepository {
 
     public AppUserDTO findByUsername(String username) {
         return dsl
-            .select(
-                field(name("id")),
-                field(name("username")),
-                field(name("password_hash")),
-                field(name("display_name")),
-                field(name("email")),
-                field(name("role")),
-                field(name("enabled")),
-                field(name("must_change_password"))
-            )
-            .from(table(TABLE))
-            .where(field(name("username")).lower().eq(username.toLowerCase()))
-            .and(field(name("enabled")).eq(true))
-            .fetchOne(record -> {
-                AppUserDTO user = new AppUserDTO();
-                user.id = record.get("id", Long.class);
-                user.username = record.get("username", String.class);
-                user.passwordHash = record.get("password_hash", String.class);
-                user.displayName = record.get("display_name", String.class);
-                user.email = record.get("email", String.class);
-                user.role = record.get("role", String.class);
-                user.enabled = record.get("enabled", Boolean.class);
-                user.mustChangePassword = record.get("must_change_password", Boolean.class);
-                return user;
-            });
+                    .select(
+                        field(name("id")),
+                        field(name("username")),
+                        field(name("password_hash")),
+                        field(name("display_name")),
+                        field(name("email")),
+                        field(name("role")),
+                        field(name("enabled")),
+                        field(name("must_change_password")),
+                        field(name("auth_provider")),
+                        field(name("provider_user_id"))
+                    )
+                    .from(table(TABLE))
+                    .where(field(name("username")).lower().eq(username.toLowerCase()))
+                    .and(field(name("enabled")).eq(true))
+                    .fetchOne(record -> {
+                        AppUserDTO user = new AppUserDTO();
+                        user.id = record.get("id", Long.class);
+                        user.username = record.get("username", String.class);
+                        user.passwordHash = record.get("password_hash", String.class);
+                        user.displayName = record.get("display_name", String.class);
+                        user.email = record.get("email", String.class);
+                        user.role = record.get("role", String.class);
+                        user.enabled = record.get("enabled", Boolean.class);
+                        user.mustChangePassword = record.get("must_change_password", Boolean.class);
+                        user.authProvider = record.get("auth_provider", String.class);
+                        user.providerUserId = record.get("provider_user_id", String.class);
+                        return user;
+                    });
     }
 
     public AppUserDTO findById(Long id) {
@@ -63,7 +67,9 @@ public class AppUserRepository {
                 field(name("email")),
                 field(name("role")),
                 field(name("enabled")),
-                field(name("must_change_password"))
+                field(name("must_change_password")),
+                field(name("auth_provider")),
+                field(name("provider_user_id"))
             )
             .from(table(TABLE))
             .where(field(name("id")).eq(id))
@@ -77,6 +83,8 @@ public class AppUserRepository {
                 user.role = record.get("role", String.class);
                 user.enabled = record.get("enabled", Boolean.class);
                 user.mustChangePassword = record.get("must_change_password", Boolean.class);
+                user.authProvider = record.get("auth_provider", String.class);
+                user.providerUserId = record.get("provider_user_id", String.class);
                 return user;
             });
     }
@@ -90,7 +98,9 @@ public class AppUserRepository {
                 field(name("email")),
                 field(name("role")),
                 field(name("enabled")),
-                field(name("created_at"))
+                field(name("created_at")),
+                field(name("auth_provider")),
+                field(name("provider_user_id"))
             )
             .from(table(TABLE))
             .orderBy(field(name("username")).lower().asc())
@@ -105,12 +115,14 @@ public class AppUserRepository {
             user.role = record.get(field(name("role")), String.class);
             user.enabled = record.get(field(name("enabled")), Boolean.class);
             user.created_at = record.get(field(name("created_at")), java.time.OffsetDateTime.class);
+            user.authProvider = record.get(field(name("auth_provider")), String.class);
+            user.providerUserId = record.get(field(name("provider_user_id")), String.class);
             result.add(user);
         }
         return result;
     }
 
-    public Long create(String username, String passwordHash, String displayName, String email, String role, boolean enabled) {
+    public Long create(String username, String passwordHash, String displayName, String email, String role, boolean enabled, String authProvider) {
         return dsl
             .insertInto(table(TABLE))
             .set(field(name("username")), username)
@@ -119,6 +131,7 @@ public class AppUserRepository {
             .set(field(name("email")), email)
             .set(field(name("role")), role)
             .set(field(name("enabled")), enabled)
+            .set(field(name("auth_provider")), authProvider)
             .set(field(name("created_at")), currentTimestamp())
             .set(field(name("updated_at")), currentTimestamp())
             .returning(field(name("id")))
@@ -160,6 +173,102 @@ public class AppUserRepository {
             .update(table(TABLE))
             .set(field(name("password_hash")), passwordHash)
             .set(field(name("must_change_password")), false)
+            .set(field(name("updated_at")), currentTimestamp())
+            .where(field(name("id")).eq(userId))
+            .execute();
+    }
+
+    public AppUserDTO findByProviderUserId(String providerUserId) {
+        return dsl
+            .select(
+                field(name("id")),
+                field(name("username")),
+                field(name("password_hash")),
+                field(name("display_name")),
+                field(name("email")),
+                field(name("role")),
+                field(name("enabled")),
+                field(name("must_change_password")),
+                field(name("auth_provider")),
+                field(name("provider_user_id"))
+            )
+            .from(table(TABLE))
+            .where(field(name("provider_user_id")).eq(providerUserId))
+            .and(field(name("enabled")).eq(true))
+            .fetchOne(record -> {
+                AppUserDTO user = new AppUserDTO();
+                user.id = record.get("id", Long.class);
+                user.username = record.get("username", String.class);
+                user.passwordHash = record.get("password_hash", String.class);
+                user.displayName = record.get("display_name", String.class);
+                user.email = record.get("email", String.class);
+                user.role = record.get("role", String.class);
+                user.enabled = record.get("enabled", Boolean.class);
+                user.mustChangePassword = record.get("must_change_password", Boolean.class);
+                user.authProvider = record.get("auth_provider", String.class);
+                user.providerUserId = record.get("provider_user_id", String.class);
+                return user;
+            });
+    }
+
+    public AppUserDTO findByEmail(String email) {
+        return dsl
+            .select(
+                field(name("id")),
+                field(name("username")),
+                field(name("password_hash")),
+                field(name("display_name")),
+                field(name("email")),
+                field(name("role")),
+                field(name("enabled")),
+                field(name("must_change_password")),
+                field(name("auth_provider")),
+                field(name("provider_user_id"))
+            )
+            .from(table(TABLE))
+            .where(field(name("email")).eq(email.toLowerCase()))
+            .and(field(name("enabled")).eq(true))
+            .fetchOne(record -> {
+                AppUserDTO user = new AppUserDTO();
+                user.id = record.get("id", Long.class);
+                user.username = record.get("username", String.class);
+                user.passwordHash = record.get("password_hash", String.class);
+                user.displayName = record.get("display_name", String.class);
+                user.email = record.get("email", String.class);
+                user.role = record.get("role", String.class);
+                user.enabled = record.get("enabled", Boolean.class);
+                user.mustChangePassword = record.get("must_change_password", Boolean.class);
+                user.authProvider = record.get("auth_provider", String.class);
+                user.providerUserId = record.get("provider_user_id", String.class);
+                return user;
+            });
+    }
+
+    public Long createOidcUser(String username, String displayName, String email, String providerUserId, String role) {
+        return dsl
+            .insertInto(table(TABLE))
+            .set(field(name("username")), username)
+            .set(field(name("password_hash")), "")
+            .set(field(name("display_name")), displayName)
+            .set(field(name("email")), email)
+            .set(field(name("role")), role)
+            .set(field(name("enabled")), true)
+            .set(field(name("must_change_password")), false)
+            .set(field(name("auth_provider")), "oidc")
+            .set(field(name("provider_user_id")), providerUserId)
+            .set(field(name("created_at")), currentTimestamp())
+            .set(field(name("updated_at")), currentTimestamp())
+            .returning(field(name("id")))
+            .fetchOne(field(name("id"), Long.class));
+    }
+
+    public void updateProviderUserId(Long userId, String providerUserId) {
+        if (providerUserId == null || providerUserId.isEmpty()) {
+            return;
+        }
+        dsl
+            .update(table(TABLE))
+            .set(field(name("provider_user_id")), providerUserId)
             .set(field(name("updated_at")), currentTimestamp())
             .where(field(name("id")).eq(userId))
             .execute();

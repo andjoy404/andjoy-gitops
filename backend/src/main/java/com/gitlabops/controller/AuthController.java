@@ -5,8 +5,10 @@ import com.gitlabops.config.UiProperties;
 import com.gitlabops.model.dto.AppUserDTO;
 import com.gitlabops.model.dto.AuthStatus;
 import com.gitlabops.model.dto.ChangePasswordRequest;
+import com.gitlabops.model.dto.GlobalConfigDTO;
 import com.gitlabops.model.dto.LoginRequest;
 import com.gitlabops.repository.AppUserRepository;
+import com.gitlabops.repository.EnvironmentRepository;
 import com.gitlabops.service.AuthService;
 import com.gitlabops.service.LoginAttemptStore;
 import com.gitlabops.service.SessionStore;
@@ -32,17 +34,61 @@ public class AuthController {
     private final AuthService authService;
     private final UiProperties uiProperties;
     private final LoginAttemptStore loginAttemptStore;
+    private final EnvironmentRepository environmentRepository;
 
     public AuthController(AppUserRepository userRepository,
                           SessionStore sessionStore,
                           AuthService authService,
                           UiProperties uiProperties,
-                          LoginAttemptStore loginAttemptStore) {
+                          LoginAttemptStore loginAttemptStore,
+                          EnvironmentRepository environmentRepository) {
         this.userRepository = userRepository;
         this.sessionStore = sessionStore;
         this.authService = authService;
         this.uiProperties = uiProperties;
         this.loginAttemptStore = loginAttemptStore;
+        this.environmentRepository = environmentRepository;
+    }
+
+    @GetMapping("/config")
+    public ResponseEntity<Map<String, Object>> config() {
+        boolean ssoEnabled = false;
+        boolean localLoginEnabled = true;
+        String ssoProviderName = "SSO";
+
+        try {
+            var config = environmentRepository.getGlobalConfig();
+            if (config.isPresent()) {
+                GlobalConfigDTO dto = config.get();
+                ssoEnabled = Boolean.TRUE.equals(dto.isSsoEnabled());
+                localLoginEnabled = Boolean.TRUE.equals(dto.isLocalLoginEnabled());
+                if (ssoEnabled) {
+                    String issuer = dto.getOidcIssuerUri();
+                    if (issuer != null && !issuer.isEmpty()) {
+                        for (String part : issuer.split("://")) {
+                            String[] tokens = part.split("\\.");
+                            if (tokens.length > 0) {
+                                ssoProviderName = tokens[0];
+                                break;
+                            }
+                        }
+                        if ("login.microsoftonline.com".equals(issuer.split("://")[0]) ||
+                            "login.microsoftonline.com".equals(issuer.split("//")[1] == null ? "" : issuer.split("//")[1])) {
+                            ssoProviderName = "Microsoft";
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+
+        java.util.Map<String, Object> result = new java.util.LinkedHashMap<>();
+        result.put("sso_enabled", ssoEnabled);
+        result.put("local_login_enabled", localLoginEnabled);
+        result.put("sso_provider_name", ssoProviderName);
+
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/status")
@@ -76,6 +122,21 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody LoginRequest request,
                                    HttpServletRequest httpRequest,
                                    HttpServletResponse response) {
+        boolean localLoginEnabled = true;
+        try {
+            var config = environmentRepository.getGlobalConfig();
+            if (config.isPresent()) {
+                localLoginEnabled = Boolean.TRUE.equals(config.get().isLocalLoginEnabled());
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+
+        if (!localLoginEnabled) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Local login is disabled by administrator"));
+        }
+
         String username = request.getUsername().trim();
 
         if (loginAttemptStore.isThrottled(username)) {

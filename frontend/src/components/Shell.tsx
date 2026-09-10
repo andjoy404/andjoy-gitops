@@ -15,6 +15,7 @@ import {
   PushpinOutlined,
   PushpinFilled,
   RightOutlined,
+  SafetyCertificateOutlined,
 } from '@ant-design/icons'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../services/api'
@@ -36,6 +37,7 @@ const SETTINGS_TABS = [
   { id: '/users', label: 'Users', icon: <UserOutlined style={{ color: 'var(--dashboard-accent)' }} /> },
   { id: '/environments', label: 'Environments', icon: <CloudServerOutlined style={{ color: 'var(--dashboard-info)' }} /> },
   { id: '/global-config', label: 'Configurations', icon: <SettingOutlined style={{ color: 'color-mix(in srgb, var(--dashboard-warning) 75%, var(--dashboard-accent))' }} /> },
+  { id: '/authentications', label: 'Authentications', icon: <SafetyCertificateOutlined style={{ color: 'var(--dashboard-success)' }} /> },
 ]
 
 const ALL_TABS = [

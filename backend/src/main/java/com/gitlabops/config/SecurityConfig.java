@@ -1,15 +1,26 @@
 package com.gitlabops.config;
 
+import com.gitlabops.filter.OidcAuthenticationFailureHandler;
+import com.gitlabops.filter.OidcAuthenticationSuccessHandler;
 import com.gitlabops.filter.SessionAuthenticationFilter;
+import com.gitlabops.repository.EnvironmentRepository;
+import com.gitlabops.service.CustomOidcUserService;
 import com.gitlabops.service.SessionStore;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
@@ -28,6 +39,17 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
+
+    private final EnvironmentRepository environmentRepository;
+    private final DynamicClientRegistrationRepository clientRegistrationRepository;
+
+    public SecurityConfig(EnvironmentRepository environmentRepository,
+                          DynamicClientRegistrationRepository clientRegistrationRepository) {
+        this.environmentRepository = environmentRepository;
+        this.clientRegistrationRepository = clientRegistrationRepository;
+    }
 
     /**
      * Determines whether cookies should be marked Secure.
@@ -51,10 +73,6 @@ public class SecurityConfig {
         return (request != null && request.isSecure()) || isSecure();
     }
 
-    /**
-     * Custom CSRF token request handler that accepts both
-     * X-XSRF-TOKEN (Spring default) and X-CSRF-TOKEN (frontend api.ts).
-     */
     private static class DualCsrfTokenRequestHandler implements CsrfTokenRequestHandler {
         private static final String SPRING_HEADER = "X-XSRF-TOKEN";
         private static final String FRONTEND_HEADER = "X-CSRF-TOKEN";
@@ -76,10 +94,8 @@ public class SecurityConfig {
         public String resolveCsrfTokenValue(
                 jakarta.servlet.http.HttpServletRequest request,
                 org.springframework.security.web.csrf.CsrfToken csrfToken) {
-            // Try Spring default first
             String token = request.getHeader(SPRING_HEADER);
             if (StringUtils.hasText(token)) return token;
-            // Then frontend api.ts
             token = request.getHeader(FRONTEND_HEADER);
             if (StringUtils.hasText(token)) return token;
             return primary.resolveCsrfTokenValue(request, csrfToken);
@@ -92,25 +108,35 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
             SessionAuthenticationFilter sessionAuthFilter,
-            CorsConfigurationSource corsConfigurationSource) throws Exception {
+            CorsConfigurationSource corsConfigurationSource,
+            CustomOidcUserService customOidcUserService,
+            OidcAuthenticationSuccessHandler oidcSuccessHandler,
+            OidcAuthenticationFailureHandler oidcFailureHandler,
+            ClientRegistrationRepository clientRegistrationRepository) throws Exception {
 
         StrictHttpFirewall firewall = new StrictHttpFirewall();
         firewall.setAllowSemicolon(true);
 
-        // Configure CookieCsrfTokenRepository to store CSRF tokens in cookie.
-        // HttpOnly=false so JavaScript (SPA) can read XSRF-TOKEN from document.cookie.
         CookieCsrfTokenRepository tokenRepository = new CookieCsrfTokenRepository();
         tokenRepository.setCookiePath("/");
         tokenRepository.setCookieHttpOnly(false);
         tokenRepository.setCookieName("XSRF-TOKEN");
 
-        // Base handler that stores token in request attribute
         CsrfTokenRequestAttributeHandler baseHandler = new CsrfTokenRequestAttributeHandler();
-
-        // Custom handler that checks both X-XSRF-TOKEN and X-CSRF-TOKEN headers
         CsrfTokenRequestHandler dualHandler = new DualCsrfTokenRequestHandler(baseHandler);
+
+        boolean ssoEnabled = false;
+        try {
+            var ssoConfig = environmentRepository.getGlobalConfig();
+            if (ssoConfig.isPresent()) {
+                ssoEnabled = Boolean.TRUE.equals(ssoConfig.get().isSsoEnabled());
+            }
+        } catch (Exception e) {
+            log.debug("Could not load SSO config for security chain: {}", e.getMessage());
+        }
 
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
@@ -121,6 +147,7 @@ public class SecurityConfig {
                                 "/api/auth/status",
                                 "/api/auth/password",
                                 "/api/auth/profile",
+                                "/api/auth/config",
                                 "/health",
                                 "/metrics/prometheus")
                 )
@@ -135,7 +162,8 @@ public class SecurityConfig {
                 .addFilterBefore(sessionAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/health", "/metrics/prometheus").permitAll()
-                        .requestMatchers("/api/auth/login", "/api/auth/logout", "/api/auth/password", "/api/auth/profile").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/logout",
+                                "/api/auth/password", "/api/auth/profile", "/api/auth/config").permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/auth/status",
                                 "/api/csrf",
@@ -172,6 +200,28 @@ public class SecurityConfig {
                         })
                 );
 
+        if (ssoEnabled) {
+            http.oauth2Login(oauth2 -> {
+                oauth2.clientRegistrationRepository(clientRegistrationRepository);
+                oauth2.loginPage("/auth/oidc");
+                oauth2.userInfoEndpoint(userInfo ->
+                    userInfo.oidcUserService(customOidcUserService));
+                oauth2.successHandler(oidcSuccessHandler);
+                oauth2.failureHandler(oidcFailureHandler);
+            });
+        }
+
         return http.build();
+    }
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void logOidcStatus() {
+        try {
+            var ssoConfig = environmentRepository.getGlobalConfig();
+            boolean ssoEnabled = ssoConfig.isPresent() && Boolean.TRUE.equals(ssoConfig.get().isSsoEnabled());
+            log.info("SSO/OIDC status: {}", ssoEnabled ? "ENABLED" : "DISABLED");
+        } catch (Exception e) {
+            log.debug("Could not determine SSO status: {}", e.getMessage());
+        }
     }
 }
