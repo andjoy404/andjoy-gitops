@@ -38,6 +38,7 @@ import {
   PipelineJobBadges,
   PipelineDetailModal,
   orderJobsByStageSequence,
+  getPipelineEffectiveStatus,
 } from '../utils/pipelineShared'
 import styles from '../styles/pipelines.module.css'
 import '../styles/pipelines.css'
@@ -428,13 +429,21 @@ export default function PipelinesPage() {
   const totalPages = Math.ceil(sortedRows.length / pageSize)
   const paginated = sortedRows.slice((page - 1) * pageSize, page * pageSize)
 
-  /* ── Fix 4 continued: Batch jobs query ────────────────────────────── */
+  /* ── Batch jobs query for all pipelines in current view ────────────── */
 
-  const pagePipelineIds = useMemo(() => {
-    return paginated.flatMap(r => r.latestPipeline ? [r.latestPipeline.id] : [])
-  }, [paginated])
+  const allPipelineIds = useMemo(() => {
+    const ids: number[] = []
+    const seen = new Set<number>()
+    for (const r of projectRows) {
+      if (r.latestPipeline && !seen.has(r.latestPipeline.id)) {
+        seen.add(r.latestPipeline.id)
+        ids.push(r.latestPipeline.id)
+      }
+    }
+    return ids
+  }, [projectRows])
 
-  const pipelineIdsStr = pagePipelineIds.join(',')
+  const pipelineIdsStr = allPipelineIds.join(',')
 
   const { data: allBatchJobs } = useQuery({
     queryKey: ['batch-jobs', selectedEnvId, pipelineIdsStr],
@@ -461,15 +470,15 @@ export default function PipelinesPage() {
   const statusCounts = useMemo(() => {
     const counts: Record<string, number> = {}
     for (const s of PIPELINE_STATUSES) counts[s.value] = 0
-    for (const g of pipelineProjects || []) {
-      for (const p of g.pipelines) {
-        const rawStatus = String(p.status || '').toLowerCase().trim()
-        const st = rawStatus === 'created' ? 'running' : rawStatus
-        counts[st] = (counts[st] || 0) + 1
-      }
+    for (const r of projectRows) {
+      const p = r.latestPipeline
+      if (!p) continue
+      const rawJobs = jobsByPipeline.get(p.id) || []
+      const st = getPipelineEffectiveStatus(p, rawJobs)
+      counts[st] = (counts[st] || 0) + 1
     }
     return counts
-  }, [pipelineProjects])
+  }, [projectRows, jobsByPipeline])
 
   const SUMMARY_STATUS_ORDER: PipelineStatus[] = ['running', 'success', 'manual', 'failed', 'pending', 'canceled']
   const summaryStatuses = PIPELINE_STATUSES
@@ -690,59 +699,7 @@ export default function PipelinesPage() {
         const pipeline = r.latestPipeline
         const rawJobs = pipeline && jobsByPipeline.get(pipeline.id) ? jobsByPipeline.get(pipeline.id)! : []
         const jobs = orderJobsByStageSequence(rawJobs)
-
-        let s = String(latest?.status || 'unknown').trim() as PipelineStatus
-
-        const hasChildJobs = jobs.some(j => j.parent_job_id !== null)
-        const firstChildIdx = jobs.findIndex(j => j.parent_job_id !== null)
-        const arrowIndex = hasChildJobs && jobs.length > 1 ? (firstChildIdx > 0 ? firstChildIdx : 1) : -1
-        const parentJobs = hasChildJobs && arrowIndex >= 0 ? jobs.slice(0, arrowIndex) : (hasChildJobs ? jobs.filter(j => j.parent_job_id === null) : jobs)
-        const childJobs = hasChildJobs && arrowIndex >= 0 ? jobs.slice(arrowIndex) : jobs.filter(j => j.parent_job_id !== null)
-
-        // Find rightmost target job:
-        // "give status pipeline for the most right side of child jobs"
-        // "if only parent jobs then put status same like parent jobs status"
-        const targetJob = childJobs.length > 0
-          ? childJobs[childJobs.length - 1]
-          : (parentJobs.length > 0 ? parentJobs[parentJobs.length - 1] : undefined)
-
-        const manualOrApprovalJob = jobs.find(
-          j => String(j.status || '').toLowerCase() === 'manual' ||
-               String(j.status || '').toLowerCase() === 'approval' ||
-               String(j.name || '').toLowerCase().trim() === 'approval' ||
-               String(j.name || '').toLowerCase().includes('approval')
-        )
-
-        const isManualOrApproval = (j?: { status?: string; name?: string } | null) => {
-          if (!j) return false
-          const st = String(j.status || '').toLowerCase().trim()
-          const nm = String(j.name || '').toLowerCase().trim()
-          return st === 'manual' || st === 'approval' || nm === 'approval' || nm.includes('approval')
-        }
-
-        if (childJobs.length > 0) {
-          // If child jobs: take the status of the most right side of child jobs
-          if (targetJob) {
-            if (isManualOrApproval(targetJob)) {
-              s = 'manual'
-            } else if (targetJob.status) {
-              s = String(targetJob.status).trim() as PipelineStatus
-            }
-          }
-        } else if (parentJobs.length > 0) {
-          // If only parent jobs: put status same like parent jobs status
-          // parent jobs approval = manual
-          if (isManualOrApproval(targetJob) || manualOrApprovalJob) {
-            s = 'manual'
-          } else if (targetJob?.status) {
-            s = String(targetJob.status).trim() as PipelineStatus
-          }
-        }
-
-        if (s === 'created') {
-          s = 'running'
-        }
-
+        const s = getPipelineEffectiveStatus(pipeline, rawJobs)
         const color = PIPELINE_STATUS_COLORS[s] || '#9AA3AD'
 
         return (

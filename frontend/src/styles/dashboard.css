@@ -1216,7 +1216,8 @@
 
 /* ── Panel Header Badge & Icon ───────────────────────────────────── */
 
-.users-analytics-view .panel-title-with-icon {
+.users-analytics-view .panel-title-with-icon,
+.analytics-card .panel-title-with-icon {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1225,13 +1226,15 @@
   color: var(--dashboard-text);
 }
 
-.users-analytics-view .panel-title-icon {
+.users-analytics-view .panel-title-icon,
+.analytics-card .panel-title-icon {
   font-size: 13px;
-  color: var(--dashboard-accent);
+  color: var(--card-accent, var(--dashboard-accent));
 }
 
 .users-analytics-view .panel-header-badge,
-.users-analytics-view .leaderboard-category-chip {
+.users-analytics-view .leaderboard-category-chip,
+.analytics-card .panel-header-badge {
   display: inline-flex;
   align-items: center;
   border-radius: 4px;
@@ -1239,12 +1242,23 @@
   font-size: 0.65rem;
   font-weight: 500;
   line-height: 14px;
-  border: 1px solid color-mix(in srgb, var(--dashboard-accent) 40%, var(--dashboard-border));
-  background: color-mix(in srgb, var(--dashboard-accent) 12%, var(--dashboard-surface));
-  color: color-mix(in srgb, var(--dashboard-accent) 80%, var(--dashboard-text));
+  border: 1px solid color-mix(in srgb, var(--card-accent, var(--dashboard-accent)) 40%, var(--dashboard-border));
+  background: color-mix(in srgb, var(--card-accent, var(--dashboard-accent)) 12%, var(--dashboard-surface));
+  color: color-mix(in srgb, var(--card-accent, var(--dashboard-accent)) 80%, var(--dashboard-text));
 }
 
-/* ── Activity Distribution Donut ─────────────────────────────────── */
+/* ── Activity & Pipeline Distribution Donut ─────────────────────────── */
+
+.donut-card {
+  overflow: visible;
+}
+
+.analytics-card header small {
+  font-size: 9px;
+  font-weight: 400;
+  color: var(--dashboard-muted);
+  display: block;
+}
 
 .users-analytics-view .users-analytics-donut-wrap {
   width: 100%;
@@ -1278,7 +1292,8 @@
   display: block;
 }
 
-.users-analytics-view .analytics-donut-body {
+.users-analytics-view .analytics-donut-body,
+.donut-card .analytics-donut-body {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -1286,6 +1301,12 @@
   gap: 16px;
   padding: 12px 14px;
   flex: 1;
+}
+
+.donut-card .analytics-donut-body {
+  padding: 10px 4px 4px;
+  gap: 14px;
+  min-height: 0;
 }
 
 .users-analytics-view .analytics-donut-chart {
@@ -1298,14 +1319,46 @@
   justify-content: center;
 }
 
-.users-analytics-view .analytics-donut-legend {
+.donut-card .analytics-donut-chart {
+  width: 122px;
+  height: 122px;
+  flex-shrink: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.donut-card .analytics-donut-chart .analytics-donut {
+  width: 100%;
+  height: 100%;
+  max-width: 122px;
+  max-height: 122px;
+  margin: 0;
+}
+
+.donut-card .analytics-donut-chart .analytics-donut b {
+  font-size: 1.25rem;
+}
+
+.donut-card .analytics-donut-chart .analytics-donut small {
+  font-size: 0.6rem;
+}
+
+.users-analytics-view .analytics-donut-legend,
+.donut-card .analytics-donut-legend {
   display: flex;
   flex-direction: column;
   gap: 5px;
   flex-shrink: 0;
 }
 
-.users-analytics-view .donut-badge {
+.donut-card .analytics-donut-legend {
+  gap: 4px;
+}
+
+.users-analytics-view .donut-badge,
+.donut-card .donut-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1319,44 +1372,60 @@
   color: var(--badge-text, var(--dashboard-text));
   white-space: nowrap;
   transition: all 120ms ease;
+  cursor: pointer;
 }
 
-.users-analytics-view .donut-badge:hover {
+.donut-card .donut-badge {
+  padding: 1.5px 6px;
+  font-size: 0.65rem;
+  line-height: 15px;
+}
+
+.users-analytics-view .donut-badge:hover,
+.donut-card .donut-badge:hover,
+.donut-card .donut-badge.is-active {
   filter: brightness(1.08);
+  transform: translateX(1px);
 }
 
-.users-analytics-view .donut-badge .legend-dot {
+.users-analytics-view .donut-badge .legend-dot,
+.donut-card .donut-badge .legend-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
-.users-analytics-view .donut-badge-pushes {
+.users-analytics-view .donut-badge-pushes,
+.donut-card .donut-badge-success {
   --badge-bg: color-mix(in srgb, #18D99A 12%, var(--dashboard-surface));
   --badge-border: color-mix(in srgb, #18D99A 35%, var(--dashboard-border));
   --badge-text: color-mix(in srgb, #18D99A 80%, var(--dashboard-text));
 }
 
-.users-analytics-view .donut-badge-mrs {
+.users-analytics-view .donut-badge-mrs,
+.donut-card .donut-badge-manual {
   --badge-bg: color-mix(in srgb, #FFC21C 12%, var(--dashboard-surface));
   --badge-border: color-mix(in srgb, #FFC21C 35%, var(--dashboard-border));
   --badge-text: color-mix(in srgb, #FFC21C 80%, var(--dashboard-text));
 }
 
-.users-analytics-view .donut-badge-merged {
+.users-analytics-view .donut-badge-merged,
+.donut-card .donut-badge-active {
   --badge-bg: color-mix(in srgb, #39A0FF 12%, var(--dashboard-surface));
   --badge-border: color-mix(in srgb, #39A0FF 35%, var(--dashboard-border));
   --badge-text: color-mix(in srgb, #39A0FF 80%, var(--dashboard-text));
 }
 
-.users-analytics-view .donut-badge-comments {
+.users-analytics-view .donut-badge-comments,
+.donut-card .donut-badge-canceled {
   --badge-bg: color-mix(in srgb, var(--dashboard-muted) 12%, var(--dashboard-surface));
   --badge-border: color-mix(in srgb, var(--dashboard-muted) 35%, var(--dashboard-border));
   --badge-text: var(--dashboard-text);
 }
 
-.users-analytics-view .donut-badge-issues {
+.users-analytics-view .donut-badge-issues,
+.donut-card .donut-badge-failed {
   --badge-bg: color-mix(in srgb, #FF5267 12%, var(--dashboard-surface));
   --badge-border: color-mix(in srgb, #FF5267 35%, var(--dashboard-border));
   --badge-text: color-mix(in srgb, #FF5267 80%, var(--dashboard-text));

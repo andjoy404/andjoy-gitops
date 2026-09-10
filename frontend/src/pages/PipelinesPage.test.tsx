@@ -207,6 +207,65 @@ describe('PipelinesPage', () => {
       expect(api.getGlobalConfig).toHaveBeenCalled()
     })
   })
+
+  it('calculates summary bar counts using effective status resolved from jobs', async () => {
+    api.getPipelineProjects.mockResolvedValueOnce([
+      {
+        group_id: 123,
+        project: {
+          id: 101, name: 'project-failed-child', path: 'mg/p1',
+          web_url: 'https://gitlab.com/p1', default_branch: 'main', topics: [],
+          namespace: { id: 1, name: 'TG', path: 'mg', full_path: 'mg' }, jobs_enabled: true,
+        },
+        pipelines: [{
+          id: 5001, iid: 1, project_id: 101, coverage: null, sha: 'sha1',
+          ref: 'main', status: 'success', source: 'push',
+          created_at: '2026-08-12T10:00:00Z', updated_at: '2026-08-12T10:05:00Z',
+          web_url: 'https://gitlab.com/p1/5001',
+        }],
+      },
+      {
+        group_id: 123,
+        project: {
+          id: 102, name: 'project-manual-job', path: 'mg/p2',
+          web_url: 'https://gitlab.com/p2', default_branch: 'main', topics: [],
+          namespace: { id: 1, name: 'TG', path: 'mg', full_path: 'mg' }, jobs_enabled: true,
+        },
+        pipelines: [{
+          id: 5002, iid: 2, project_id: 102, coverage: null, sha: 'sha2',
+          ref: 'main', status: 'running', source: 'push',
+          created_at: '2026-08-12T10:00:00Z', updated_at: '2026-08-12T10:05:00Z',
+          web_url: 'https://gitlab.com/p2/5002',
+        }],
+      },
+    ])
+
+    api.getBatchJobs.mockResolvedValueOnce([
+      {
+        id: 9001, name: 'build', stage: 'build', status: 'success',
+        pipeline_id: 5001, project_id: 101, created_at: '2026-08-12T09:50:00Z',
+        parent_job_id: null,
+      },
+      {
+        id: 9002, name: 'child-deploy', stage: 'deploy', status: 'failed',
+        pipeline_id: 5001, project_id: 101, created_at: '2026-08-12T09:55:00Z',
+        parent_job_id: 9001,
+      },
+      {
+        id: 9003, name: 'manual-gate', stage: 'deploy', status: 'manual',
+        pipeline_id: 5002, project_id: 102, created_at: '2026-08-12T09:52:00Z',
+        parent_job_id: null,
+      },
+    ])
+
+    render(<PipelinesPage />, { wrapper })
+    await waitFor(() => expect(screen.getAllByRole('table').length).toBeGreaterThan(0))
+
+    await waitFor(() => {
+      const segments = document.querySelectorAll('.summary-bar-segments > span')
+      expect(segments.length).toBe(2) // 1 failed segment, 1 manual segment
+    })
+  })
 })
 
 /* ── Last Run ordering ───────────────────────────────────────────────── */

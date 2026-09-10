@@ -31,7 +31,8 @@ import {
 } from '@ant-design/icons-svg'
 import type { IconDefinition, AbstractNode } from '@ant-design/icons-svg/lib/types'
 import { TIME_RANGES } from '../utils/timeRanges'
-import type { AnalyticsSummary, UserActivity, AnalyticsReadiness, GlobalConfigDTO } from '../types'
+import { PIPELINE_STATUSES, getPipelineEffectiveStatus } from '../utils/pipelineShared'
+import type { AnalyticsSummary, UserActivity, AnalyticsReadiness, GlobalConfigDTO, PipelineInfo, JobInfo } from '../types'
 import '../styles/dashboard.css'
 
 function PanelIcon({ icon, className }: { icon: IconDefinition; className?: string }) {
@@ -309,7 +310,7 @@ function DeliveryActivityPanel({ summary }: { summary: AnalyticsSummary }) {
         </div>
         <div className="activity-row">
           <span>Running</span>
-          <span style={{ color: 'var(--dashboard-success)' }}>{summary.active_count + summary.failed_count + summary.canceled_count}</span>
+          <span style={{ color: 'var(--dashboard-success)' }}>{summary.active_count}</span>
         </div>
         <div className="activity-row">
           <span>Canceled</span>
@@ -452,6 +453,7 @@ function pipelineRunsLabel(count: number): string {
 function SemicircleGauge({
   title,
   chip,
+  subtitle,
   tone,
   value,
   count,
@@ -461,6 +463,7 @@ function SemicircleGauge({
 }: {
   title: string
   chip: string
+  subtitle?: string
   tone: 'success' | 'danger'
   value: number | null | undefined
   count: number
@@ -477,15 +480,18 @@ function SemicircleGauge({
     <article className={loadingPanelClass(`analytics-card gauge-card ${tone === 'danger' ? 'failure-gauge-card' : 'success-gauge-card'}`, loading)}>
       <DashboardPanelLoader active={loading} />
       <header>
-        <div className="card-title-flex">
-          {tone === 'danger' ? (
-            <PanelIcon icon={CloseCircleIcon} className="card-icon" />
-          ) : (
-            <PanelIcon icon={CheckCircleIcon} className="card-icon" />
-          )}
-          <strong>{title}</strong>
+        <div>
+          <strong className="panel-title-with-icon">
+            <PanelIcon
+              icon={tone === 'danger' ? CloseCircleIcon : CheckCircleIcon}
+              className="panel-title-icon"
+              aria-hidden
+            />
+            {title}
+          </strong>
+          <small>{subtitle || (tone === 'danger' ? 'Share of failed pipelines' : 'Share of successful pipelines')}</small>
         </div>
-        <span>{chip}</span>
+        <span className="panel-header-badge">{chip}</span>
       </header>
       <div className="gauge-shell">
         <div
@@ -577,7 +583,16 @@ function PipelineAnalyticsDashboard({
     <div className="pipeline-analytics-grid">
       <article className={loadingPanelClass('analytics-card pipeline-runs-card', loading || historyLoading)}>
         <DashboardPanelLoader active={loading || historyLoading} />
-        <header><div className="card-title-flex"><PanelIcon icon={BranchesIcon} className="card-icon" /><strong>Total Pipelines</strong></div><span>History</span></header>
+        <header>
+          <div>
+            <strong className="panel-title-with-icon">
+              <PanelIcon icon={BranchesIcon} className="panel-title-icon" aria-hidden />
+              Total Pipelines
+            </strong>
+            <small>Runs captured in PostgreSQL</small>
+          </div>
+          <span className="panel-header-badge">History</span>
+        </header>
         <div className="analytics-big-number">{(fullHistoryPipelineCount ?? summary.pipeline_count ?? 0).toLocaleString()}</div>
         <p>Runs captured in PostgreSQL</p>
         {history.length > 0 && (
@@ -618,6 +633,7 @@ function PipelineAnalyticsDashboard({
       <SemicircleGauge
         title="Success rate"
         chip="Quality"
+        subtitle="Share of successful pipelines"
         tone="success"
         value={summary.success_rate}
         count={summary.success_count}
@@ -628,6 +644,7 @@ function PipelineAnalyticsDashboard({
       <SemicircleGauge
         title="Failure rate"
         chip="Completed"
+        subtitle="Share of failed pipelines"
         tone="danger"
         value={failedRate}
         count={summary.failed_count}
@@ -638,59 +655,108 @@ function PipelineAnalyticsDashboard({
 
       <article className={loadingPanelClass('analytics-card inventory-card', loading)}>
         <DashboardPanelLoader active={loading} />
-        <header><div className="card-title-flex"><PanelIcon icon={TeamIcon} className="card-icon" /><strong>Group inventory</strong></div><span>Configured</span></header>
+        <header>
+          <div>
+            <strong className="panel-title-with-icon">
+              <PanelIcon icon={TeamIcon} className="panel-title-icon" aria-hidden />
+              Group inventory
+            </strong>
+            <small>GitLab groups linked to this environment</small>
+          </div>
+          <span className="panel-header-badge">Configured</span>
+        </header>
         <div className="analytics-big-number">{summary.group_count}</div><p>GitLab groups linked to this environment</p>
         <small className="inventory-bottom-badge"><i className="inventory-swatch" />Active groups per period</small>
       </article>
 
       <article className={loadingPanelClass('analytics-card donut-card', loading)}>
         <DashboardPanelLoader active={loading} />
-        <header><div className="card-title-flex"><PanelIcon icon={PieChartIcon} className="card-icon" /><strong>Pipeline status mix</strong></div><span>Distribution</span></header>
-        <div className="analytics-donut">
-          <svg className={`donut-svg${activeDonutArc ? ' has-active' : ''}`} viewBox="0 0 142 142" aria-hidden="true">
-            <g transform="rotate(-90 71 71)">
-              <circle className="donut-track" cx="71" cy="71" r="62.5" fill="none" strokeWidth="17" />
-              {donutArcs.map((arc, index) => {
-                if (arc.length <= 0) return null
-                const dash = arc.length + 1
-                return (
-                  <circle
-                    key={arc.label}
-                    className={`donut-seg${activeDonut === index ? ' is-active' : ''}`}
-                    style={{ stroke: arc.color, strokeDasharray: `${dash} ${donutCircumference - dash}`, strokeDashoffset: -arc.start } as React.CSSProperties}
-                    cx="71"
-                    cy="71"
-                    r="62.5"
-                    fill="none"
-                    strokeWidth="17"
-                    tabIndex={0}
-                    role="img"
-                    aria-label={`${arc.label}: ${arc.value.toLocaleString()} pipelines, ${percent(arc.value).toFixed(1)}%`}
-                    onMouseEnter={() => setActiveDonut(index)}
-                    onMouseLeave={() => setActiveDonut(null)}
-                    onFocus={() => setActiveDonut(index)}
-                    onBlur={() => setActiveDonut(null)}
-                  />
-                )
-              })}
-            </g>
-          </svg>
-          <div className="donut-center"><b>{summary.pipeline_count}</b><small>runs</small></div>
-          <span className={`donut-tooltip${activeDonutArc ? ' is-active' : ''}`} role="tooltip" aria-hidden={!activeDonutArc}>
-            {activeDonutArc && (
-              <span className="donut-tooltip-line">
-                <i className={`metric-dot ${activeDonutArc.kind}`} aria-hidden="true" />
-                <span>{activeDonutArc.label} · {activeDonutArc.value.toLocaleString()} · {percent(activeDonutArc.value).toFixed(1)}%</span>
+        <header>
+          <div>
+            <strong className="panel-title-with-icon">
+              <PieChartOutlined className="panel-title-icon" aria-hidden />
+              Pipeline status mix
+            </strong>
+            <small>Distribution by pipeline status</small>
+          </div>
+          <span className="panel-header-badge">Distribution</span>
+        </header>
+        <div className="analytics-donut-body">
+          <div className="analytics-donut-chart">
+            <div className="analytics-donut">
+              <svg className={`donut-svg${activeDonutArc ? ' has-active' : ''}`} viewBox="0 0 142 142" aria-hidden="true">
+                <g transform="rotate(-90 71 71)">
+                  <circle className="donut-track" cx="71" cy="71" r="62.5" fill="none" strokeWidth="17" />
+                  {donutArcs.map((arc, index) => {
+                    if (arc.length <= 0) return null
+                    const dash = arc.length + 1
+                    return (
+                      <circle
+                        key={arc.label}
+                        className={`donut-seg${activeDonut === index ? ' is-active' : ''}`}
+                        style={{ stroke: arc.color, strokeDasharray: `${dash} ${donutCircumference - dash}`, strokeDashoffset: -arc.start } as React.CSSProperties}
+                        cx="71"
+                        cy="71"
+                        r="62.5"
+                        fill="none"
+                        strokeWidth="17"
+                        tabIndex={0}
+                        role="img"
+                        aria-label={`${arc.label}: ${arc.value.toLocaleString()} pipelines, ${percent(arc.value).toFixed(1)}%`}
+                        onMouseEnter={() => setActiveDonut(index)}
+                        onMouseLeave={() => setActiveDonut(null)}
+                        onFocus={() => setActiveDonut(index)}
+                        onBlur={() => setActiveDonut(null)}
+                      />
+                    )
+                  })}
+                </g>
+              </svg>
+              <div className="donut-center">
+                <b>{summary.pipeline_count.toLocaleString()}</b>
+                <small>runs</small>
+              </div>
+              <span className={`donut-tooltip${activeDonutArc ? ' is-active' : ''}`} role="tooltip" aria-hidden={!activeDonutArc}>
+                {activeDonutArc && (
+                  <span className="donut-tooltip-line">
+                    <i className={`metric-dot ${activeDonutArc.kind}`} style={{ background: activeDonutArc.color }} aria-hidden="true" />
+                    <span>{activeDonutArc.label} · {activeDonutArc.value.toLocaleString()} · {percent(activeDonutArc.value).toFixed(1)}%</span>
+                  </span>
+                )}
               </span>
-            )}
-          </span>
+            </div>
+          </div>
+          <div className="analytics-donut-legend donut-legend">
+            {donutSegmentDefs.map((seg, index) => (
+              <span
+                key={seg.label}
+                className={`donut-badge donut-badge-${seg.kind}${activeDonut === index ? ' is-active' : ''}`}
+                onMouseEnter={() => setActiveDonut(index)}
+                onMouseLeave={() => setActiveDonut(null)}
+                onFocus={() => setActiveDonut(index)}
+                onBlur={() => setActiveDonut(null)}
+                tabIndex={0}
+              >
+                <i className="legend-dot" style={{ background: seg.color }} />
+                {seg.label} · {seg.value.toLocaleString()}
+              </span>
+            ))}
+          </div>
         </div>
-        <div className="donut-legend"><span><i className="metric-dot success" />{percent(summary.success_count).toFixed(1)}% success</span><span><i className="metric-dot failed" />{percent(summary.failed_count).toFixed(1)}% failed</span></div>
       </article>
 
       <article className={loadingPanelClass('analytics-card distribution-card', loading)}>
         <DashboardPanelLoader active={loading} />
-        <header><div><div className="card-title-flex"><PanelIcon icon={BarChartIcon} className="card-icon" /><strong>Status distribution</strong></div><small>Share of collected pipeline runs</small></div><span>PostgreSQL</span></header>
+        <header>
+          <div>
+            <strong className="panel-title-with-icon">
+              <PanelIcon icon={BarChartIcon} className="panel-title-icon" aria-hidden />
+              Status distribution
+            </strong>
+            <small>Share of collected pipeline runs</small>
+          </div>
+          <span className="panel-header-badge">PostgreSQL</span>
+        </header>
         <div className="analytics-bar-list">
           {statusRows.map(([label, value, kind]) => <div className="analytics-bar-row" key={kind}>
             <span><i className={`metric-dot ${kind}`} />{label}</span><div className="analytics-bar-track"><i className={kind} style={{ width: `${percent(value)}%` }} /></div><b>{value}</b><small>{percent(value).toFixed(1)}%</small>
@@ -700,14 +766,32 @@ function PipelineAnalyticsDashboard({
 
       <article className={loadingPanelClass('analytics-card inventory-card', loading)}>
         <DashboardPanelLoader active={loading} />
-        <header><div className="card-title-flex"><PanelIcon icon={FolderIcon} className="card-icon" /><strong>Project inventory</strong></div><span>Synced</span></header>
+        <header>
+          <div>
+            <strong className="panel-title-with-icon">
+              <PanelIcon icon={FolderIcon} className="panel-title-icon" aria-hidden />
+              Project inventory
+            </strong>
+            <small>Projects tracked in this group</small>
+          </div>
+          <span className="panel-header-badge">Synced</span>
+        </header>
         <div className="analytics-big-number">{summary.project_count}</div><p>Projects tracked in this group</p>
         <small className="inventory-bottom-badge"><i className="inventory-swatch" />Active projects per period</small>
       </article>
 
       <article className={loadingPanelClass('analytics-card runner-status-card', loading)}>
         <DashboardPanelLoader active={loading} />
-        <header><div><div className="card-title-flex"><PanelIcon icon={ThunderboltIcon} className="card-icon" /><strong>Runner status</strong></div><small>Latest synchronized runner availability</small></div><span>Runner state</span></header>
+        <header>
+          <div>
+            <strong className="panel-title-with-icon">
+              <PanelIcon icon={ThunderboltIcon} className="panel-title-icon" aria-hidden />
+              Runner status
+            </strong>
+            <small>Latest synchronized runner availability</small>
+          </div>
+          <span className="panel-header-badge">Runner state</span>
+        </header>
         <div className="analytics-bar-list">
           {runnerRows.map(([label, value, kind]) => <div className="analytics-bar-row" key={kind}>
             <span><i className={`metric-dot runner-${kind}`} />{label}</span><div className="analytics-bar-track"><i className={`runner-${kind}`} style={{ width: `${runnerPercent(value)}%` }} /></div><b>{value}</b><small>{runnerPercent(value).toFixed(1)}%</small>
@@ -717,7 +801,16 @@ function PipelineAnalyticsDashboard({
 
       <article className={loadingPanelClass('analytics-card delivery-card', loading)}>
         <DashboardPanelLoader active={loading} />
-        <header><div className="card-title-flex"><PanelIcon icon={RocketIcon} className="card-icon" /><strong>Delivery activity</strong></div><span>Live state</span></header>
+        <header>
+          <div>
+            <strong className="panel-title-with-icon">
+              <PanelIcon icon={RocketIcon} className="panel-title-icon" aria-hidden />
+              Delivery activity
+            </strong>
+            <small>Active and in-progress runs</small>
+          </div>
+          <span className="panel-header-badge">Live state</span>
+        </header>
         <div className="delivery-value"><b>{summary.active_count}</b><small>active now</small></div>
         <div className="delivery-row"><span><i className="metric-dot active" />Running</span><b>{summary.active_count}</b></div>
         <div className="delivery-row"><span><i className="metric-dot canceled" />Canceled</span><b>{summary.canceled_count}</b></div>
@@ -725,7 +818,16 @@ function PipelineAnalyticsDashboard({
 
       <article className={loadingPanelClass('analytics-card inventory-card runner-inventory-card', loading)}>
         <DashboardPanelLoader active={loading} />
-        <header><div className="card-title-flex"><PanelIcon icon={ClusterIcon} className="card-icon" /><strong>Runner inventory</strong></div><span>Synced</span></header>
+        <header>
+          <div>
+            <strong className="panel-title-with-icon">
+              <PanelIcon icon={ClusterIcon} className="panel-title-icon" aria-hidden />
+              Runner inventory
+            </strong>
+            <small>Self-hosted runners in this group</small>
+          </div>
+          <span className="panel-header-badge">Synced</span>
+        </header>
         <div className="analytics-big-number">{summary.runner_count}</div><p>Self-hosted runners in this group</p>
         <small className="inventory-bottom-badge"><i className="inventory-swatch" />{summary.runner_running_count + summary.runner_idle_count} currently online</small>
       </article>
@@ -1176,18 +1278,104 @@ function DashboardPage() {
     enabled: !!selectedEnvId && !!selectedGroupId,
   })
 
+  const pipelineView = config?.pipeline_view || 'latest'
+
+  const { data: pipelineProjects, isLoading: pipelineProjectsLoading } = useQuery({
+    queryKey: ['pipeline-projects', selectedEnvId, selectedGroupId, pipelineView, pipelineRangeHours],
+    queryFn: () =>
+      api.getPipelineProjects({ group_id: selectedGroupId || 0, hours: pipelineRangeHours, pipeline_view: pipelineView }),
+    enabled: !!selectedGroupId && activeTab === 'pipelines',
+    staleTime: 5_000,
+  })
+
+  const { pipelineIdsStr, candidatePipelines } = useMemo(() => {
+    const latestOnly = pipelineView !== 'all'
+    const list: PipelineInfo[] = []
+    const seen = new Set<number>()
+    for (const groupData of pipelineProjects || []) {
+      let cands = groupData.pipelines || []
+      if (latestOnly) {
+        const latestByRef = new Map<string, PipelineInfo>()
+        for (const p of cands) {
+          const existing = latestByRef.get(p.ref)
+          if (!existing || p.updated_at > existing.updated_at) {
+            latestByRef.set(p.ref, p)
+          }
+        }
+        cands = Array.from(latestByRef.values())
+      }
+      for (const p of cands) {
+        if (!seen.has(p.id)) {
+          seen.add(p.id)
+          list.push(p)
+        }
+      }
+    }
+    return {
+      candidatePipelines: list,
+      pipelineIdsStr: list.map((p) => p.id).join(','),
+    }
+  }, [pipelineProjects, pipelineView])
+
+  const { data: allBatchJobs } = useQuery({
+    queryKey: ['batch-jobs', selectedEnvId, pipelineIdsStr],
+    queryFn: () => api.getBatchJobs(pipelineIdsStr),
+    enabled: pipelineIdsStr.length > 0 && activeTab === 'pipelines',
+    staleTime: 10_000,
+  })
+
+  const jobsByPipeline = useMemo(() => {
+    const map = new Map<number, JobInfo[]>()
+    if (allBatchJobs) {
+      for (const job of allBatchJobs) {
+        const existing = map.get(job.pipeline_id) || []
+        existing.push(job)
+        map.set(job.pipeline_id, existing)
+      }
+    }
+    return map
+  }, [allBatchJobs])
+
   /* ── Defensive: ensure usersData is always an array ──────────────── */
   const users: UserActivity[] = Array.isArray(usersData) ? usersData : []
   const hasUsersData = !!users.length
   const showUsersLoading = usersLoading && !hasUsersData
 
   /* ── Always define derived values before any early returns ──────── */
-  const summary = useMemo(
-    () => summaryData ?? EMPTY_ANALYTICS_SUMMARY,
-    [summaryData],
-  )
+  const summary = useMemo<AnalyticsSummary>(() => {
+    const base = summaryData ?? EMPTY_ANALYTICS_SUMMARY
+    if (!pipelineProjects) return base
 
-  const pipelineLoading = summaryLoading || !!pipelineReadyQuery.isLoading || datasetIsPending(pipelineReadyQuery.data, 'pipelines', pipelineReadyQuery.isLoading)
+    const counts: Record<string, number> = {}
+    for (const s of PIPELINE_STATUSES) counts[s.value] = 0
+    for (const p of candidatePipelines) {
+      const rawJobs = jobsByPipeline.get(p.id) || []
+      const st = getPipelineEffectiveStatus(p, rawJobs)
+      counts[st] = (counts[st] || 0) + 1
+    }
+
+    const successCount = counts['success'] || 0
+    const failedCount = counts['failed'] || 0
+    const manualCount = counts['manual'] || 0
+    const activeCount = counts['running'] || 0
+    const canceledCount = counts['canceled'] || 0
+    const pipelineCount = candidatePipelines.length
+    const completed = successCount + failedCount
+    const successRate = completed > 0 ? Math.round((successCount / completed) * 10000) / 100 : 0
+
+    return {
+      ...base,
+      success_count: successCount,
+      failed_count: failedCount,
+      manual_count: manualCount,
+      active_count: activeCount,
+      canceled_count: canceledCount,
+      pipeline_count: pipelineCount,
+      success_rate: successRate,
+    }
+  }, [summaryData, pipelineProjects, candidatePipelines, jobsByPipeline])
+
+  const pipelineLoading = summaryLoading || (activeTab === 'pipelines' && !!selectedGroupId && pipelineProjectsLoading && !summaryData) || !!pipelineReadyQuery.isLoading || datasetIsPending(pipelineReadyQuery.data, 'pipelines', pipelineReadyQuery.isLoading)
 
   const hasNoGroup = !selectedGroupId
 

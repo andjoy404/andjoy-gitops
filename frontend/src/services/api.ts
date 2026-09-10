@@ -253,11 +253,28 @@ export const api = {
     }
     return apiRequest<JobInfo[]>(`/api/jobs?${params}`)
   },
-  getBatchJobs: (pipelineIdsStr: string) => {
-    const params = new URLSearchParams({
-      pipeline_ids: pipelineIdsStr,
-    })
-    return apiRequest<JobInfo[]>(`/api/jobs/batch?${params}`)
+  getBatchJobs: async (pipelineIdsStr: string) => {
+    if (!pipelineIdsStr) return []
+    const ids = pipelineIdsStr.split(',').filter(Boolean)
+    if (ids.length <= 100) {
+      const params = new URLSearchParams({
+        pipeline_ids: pipelineIdsStr,
+      })
+      return apiRequest<JobInfo[]>(`/api/jobs/batch?${params}`)
+    }
+    const chunks: string[][] = []
+    for (let i = 0; i < ids.length; i += 100) {
+      chunks.push(ids.slice(i, i + 100))
+    }
+    const results = await Promise.all(
+      chunks.map((chunk) => {
+        const params = new URLSearchParams({
+          pipeline_ids: chunk.join(','),
+        })
+        return apiRequest<JobInfo[]>(`/api/jobs/batch?${params}`)
+      }),
+    )
+    return results.flat()
   },
   startPipeline: (projectId: number, branch: string, envVars?: Record<string, string>) => {
     return api.post<{ id: number }>('/api/pipelines/start', {

@@ -1289,15 +1289,34 @@ public class AnalyticsService {
                 + " GROUP BY ap.status";
 
             for (Map<String, Object> row : jdbcTemplate.queryForList(sql)) {
-                String st = String.valueOf(row.get("status"));
+                String st = String.valueOf(row.get("status")).trim().toLowerCase();
                 int cnt = ((Number) row.get("cnt")).intValue();
                 switch (st) {
-                    case "success": m.put("success", cnt); break;
-                    case "failed": m.put("failed", cnt); break;
-                    case "manual": m.put("manual", cnt); break;
-                    case "running": m.put("running", cnt); break;
-                    case "canceled": m.put("canceled", cnt); break;
-                    default: m.put(st, cnt); break;
+                    case "success":
+                        m.put("success", m.getOrDefault("success", 0) + cnt);
+                        break;
+                    case "failed":
+                        m.put("failed", m.getOrDefault("failed", 0) + cnt);
+                        break;
+                    case "manual":
+                    case "approval":
+                        m.put("manual", m.getOrDefault("manual", 0) + cnt);
+                        break;
+                    case "running":
+                    case "created":
+                    case "preparing":
+                    case "waiting_for_resource":
+                    case "scheduled":
+                    case "pending":
+                        m.put("running", m.getOrDefault("running", 0) + cnt);
+                        break;
+                    case "canceled":
+                    case "canceling":
+                        m.put("canceled", m.getOrDefault("canceled", 0) + cnt);
+                        break;
+                    default:
+                        m.put(st, m.getOrDefault(st, 0) + cnt);
+                        break;
                 }
             }
         } catch (Exception e) {

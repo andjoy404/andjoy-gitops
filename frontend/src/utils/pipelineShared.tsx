@@ -166,6 +166,66 @@ export function orderJobsByStageSequence(jobs: JobInfo[]): JobInfo[] {
    return orderJobsByStageSequence(Array.from(latestByBaseName.values()))
  }
 
+ export function getPipelineEffectiveStatus(
+    pipeline?: PipelineInfo | null,
+    rawJobs: JobInfo[] = [],
+  ): PipelineStatus {
+    let s = String(pipeline?.status || 'unknown').toLowerCase().trim() as PipelineStatus
+
+    if (!rawJobs || rawJobs.length === 0) {
+      if (s === 'created') return 'running'
+      return s || 'unknown'
+    }
+
+    const jobs = orderJobsByStageSequence(rawJobs)
+
+    const hasChildJobs = jobs.some(j => j.parent_job_id !== null)
+    const firstChildIdx = jobs.findIndex(j => j.parent_job_id !== null)
+    const arrowIndex = hasChildJobs && jobs.length > 1 ? (firstChildIdx > 0 ? firstChildIdx : 1) : -1
+    const parentJobs = hasChildJobs && arrowIndex >= 0 ? jobs.slice(0, arrowIndex) : (hasChildJobs ? jobs.filter(j => j.parent_job_id === null) : jobs)
+    const childJobs = hasChildJobs && arrowIndex >= 0 ? jobs.slice(arrowIndex) : jobs.filter(j => j.parent_job_id !== null)
+
+    const targetJob = childJobs.length > 0
+      ? childJobs[childJobs.length - 1]
+      : (parentJobs.length > 0 ? parentJobs[parentJobs.length - 1] : undefined)
+
+    const manualOrApprovalJob = jobs.find(
+      j => String(j.status || '').toLowerCase() === 'manual' ||
+           String(j.status || '').toLowerCase() === 'approval' ||
+           String(j.name || '').toLowerCase().trim() === 'approval' ||
+           String(j.name || '').toLowerCase().includes('approval')
+    )
+
+    const isManualOrApproval = (j?: { status?: string; name?: string } | null) => {
+      if (!j) return false
+      const st = String(j.status || '').toLowerCase().trim()
+      const nm = String(j.name || '').toLowerCase().trim()
+      return st === 'manual' || st === 'approval' || nm === 'approval' || nm.includes('approval')
+    }
+
+    if (childJobs.length > 0) {
+      if (targetJob) {
+        if (isManualOrApproval(targetJob)) {
+          s = 'manual'
+        } else if (targetJob.status) {
+          s = String(targetJob.status).toLowerCase().trim() as PipelineStatus
+        }
+      }
+    } else if (parentJobs.length > 0) {
+      if (isManualOrApproval(targetJob) || manualOrApprovalJob) {
+        s = 'manual'
+      } else if (targetJob?.status) {
+        s = String(targetJob.status).toLowerCase().trim() as PipelineStatus
+      }
+    }
+
+    if (s === 'created') {
+      s = 'running'
+    }
+
+    return s
+  }
+
  function formatDuration(seconds: number | null): string {
   if (seconds == null || seconds <= 0) return '—'
   const h = Math.floor(seconds / 3600)

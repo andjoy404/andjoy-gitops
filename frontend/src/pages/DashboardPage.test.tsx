@@ -947,6 +947,65 @@ describe('DashboardPage', () => {
       expect(tooltip.textContent).toContain('20.0%')
       expect(tooltip.textContent).toContain('20 of 100 completed pipelines')
     })
+
+    it('calculates Success Rate, Failure Rate, Pipeline Status Mix, and Status Distribution matching resolved pipeline job statuses', async () => {
+      const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+      queryClient.setQueryData(['analytics-readiness', 1, 123], {
+        ready: true, data_available: true, message: '', last_completed_at: null,
+        project_count: 2, pipeline_count: 2, runner_state_count: 0, user_count: 0,
+        user_event_count: 0, user_issue_count: 0,
+      })
+      queryClient.setQueryData(['global-config'], { company_name: 'T', pipeline_view: 'latest' })
+      queryClient.setQueryData(['analytics-summary-full', 1, 123], getDefaultSummary())
+
+      queryClient.setQueryData(['pipeline-projects', 1, 123, 'latest', 24], [
+        {
+          project: { id: 101, name: 'proj-1', namespace: { path: 'g' }, web_url: '', default_branch: 'main' },
+          pipelines: [{ id: 5001, project_id: 101, ref: 'main', status: 'success', created_at: '2026-08-12T10:00:00Z', updated_at: '2026-08-12T10:00:00Z' }],
+        },
+        {
+          project: { id: 102, name: 'proj-2', namespace: { path: 'g' }, web_url: '', default_branch: 'main' },
+          pipelines: [{ id: 5002, project_id: 102, ref: 'main', status: 'running', created_at: '2026-08-12T10:00:00Z', updated_at: '2026-08-12T10:00:00Z' }],
+        },
+      ])
+
+      queryClient.setQueryData(['batch-jobs', 1, '5001,5002'], [
+        { id: 901, pipeline_id: 5001, name: 'build', stage: 'build', status: 'success', parent_job_id: null },
+        { id: 902, pipeline_id: 5001, name: 'child-deploy', stage: 'deploy', status: 'failed', parent_job_id: 901 },
+        { id: 903, pipeline_id: 5002, name: 'gate', stage: 'deploy', status: 'manual', parent_job_id: null },
+      ])
+
+      render(
+        <QueryClientProvider client={queryClient}>
+          <GroupContext.Provider value={{ selectedGroupId: 123, selectedEnvId: 1, setSelectedGroupId: vi.fn(), groupOptions: [{ id: 123, name: 'G' }] as any }}>
+            <DashboardPage />
+          </GroupContext.Provider>
+        </QueryClientProvider>
+      )
+
+      // Failure rate card: 1 failed pipeline, 50.0%
+      const failureCard = gaugeCard('Failure rate')
+      expect(failureCard.querySelector('.css-gauge b')?.textContent).toBe('50.0%')
+      expect(failureCard.querySelector('p')?.textContent).toContain('1 failed pipeline')
+
+      // Success rate card: 0 successful pipelines, 0.0%
+      const successCard = gaugeCard('Success rate')
+      expect(successCard.querySelector('.css-gauge b')?.textContent).toBe('0.0%')
+      expect(successCard.querySelector('p')?.textContent).toContain('0 successful pipelines')
+
+      // Pipeline status mix (donut): center count = 2
+      expect(document.querySelector('.donut-center b')?.textContent).toBe('2')
+
+      // Status distribution: Failed: 1, Manual: 1, Success: 0
+      const distributionRows = document.querySelectorAll('.distribution-card .analytics-bar-row')
+      expect(distributionRows.length).toBe(5)
+      // Success
+      expect(distributionRows[0].querySelector('b')?.textContent).toBe('0')
+      // Manual
+      expect(distributionRows[1].querySelector('b')?.textContent).toBe('1')
+      // Failed
+      expect(distributionRows[2].querySelector('b')?.textContent).toBe('1')
+    })
   })
 
   describe('pipeline runs history bars', () => {
@@ -1331,10 +1390,9 @@ describe('DashboardPage', () => {
       expect(card.querySelector('.donut-center b')?.textContent).toBe('75')
       expect(card.querySelector('.donut-center small')?.textContent).toBe('runs')
       const legend = card.querySelector('.donut-legend')?.textContent ?? ''
-      expect(legend).toContain('53.3% success')
-      expect(legend).toContain('26.7% failed')
+      expect(legend).toContain('Success · 40')
+      expect(legend).toContain('Failed · 20')
       expect(card.querySelector('.donut-track')).toBeTruthy()
-      expect(card.textContent).not.toContain('Canceled')
     })
 
     it('shows a themed tooltip with status name, count, and percentage on hover and highlights the segment', () => {
@@ -1405,7 +1463,7 @@ describe('DashboardPage', () => {
       expect(card.querySelector('.donut-track')).toBeTruthy()
       expect(card.querySelector('.donut-center b')?.textContent).toBe('0')
       expect(screen.queryByText('NaN')).not.toBeInTheDocument()
-      expect(card.querySelector('.donut-legend')?.textContent).toContain('0.0% success')
+      expect(card.querySelector('.donut-legend')?.textContent).toContain('Success · 0')
       const tooltip = card.querySelector('.donut-tooltip') as HTMLElement
       expect(tooltip.classList.contains('is-active')).toBe(false)
     })
