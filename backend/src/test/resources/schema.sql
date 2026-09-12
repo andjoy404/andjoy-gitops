@@ -174,17 +174,18 @@ CREATE INDEX IF NOT EXISTS analytics_upr_project_id_idx ON analytics_user_projec
 CREATE INDEX IF NOT EXISTS analytics_upr_group_id_idx ON analytics_user_project_relations (group_id);
 
 CREATE TABLE IF NOT EXISTS analytics_jobs (
-    gitlab_id      BIGINT PRIMARY KEY,
-    pipeline_id    BIGINT NOT NULL,
-    project_id     BIGINT NOT NULL,
-    name           VARCHAR(255) NOT NULL,
-    stage          VARCHAR(50) NOT NULL,
-    branch         VARCHAR(50) NOT NULL,
-    status         VARCHAR(20) NOT NULL,
-    allow_failure  BOOLEAN NOT NULL,
-    created_at     TIMESTAMP WITH TIME ZONE NOT NULL,
-    web_url        VARCHAR(1000) NOT NULL,
-    collected_at    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+    gitlab_id              BIGINT PRIMARY KEY,
+    pipeline_id            BIGINT NOT NULL,
+    project_id             BIGINT NOT NULL,
+    name                   VARCHAR(255) NOT NULL,
+    stage                  VARCHAR(50) NOT NULL,
+    branch                 VARCHAR(50) NOT NULL,
+    status                 VARCHAR(20) NOT NULL,
+    allow_failure          BOOLEAN NOT NULL,
+    created_at             TIMESTAMP WITH TIME ZONE NOT NULL,
+    web_url                VARCHAR(1000) NOT NULL,
+    collected_at           TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    pipeline_user_username VARCHAR(255)
 );
 CREATE INDEX IF NOT EXISTS analytics_jobs_pipeline_id_idx ON analytics_jobs (pipeline_id);
 CREATE INDEX IF NOT EXISTS analytics_jobs_status_created_idx ON analytics_jobs (status, created_at);

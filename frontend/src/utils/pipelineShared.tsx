@@ -374,16 +374,18 @@ function JobDetailBody({ job, pipelineSha, projectWebUrl }: { job: JobInfo; pipe
         </div>
       )}
 
-      {/* Commit, Ref, Tags row — columns adapt to available fields */}
-      {((pipelineSha || job.commit_sha) || job.ref || (job.tag_list && job.tag_list.length > 0)) && (() => {
+      {/* Commit, Ref, Triggered-by, Tags row — columns adapt to available fields */}
+      {((pipelineSha || job.commit_sha) || job.ref || job.pipeline_user_username || (job.tag_list && job.tag_list.length > 0)) && (() => {
         const hasCommit = typeof pipelineSha === 'string' || typeof job.commit_sha === 'string'
         const hasRef = typeof job.ref === 'string' && job.ref.length > 0
+        const hasAuthor = typeof job.pipeline_user_username === 'string' && job.pipeline_user_username.trim().length > 0
         const hasTags = job.tag_list && job.tag_list.length > 0
-        const hasSomething = hasCommit || hasRef || hasTags
+        const hasSomething = hasCommit || hasRef || hasAuthor || hasTags
         if (!hasSomething) return null
         const colSizes: string[] = []
         if (hasCommit) colSizes.push('1fr')
         if (hasRef) colSizes.push('1fr')
+        if (hasAuthor) colSizes.push('1fr')
         if (hasTags) colSizes.push('1fr')
         return (
           <div style={{ display: 'grid', gridTemplateColumns: colSizes.join(' '), gap: '8px', marginBottom: '10px' }}>
@@ -402,6 +404,13 @@ function JobDetailBody({ job, pipelineSha, projectWebUrl }: { job: JobInfo; pipe
             {hasRef && (
               <JobDetailProperty icon={<BranchesOutlined style={{ fontSize: 14 }} />} label="Ref">
                 <span className="pipeline-branch">{job.ref}</span>
+              </JobDetailProperty>
+            )}
+            {hasAuthor && (
+              <JobDetailProperty icon={<UserOutlined style={{ fontSize: 14 }} />} label="Triggered by">
+                <span style={{ fontFamily: 'var(--font-mono, monospace)', fontWeight: 500 }}>
+                  @{job.pipeline_user_username!.replace(/^@/, '')}
+                </span>
               </JobDetailProperty>
             )}
             {hasTags && (
@@ -855,28 +864,46 @@ export function PipelineDetailModal({
               </JobDetailProperty>
             </div>
 
-            {/* Commit, Ref row */}
-            {(pipeline.sha || pipeline.ref) && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
-                {pipeline.sha && (
-                  <JobDetailProperty icon={<CodeOutlined style={{ fontSize: 14 }} />} label="Commit">
-                    <a
-                      href={`${projectWebUrl}/-/commit/${pipeline.sha}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ color: 'var(--dashboard-accent)', textDecoration: 'none' }}
-                    >
-                      {pipeline.sha.substring(0, 12)}
-                    </a>
-                  </JobDetailProperty>
-                )}
-                {pipeline.ref && (
-                  <JobDetailProperty icon={<BranchesOutlined style={{ fontSize: 14 }} />} label="Ref">
-                    <span className="pipeline-branch">{pipeline.ref}</span>
-                  </JobDetailProperty>
-                )}
-              </div>
-            )}
+            {/* Commit, Ref, Triggered by row */}
+            {(() => {
+              const triggerUser = (pipeline as any)?.pipeline_user_username || jobs.find(j => j.pipeline_user_username)?.pipeline_user_username
+              const hasCommit = Boolean(pipeline.sha)
+              const hasRef = Boolean(pipeline.ref)
+              const hasAuthor = typeof triggerUser === 'string' && triggerUser.trim().length > 0
+              if (!hasCommit && !hasRef && !hasAuthor) return null
+              const colSizes: string[] = []
+              if (hasCommit) colSizes.push('1fr')
+              if (hasRef) colSizes.push('1fr')
+              if (hasAuthor) colSizes.push('1fr')
+              return (
+                <div style={{ display: 'grid', gridTemplateColumns: colSizes.join(' '), gap: '8px', marginBottom: '10px' }}>
+                  {hasCommit && (
+                    <JobDetailProperty icon={<CodeOutlined style={{ fontSize: 14 }} />} label="Commit">
+                      <a
+                        href={`${projectWebUrl}/-/commit/${pipeline.sha}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: 'var(--dashboard-accent)', textDecoration: 'none' }}
+                      >
+                        {pipeline.sha.substring(0, 12)}
+                      </a>
+                    </JobDetailProperty>
+                  )}
+                  {hasRef && (
+                    <JobDetailProperty icon={<BranchesOutlined style={{ fontSize: 14 }} />} label="Ref">
+                      <span className="pipeline-branch">{pipeline.ref}</span>
+                    </JobDetailProperty>
+                  )}
+                  {hasAuthor && (
+                    <JobDetailProperty icon={<UserOutlined style={{ fontSize: 14 }} />} label="Triggered by">
+                      <span style={{ fontFamily: 'var(--font-mono, monospace)', fontWeight: 500 }}>
+                        @{triggerUser.replace(/^@/, '')}
+                      </span>
+                    </JobDetailProperty>
+                  )}
+                </div>
+              )
+            })()}
           </div>
 
           {/* DAG graph */}

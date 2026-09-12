@@ -45,7 +45,7 @@ public class JobService {
             + "finished_at, duration, queued_duration, started_at, when_keyword, "
             + "trigger_keyword, runner_id, runner_name, runner_description, "
             + "commit_sha, commit_short_message, job_tags, failure_reason, "
-            + "parent_job_id "
+            + "parent_job_id, pipeline_user_username "
             + "FROM analytics_jobs "
             + "WHERE project_id = ? AND pipeline_id = ?"
         );
@@ -102,6 +102,7 @@ public class JobService {
                 }
                 job.setFailure_reason((String) row.get("failure_reason"));
                 job.setParent_job_id(asLongNullable(row.get("parent_job_id")));
+                job.setPipelineUserUsername((String) row.get("pipeline_user_username"));
                 result.add(job);
             }
         } catch (Exception e) {
@@ -114,6 +115,17 @@ public class JobService {
     public List<JobDTO> getBatchJobs(List<Long> pipelineIds, List<Long> projectIds) {
         List<JobDTO> result = queryBatchJobs(pipelineIds, projectIds);
         if (pipelineIds == null || pipelineIds.isEmpty()) return result;
+
+        // If existing jobs all have null pipeline_user_username, trigger an on-demand
+        // refresh so the latest triggered-by data shows up immediately.
+        boolean anyUsernamePopulated = result.stream()
+                .anyMatch(j -> j.getPipelineUserUsername() != null && !j.getPipelineUserUsername().isBlank());
+        if (!result.isEmpty() && !anyUsernamePopulated && !pipelineIds.isEmpty()) {
+            boolean persisted = backfillSuccessfulPipelines(pipelineIds);
+            if (persisted) {
+                result = queryBatchJobs(pipelineIds, projectIds);
+            }
+        }
 
         Set<Long> populatedPipelineIds = new HashSet<>();
         for (JobDTO job : result) populatedPipelineIds.add(job.getPipelineId());
@@ -135,7 +147,7 @@ public class JobService {
             + "finished_at, duration, queued_duration, started_at, when_keyword, "
             + "trigger_keyword, runner_id, runner_name, runner_description, "
             + "commit_sha, commit_short_message, job_tags, failure_reason, "
-            + "parent_job_id "
+            + "parent_job_id, pipeline_user_username "
             + "FROM analytics_jobs "
             + "WHERE 1=1"
         );
@@ -200,6 +212,7 @@ public class JobService {
                 }
                 job.setFailure_reason((String) row.get("failure_reason"));
                 job.setParent_job_id(asLongNullable(row.get("parent_job_id")));
+                job.setPipelineUserUsername((String) row.get("pipeline_user_username"));
                 result.add(job);
             }
         } catch (Exception e) {
@@ -234,7 +247,7 @@ public class JobService {
                 List<Map<String, Object>> jobs =
                     gitLabApiClient.getJobsForPipeline(projectId, pipelineId, namespaceId);
                 if (!jobs.isEmpty()) {
-                    syncStorage.upsertJobs(jobs, pipelineId, projectId, authorId);
+                    syncStorage.upsertJobs(jobs, pipelineId, projectId, authorId, null);
                     persisted = true;
                     backfillAttempts.remove(pipelineId);
                 }

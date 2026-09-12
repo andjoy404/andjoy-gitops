@@ -35,6 +35,9 @@ public class JobDTO {
     private String[] tag_list;
     private String failure_reason;
 
+    @JsonProperty("pipeline_user_username")
+    private String pipelineUserUsername;
+
     public JobDTO() {
     }
 
@@ -228,5 +231,13 @@ public class JobDTO {
 
     public void setFailure_reason(String failure_reason) {
         this.failure_reason = failure_reason;
+    }
+
+    public String getPipelineUserUsername() {
+        return pipelineUserUsername;
+    }
+
+    public void setPipelineUserUsername(String pipelineUserUsername) {
+        this.pipelineUserUsername = pipelineUserUsername;
     }
 }

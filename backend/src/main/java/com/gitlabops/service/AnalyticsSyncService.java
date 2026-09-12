@@ -355,9 +355,15 @@ public class AnalyticsSyncService {
                     long pipelineGitlabId = ((Number) pipeline.get("id")).longValue();
                     Object authorIdRaw = pipeline.get("author_id");
                     long pipelineAuthorId = authorIdRaw != null ? ((Number) authorIdRaw).longValue() : 0L;
-
+                    String pipelineUsername = null;
+                    if (pipeline.get("user") instanceof Map<?, ?> userMap) {
+                        Object un = userMap.get("username");
+                        if (un instanceof String s && !s.isBlank()) {
+                            pipelineUsername = s;
+                        }
+                    }
                     List<Map<String, Object>> jobs = gitLabClient.getJobsForPipeline(projectId, pipelineGitlabId, namespaceId);
-                    int jobCount = syncStorage.upsertJobs(jobs, pipelineGitlabId, projectId, pipelineAuthorId);
+                    int jobCount = syncStorage.upsertJobs(jobs, pipelineGitlabId, projectId, pipelineAuthorId, pipelineUsername);
                     totalJobs += jobCount;
                 }
             } catch (Exception e) {

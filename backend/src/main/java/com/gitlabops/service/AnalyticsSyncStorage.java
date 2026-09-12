@@ -240,10 +240,25 @@ public class AnalyticsSyncStorage {
     // ─── Jobs ──────────────────────────────────────────────────
 
     /**
+     * Upsert jobs for a pipeline using the default pipeline username.
+     *
+     * @deprecated use {@link #upsertJobs(List, long, long, long, String)} to pass a
+     *            fallback pipeline username for on-demand refreshes.
+     */
+    @Deprecated(since = "3.3")
+    public int upsertJobs(List<Map<String, Object>> jobs, long pipelineGitlabId,
+                           long projectId, long authorId) {
+        return upsertJobs(jobs, pipelineGitlabId, projectId, authorId, (String) null);
+    }
+
+    /**
      * Upsert jobs for a pipeline.
+     *
+     * @param defaultPipelineUsername  username extracted from the pipeline object during
+     *                                 sync (used as fallback when per-job extraction finds none)
      */
     public int upsertJobs(List<Map<String, Object>> jobs, long pipelineGitlabId,
-                          long projectId, long authorId) {
+                          long projectId, long authorId, String defaultPipelineUsername) {
         if (jobs == null || jobs.isEmpty()) return 0;
         int count = 0;
         for (Map<String, Object> job : jobs) {
@@ -318,6 +333,21 @@ public class AnalyticsSyncStorage {
 
         String failureReason = (String) job.getOrDefault("failure_reason", null);
 
+        // Extract pipeline_user_username: prefer default from pipeline sync,
+        // fall back to nested pipeline user, then direct job user
+        String pipelineUserUsername = defaultPipelineUsername;
+        if (pipelineUserUsername == null) {
+            Object pipelineObj = job.get("pipeline");
+            if (pipelineObj instanceof Map<?, ?> pMap && pMap.get("user") instanceof Map<?, ?> uMap) {
+                Object un = uMap.get("username");
+                if (un instanceof String s && !s.isBlank()) pipelineUserUsername = s;
+            }
+        }
+        if (pipelineUserUsername == null && job.get("user") instanceof Map<?, ?> uMap) {
+            Object un = uMap.get("username");
+            if (un instanceof String s && !s.isBlank()) pipelineUserUsername = s;
+        }
+
         // Extract parent_job_id from GitLab needs array (for DAG pipeline dependencies)
         // The needs field contains job_ids of parent jobs; we take the first pipeline-local entry.
         Long parentJobId = null;
@@ -363,9 +393,10 @@ public class AnalyticsSyncStorage {
             "finished_at, duration, queued_duration, started_at, " +
             "when_keyword, trigger_keyword, runner_id, runner_name, " +
             "runner_description, commit_sha, commit_short_message, " +
-            "job_tags, failure_reason, parent_job_id, collected_at) " +
+            "job_tags, failure_reason, parent_job_id, pipeline_user_username, " +
+            "collected_at) " +
             "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
-            "?, ?, ?, ?, ?, ?, ?, NOW()) " +
+            "?, ?, ?, ?, ?, ?, ?, ?, NOW()) " +
             "ON CONFLICT (gitlab_id) DO UPDATE SET " +
             "name = EXCLUDED.name, stage = EXCLUDED.stage, branch = EXCLUDED.branch, " +
             "status = EXCLUDED.status, allow_failure = EXCLUDED.allow_failure, " +
@@ -377,14 +408,15 @@ public class AnalyticsSyncStorage {
             "runner_description = EXCLUDED.runner_description, " +
             "commit_sha = EXCLUDED.commit_sha, commit_short_message = EXCLUDED.commit_short_message, " +
             "job_tags = EXCLUDED.job_tags, failure_reason = EXCLUDED.failure_reason, " +
-            "parent_job_id = EXCLUDED.parent_job_id";
+            "parent_job_id = EXCLUDED.parent_job_id, " +
+            "pipeline_user_username = EXCLUDED.pipeline_user_username";
 
         jdbcTemplate.update(sql,
                 gitlabId, pipelineGitlabId, projectId, name, stage, ref, status,
                 allowFailure, createdAt, webUrl, finishedAt, duration, queuedDuration,
                 startedAt, whenKeyword, triggerType, runnerId, runnerName,
-                runnerDescription, commitSha, commitShortMessage, tagListJson, failureReason,
-                parentJobId);
+                runnerDescription, commitSha, commitShortMessage, tagListJson,
+                failureReason, parentJobId, pipelineUserUsername);
                 count++;
             } catch (Exception ex) {
                 // e.printStackTrace();

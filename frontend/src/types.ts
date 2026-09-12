@@ -268,6 +268,7 @@ export interface JobInfo {
   parent_job_id?: number | null
   tag_list?: string[] | null
   failure_reason?: string | null
+  pipeline_user_username?: string | null
 }
 
 export interface PipelineInfo {
