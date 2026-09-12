@@ -645,7 +645,7 @@ export function PipelineJobBadges({
   pipelineSha?: string
   projectWebUrl?: string
 }) {
-  const jobs = orderJobsByStageSequence(jobsByPipeline.get(pipelineId) || [])
+  const jobs = dedupRetryJobs(jobsByPipeline.get(pipelineId) || [])
 
   if (jobs.length === 0) {
     return <span style={{ color: 'var(--dashboard-muted)' }}>—</span>
