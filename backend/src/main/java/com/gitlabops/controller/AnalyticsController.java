@@ -92,19 +92,6 @@ public class AnalyticsController {
             if (!options.contains(pageSize)) {
                 pageSize = options.get(0);
             }
-        } else {
-            List<Integer> options = uiProperties.getPageSizeOptions();
-            if (!options.contains(pageSize)) {
-                int currentSize = pageSize;
-                try {
-                    pageSize = options.stream()
-                        .filter(p -> p == currentSize)
-                        .findFirst()
-                        .orElse(uiProperties.getDefaultPageSize());
-                } catch (Exception ignored) {
-                    pageSize = options.get(0);
-                }
-            }
         }
 
         if (Boolean.TRUE.equals(refresh)) {
@@ -261,19 +248,6 @@ public class AnalyticsController {
             pageSize = uiProperties.getDefaultPageSize();
             if (!options.contains(pageSize)) {
                 pageSize = options.get(0);
-            }
-        } else {
-            List<Integer> options = uiProperties.getPageSizeOptions();
-            if (!options.contains(pageSize)) {
-                int currentSize = pageSize;
-                try {
-                    pageSize = options.stream()
-                        .filter(p -> p == currentSize)
-                        .findFirst()
-                        .orElse(uiProperties.getDefaultPageSize());
-                } catch (Exception ignored) {
-                    // use configured default
-                }
             }
         }
 

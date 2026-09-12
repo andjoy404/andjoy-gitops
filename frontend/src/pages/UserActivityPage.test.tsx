@@ -86,6 +86,7 @@ function setupFn(users?, metrics: Record<string, unknown> = DEFAULT_METRICS, rea
     if (urlStr.includes('/api/analytics/users/metrics')) return Promise.resolve({ ok: true, json: () => Promise.resolve(metrics) } as Response)
     if (urlStr.includes('/api/analytics/users')) return Promise.resolve({ ok: true, json: () => Promise.resolve(p) } as Response)
     if (urlStr.includes('/api/analytics/readiness')) return Promise.resolve({ ok: true, json: () => Promise.resolve(r) } as Response)
+    if (urlStr.includes('/api/config')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ default_page_size: 10, page_size_options: [10, 20, 30, 40, 50, 100] }) } as Response)
     return Promise.resolve({ ok: true, json: () => Promise.resolve({}) } as Response)
   })
   return { users: u, paginated: p, metrics, readiness: r }

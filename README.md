@@ -77,7 +77,7 @@ flowchart TD
 ## 🚀 Quick Start
 
 ```bash
-git clone https://github.com/andjoy404/anjoy-gitops.git
+git clone https://github.com/andjoy404/andjoy-gitops.git
 cd andjoy-gitops
 cp .env.example .env
 ```
@@ -104,6 +104,35 @@ docker compose up -d
 ```
 
 Open [http://localhost:8090](http://localhost:8090) and sign in with `admin` / `admin`.
+
+---
+
+## 🔑 GitLab API Token
+
+Create a token with the **`read_api`** scope. The built-in **ReadOnly** profile provides everything needed and follows the principle of least privilege:
+
+1. Go to your GitLab user settings: **Avatar → Preferences → Access Tokens**
+2. Create a new personal access token
+3. Select the **`read_api`** scope only
+4. Save the token and enter it when you add your first environment in AndJoy GitOps
+
+<details>
+<summary><b>Alternative: Create a restricted project token</b></summary>
+
+If you prefer project-scoped tokens, select these scopes:
+
+| API Path | Required Scope | Purpose |
+|---|---|---|
+| `/api/v4/projects` | `read_api` | List projects |
+| `/api/v4/projects/*/pipelines` | `read_api` | Pipeline history |
+| `/api/v4/projects/*/jobs` | `read_api` | Job-level details |
+| `/api/v4/projects/*/events` | `read_api` | User activity tracking |
+| `/api/v4/projects/*/issues` | `read_api` | Issue analytics |
+| `/api/v4/runners` | `read_api` | Runner fleet status |
+| `/api/v4/groups/*/members` | `read_api` | Contributor lists |
+
+The `read_api` scope covers all of the above and is the recommended single-scope choice.
+</details>
 
 ---
 

@@ -157,14 +157,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,
                                 "/api/auth/status",
                                 "/api/csrf",
-                                "/api/analytics/**",
-                                "/api/jobs/**",
-                                "/api/projects/**",
-                                "/api/graph/**",
-                                "/api/pipelines/**",
-                                "/api/version").permitAll()
+                                 "/api/analytics/**",
+                                 "/api/jobs/**",
+                                 "/api/projects/**",
+                                 "/api/graph/**",
+                                 "/api/pipelines/**",
+                                 "/api/version",
+                                 "/api/config").permitAll()
                         .requestMatchers("/api/environments/**").authenticated()
-                        .requestMatchers("/api/config").authenticated()
                         .requestMatchers("/api/users/**").authenticated()
                         .requestMatchers("/api/sync/**").authenticated()
                         .requestMatchers("/api/preferences/**").authenticated()

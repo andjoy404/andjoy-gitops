@@ -10,6 +10,8 @@ import FieldSearchBox, {
 import { useGroupContext } from '../contexts/GroupContext'
 import { api } from '../services/api'
 import { useScopedRefresh } from '../hooks/useSyncRefresh'
+import { useConfig } from '../hooks/useConfig'
+import { usePageSizeOptions, calcTotalPages, useShowAllOption } from '../hooks/useAppConfig'
 import AnalyticsLoadingGate, { datasetIsPending } from '../components/AnalyticsLoadingGate'
 import type { AnalyticsReadiness } from '../types'
 import '../styles/dashboard.css'
@@ -191,12 +193,12 @@ function normalizeRunnerEntry(value: unknown): RunnerWithJobs | null {
   }
 }
 
-const PAGE_SIZE_OPTIONS = [10, 20, 30, 40, 50, 100]
 const RUNNERS_PAGE_SIZE_KEY = 'gitlab_ops_runners_page_size'
 
 function getStoredPageSize(): number {
   const stored = Number(localStorage.getItem(RUNNERS_PAGE_SIZE_KEY))
-  return PAGE_SIZE_OPTIONS.includes(stored) ? stored : 10
+  if (Number.isInteger(stored) && stored > 0) return stored
+  return 10
 }
 
 const STATUS_BADGE_CLASS = (status: string) =>
@@ -223,6 +225,11 @@ export default function RunnersPage() {
   const [searchFilters, setSearchFilters] = useState<RunnerSearchFilter[]>([])
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(getStoredPageSize)
+
+  /* ── Page size from app config ─────────────────────────────── */
+
+  const configPageSizeOptions = usePageSizeOptions()
+  const showAllOption = useShowAllOption()
 
   const { data: readinessData } = useQuery<AnalyticsReadiness>({
     queryKey: ['analytics-readiness', selectedEnvId, selectedGroupIdValue],
@@ -559,9 +566,10 @@ export default function RunnersPage() {
               </table>
               <TablePaginator
                 current={page}
-                totalPages={Math.max(1, Math.ceil(filtered.length / pageSize))}
+                totalPages={calcTotalPages(filtered.length, pageSize)}
                 pageSize={pageSize}
-                pageSizes={PAGE_SIZE_OPTIONS}
+                pageSizes={configPageSizeOptions}
+                showAllOption={showAllOption}
                 pageSizeKey={RUNNERS_PAGE_SIZE_KEY}
                 onPageSizeChange={(size) => { setPageSize(size); setPage(1) }}
                 onPageChange={setPage}

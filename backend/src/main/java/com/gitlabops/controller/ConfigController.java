@@ -58,7 +58,8 @@ public class ConfigController {
                 uiProps.getDefaultPageSize(),
                 90,
                 analyticsProps.getRetentionDays(),
-                uiProps.getPageSizeOptions()
+                uiProps.getPageSizeOptions(),
+                uiProps.isShowAllOption()
         );
     }
 

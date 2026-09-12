@@ -23,10 +23,11 @@ import Header from './Header'
 import GroupSelectorModal from './GroupSelector'
 import ProfileModal from './ProfileModal'
 import { GroupContext } from '../contexts/GroupContext'
-import type { EnvironmentDTO, GlobalConfigDTO, GroupDTO } from '../types'
+import type { EnvironmentDTO, GroupDTO } from '../types'
 import { isAdminRole } from '../utils/role'
 import { groupsForEnvironment, federatedGroupId, groupLocalId } from '../utils/federated'
 import { useScopeRefresh, useSyncRefresh } from '../hooks/useSyncRefresh'
+import { useConfig } from '../hooks/useConfig'
 import DashboardMark from './DashboardMark'
 import PipelineExchangeMark from './PipelineExchangeMark'
 import FolderMark from './FolderMark'
@@ -173,10 +174,7 @@ export default function Shell({ onLogout }: { onLogout?: () => void }) {
     }
   }, [])
 
-  const { data: globalConfig } = useQuery<GlobalConfigDTO>({
-    queryKey: ['global-config'],
-    queryFn: api.getGlobalConfig,
-  })
+  const { data: globalConfig } = useConfig()
 
   const { data: environments = [], isFetching: envsFetching, isSuccess: environmentsLoaded } = useQuery({
     queryKey: ['environments'],

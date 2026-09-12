@@ -14,6 +14,8 @@ import { CaretDownOutlined, CaretUpOutlined, ReloadOutlined, StarFilled, StarOut
 import { api } from '../services/api'
 import { useFavorites } from '../services/favorites'
 import { useScopedRefresh } from '../hooks/useSyncRefresh'
+import { useConfig } from '../hooks/useConfig'
+import { usePageSizeOptions, calcTotalPages, useShowAllOption } from '../hooks/useAppConfig'
 import { TIME_RANGES } from '../utils/timeRanges'
 import { useGroupContext } from '../contexts/GroupContext'
 import PipelineExchangeMark from '../components/PipelineExchangeMark'
@@ -27,7 +29,6 @@ import type {
   Pipeline,
 } from '../types'
 import type { PipelineInfo, JobInfo } from '../types'
-import type { GlobalConfigDTO } from '../types'
 import {
   PIPELINE_STATUS_COLORS,
   PIPELINE_STATUSES,
@@ -48,8 +49,6 @@ const FETCH_REFRESH_INTERVAL = 10_000
 const PIPELINE_TIME_RANGES = TIME_RANGES.map(({ hours, label }) => ({ value: hours, label }))
 
 const PIPELINE_RANGE_STORAGE_KEY = 'analytics_range_pipelines'
-
-const PIPELINE_PAGE_SIZES = [10, 20, 30, 40, 50, 100]
 const PIPELINE_PAGE_SIZE_STORAGE_KEY = 'analytics_page_size_pipelines'
 
 function getStoredPipelineHours(): number {
@@ -63,11 +62,10 @@ function getStoredPipelineHours(): number {
 function getStoredPipelinePageSize(): number {
   try {
     const parsed = Number(localStorage.getItem(PIPELINE_PAGE_SIZE_STORAGE_KEY))
-    if (PIPELINE_PAGE_SIZES.includes(parsed)) return parsed
+    if (Number.isInteger(parsed) && parsed > 0) return parsed
   } catch { /* localStorage may be unavailable */ }
   return 20
 }
-
 
 
 const PIPELINE_JOBS_VISIBLE_KEY = 'pipeline_jobs_visible'
@@ -251,14 +249,15 @@ export default function PipelinesPage() {
 
   /* ── Fix 1: Read pipeline_view from GlobalConfig ──────────────────── */
 
-  const { data: globalConfig } = useQuery({
-    queryKey: ['global-config'],
-    queryFn: () => api.getGlobalConfig(),
-    staleTime: 300_000,
-  })
+  const { data: globalConfig } = useConfig()
 
-  const pipelineViewFromConfig = (globalConfig as GlobalConfigDTO | undefined)?.pipeline_view || 'latest'
+  const pipelineViewFromConfig = globalConfig?.pipeline_view || 'latest'
   const pipelineViewEffective = pipelineViewFromConfig === 'all' ? 'all' : 'latest'
+
+  /* ── Page size from app config (page_view stays in global config) ────── */
+
+  const configPageSizeOptions = usePageSizeOptions()
+  const showAllOption = useShowAllOption()
 
   /* ── Readiness / sync notification ───────────────────────────────── */
 
@@ -426,7 +425,7 @@ export default function PipelinesPage() {
     })
   }, [projectRows, lastRunSort])
 
-  const totalPages = Math.ceil(sortedRows.length / pageSize)
+  const totalPages = calcTotalPages(sortedRows.length, pageSize)
   const paginated = sortedRows.slice((page - 1) * pageSize, page * pageSize)
 
   /* ── Batch jobs query for all pipelines in current view ────────────── */
@@ -861,7 +860,8 @@ export default function PipelinesPage() {
                   current={page}
                   totalPages={totalPages}
                   pageSize={pageSize}
-                  pageSizes={PIPELINE_PAGE_SIZES}
+                  pageSizes={configPageSizeOptions}
+                  showAllOption={showAllOption}
                   pageSizeKey={PIPELINE_PAGE_SIZE_STORAGE_KEY}
                   onPageSizeChange={(size) => { setPageSize(size); setPage(1) }}
                   onPageChange={setPage}

@@ -36,13 +36,18 @@ Back up this key securely. Existing environment tokens cannot be decrypted after
 
 ## Analytics and UI
 
+These variables control the UI via the `ui.` prefix on the backend.
+Spring Boot binds them using relaxed property matching, so the
+`.env` names above map directly to their property equivalents.
+
 | Variable | Default | Description |
 |---|---:|---|
 | `ANALYTICS_SYNC_INTERVAL_SECONDS` | `60` | Scheduled synchronization interval. |
 | `ANALYTICS_RETENTION_DAYS` | `30` | Analytics retention period. |
 | `PIPELINE_HISTORY_DAYS` | `90` | Maximum pipeline history window collected. |
-| `DEFAULT_PAGE_SIZE` | `10` | Default number of table rows. |
-| `PAGE_SIZE_OPTIONS` | `10,20,30,40,50` | Available table page sizes. |
+| `DEFAULT_PAGE_SIZE` | `10` | Default number of table rows shown in page-size selectors. |
+| `PAGE_SIZE_OPTIONS` | `10,20,30,40,50` | Comma-separated list of available table page sizes. The frontend dropdown will offer only these values. |
+| `SHOW_ALL_OPTION` | `true` | When `true`, table selectors (pipelines, runners, user-activity) also display an **All** button that fetches every row on a single page without pagination. Set to `false` to hide this option. |
 
 ## GitLab client
 

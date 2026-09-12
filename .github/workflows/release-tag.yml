@@ -91,11 +91,11 @@ jobs:
           cp /tmp/release-notes.md /tmp/release-notes-final.md
           echo "DONE"
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ steps.tag.outputs.tag }}
-          name: "AndJoy GitOps ${{ steps.tag.outputs.tag }}"
-          body_path: /tmp/release-notes-final.md
-          generate_release_notes: true
-          draft: false
+      # - name: Create GitHub Release
+      #   uses: softprops/action-gh-release@v1
+      #   with:
+      #     tag_name: ${{ steps.tag.outputs.tag }}
+      #     name: "AndJoy GitOps ${{ steps.tag.outputs.tag }}"
+      #     body_path: /tmp/release-notes-final.md
+      #     generate_release_notes: true
+      #     draft: false

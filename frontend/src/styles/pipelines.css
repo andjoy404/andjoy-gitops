@@ -806,22 +806,26 @@ html.dark-theme .job-detail-modal .ant-modal-body {
   stroke-width: 3 !important;
 }
 
-/* Connector edges — override the global accent color with higher specificity */
-.pipeline-dag-graph .dag-connector-edge .react-flow__edge-path {
-  stroke: #888 !important;
-  stroke-width: 1.5 !important;
-  stroke-dasharray: 6 4 !important;
+@keyframes particle-flow {
+  from {
+    stroke-dashoffset: 24;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.pipeline-dag-graph .react-flow__edge-path {
+  stroke: transparent !important;
+  stroke-width: 1 !important;
   fill: none !important;
 }
 
-.pipeline-dag-graph .dag-connector-edge .react-flow__edge-line {
-  stroke: #888 !important;
-  stroke-width: 1.5 !important;
-  stroke-dasharray: 6 4 !important;
+.pipeline-dag-graph .react-flow__edge-line {
+  stroke: transparent !important;
+  stroke-width: 1 !important;
 }
 
-.pipeline-dag-graph .dag-connector-edge .react-flow__edge-arrowhead path {
-  fill: #888 !important;
-  stroke: #888 !important;
-  stroke-width: 1.5 !important;
+.pipeline-dag-graph .react-flow__edge-arrowhead path {
+  display: none !important;
 }

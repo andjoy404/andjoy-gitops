@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useRef } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Tooltip, Button } from 'antd'
 import { TeamOutlined, ReloadOutlined, InfoCircleOutlined } from '@ant-design/icons'
@@ -9,9 +9,12 @@ import { api } from '../services/api'
 import TablePaginator from '../components/TablePaginator'
 import FieldSearchBox, { type FieldSearchBoxFilterChip } from '../components/FieldSearchBox'
 import AnalyticsLoadingGate, { datasetIsPending } from '../components/AnalyticsLoadingGate'
+import { useConfig } from '../hooks/useConfig'
+import { usePageSizeOptions, calcTotalPages, useShowAllOption } from '../hooks/useAppConfig'
 import '../styles/dashboard.css'
 
 const LOCAL_STORAGE_RANGE_KEY = 'analytics_range_users'
+const USER_ACTIVITY_PAGE_SIZE_KEY = 'gitlab_ops_user_activity_page_size'
 
 function getDefaultHours(): number {
   try {
@@ -66,11 +69,6 @@ function SegmentBar({ items, total }: {
   )
 }
 
-// ── User Activity Page ────────────────────────────────────────
-
-const USER_ACTIVITY_PAGE_SIZE_KEY = 'gitlab_ops_user_activity_page_size'
-const USER_ACTIVITY_PAGE_SIZES = [10, 20, 30, 40, 50, 100] as const
-
 type UserMembership = 'active' | 'non-active' | 'both'
 type UserSearchField = 'all' | 'state' | 'user' | 'activity'
 
@@ -117,9 +115,8 @@ type SortDirection = 'asc' | 'desc'
 
 function getStoredPageSize(): number {
   const stored = Number(localStorage.getItem(USER_ACTIVITY_PAGE_SIZE_KEY))
-  return USER_ACTIVITY_PAGE_SIZES.includes(stored as typeof USER_ACTIVITY_PAGE_SIZES[number])
-    ? stored
-    : 10
+  if (Number.isInteger(stored) && stored > 0) return stored
+  return 10
 }
 
 export default function UserActivityPage() {
@@ -134,6 +131,12 @@ export default function UserActivityPage() {
   const [sortKey, setSortKey] = useState<UserSortKey>('last_activity')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
   const [refreshing, setRefreshing] = useState(false)
+
+  /* ── Page size from app config ─────────────────────────────────────── */
+
+  useConfig() /* preload global config used elsewhere on the page */
+  const configPageSizeOptions = usePageSizeOptions()
+  const showAllOption = useShowAllOption()
 
   const [searchField, setSearchField] = useState<UserSearchField>('all')
   const [searchFilters, setSearchFilters] = useState<UserSearchFilter[]>([])
@@ -167,6 +170,12 @@ const { data: usersResponse = { users: [], page: 1, pageSize: 10, total: 0 }, is
       })
       if (userIdsParam) params.set('user_ids', userIdsParam)
       if (searchQuery) params.set('search', searchQuery)
+      // Pass activity filter as a param so the backend can narrow the server-side results
+      for (const f of searchFilters) {
+        if (f.field === 'activity') {
+          params.set('activity_type', f.value)
+        }
+      }
       const resp = await fetch(`/api/analytics/users?${params}`, {
         credentials: 'include',
       })
@@ -252,31 +261,18 @@ const { data: usersResponse = { users: [], page: 1, pageSize: 10, total: 0 }, is
     return sortDirection === 'asc' ? '↑' : '↓'
   }, [sortKey, sortDirection])
 
-  // Preserve the server order, which is sorted before pagination.
+  // Preserve the server order, which is already sorted and paginated server-side.
   const sortedUsers = useMemo(() => {
     return [...users]
   }, [users])
 
-  const activeMetricField = useMemo(() => {
-    const f = searchFilters.find((x) => x.field === 'activity')
-    return f ? f.value as 'pushes' | 'mrs' | 'comments' | 'issues' : null
-  }, [searchFilters])
+  // Server-side pagination is already applied; use the raw result directly.
+  const totalFromQuery = usersResponse?.total ?? 0
+  const totalCount = totalFromQuery > 0 ? totalFromQuery : metricsData?.totalUsers ?? sortedUsers.length
 
-  const matchesActivity = useCallback((u: UserActivity) => {
-    if (activeMetricField === 'pushes') return (u.push_count || 0) > 0
-    if (activeMetricField === 'mrs') return (u.merge_request_count || 0) > 0
-    if (activeMetricField === 'comments') return (u.comment_count || 0) > 0
-    if (activeMetricField === 'issues') return (u.issue_count || 0) > 0
-    return true
-  }, [activeMetricField])
+  const pageCount = useMemo(() => calcTotalPages(totalCount, pageSize), [totalCount, pageSize])
 
-  const filteredUsers = useMemo(() => sortedUsers.filter(matchesActivity), [sortedUsers, matchesActivity])
-
-  // Pagination
-  const totalCount = usersResponse?.total ?? metricsData?.totalUsers ?? filteredUsers.length
-  const pagedUsers = filteredUsers
-
-  const pageCount = useMemo(() => Math.max(1, Math.ceil(totalCount / pageSize)), [totalCount, pageSize])
+  const pagedUsers = sortedUsers
 
   // User options for multi-select (include all matching users across pages)
   const userOptions = useMemo(() => {
@@ -500,7 +496,7 @@ const { data: usersResponse = { users: [], page: 1, pageSize: 10, total: 0 }, is
         </div>
 
         <AnalyticsLoadingGate active={groupIds.length > 0 && datasetIsPending(readinessData, 'users', isLoading || metricsLoading)} className="analytics-loading-gate--full">
-          {filteredUsers.length === 0 ? (
+          {sortedUsers.length === 0 ? (
             <div className="pipelines-empty">
               <InfoCircleOutlined />
               <strong>No user activity data available</strong>
@@ -590,15 +586,16 @@ const { data: usersResponse = { users: [], page: 1, pageSize: 10, total: 0 }, is
             </table>
 
             {/* Paginator */}
-            <TablePaginator
-              className="user-activity-paginator"
-              current={page}
-              totalPages={pageCount}
-              pageSize={pageSize}
-              pageSizes={[...USER_ACTIVITY_PAGE_SIZES]}
-              pageSizeKey={USER_ACTIVITY_PAGE_SIZE_KEY}
-              onPageSizeChange={(size) => { setPageSize(size); setPage(1) }}
-              onPageChange={setPage}
+             <TablePaginator
+               className="user-activity-paginator"
+               current={page}
+               totalPages={pageCount}
+               pageSize={pageSize}
+               pageSizes={configPageSizeOptions}
+               showAllOption={showAllOption}
+               pageSizeKey={USER_ACTIVITY_PAGE_SIZE_KEY}
+               onPageSizeChange={(size) => { setPageSize(size); setPage(1) }}
+               onPageChange={setPage}
             />
             </div>
           )}

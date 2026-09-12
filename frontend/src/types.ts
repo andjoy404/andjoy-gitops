@@ -74,6 +74,8 @@ export interface GlobalConfigDTO {
   oidc_client_secret: string | null
   oidc_admin_group_claim: string | null
   oidc_admin_group_value: string | null
+  default_page_size: number
+  page_size_options: number[]
 }
 
 export interface GlobalConfigRequest {

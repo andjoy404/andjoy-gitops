@@ -2,7 +2,13 @@ import { Tag, Tooltip, Space, Modal } from 'antd'
 import { LoadingOutlined, CloseOutlined, FullscreenOutlined, BranchesOutlined, ClockCircleOutlined, DashboardOutlined, UserOutlined, TagOutlined, CodeOutlined, EnvironmentOutlined, ReloadOutlined } from '@ant-design/icons'
 import type { PipelineStatus, PipelineSource, JobStatus, JobInfo } from '../types'
 import type { PipelineInfo } from '../types'
-import React, { useState, useCallback, useRef, useEffect, useMemo, createContext, useContext } from 'react'
+import React, {
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+  useMemo,
+} from 'react'
 import ReactFlow, {
   Background,
   Handle,
@@ -953,8 +959,9 @@ const STATUS_GRADIENTS: Record<string, string> = {
   waiting_for_resource: 'linear-gradient(135deg, #9AA3AD 0%, #7a828a 100%)',
 }
 
-/* ── Custom connector edge — uses getSmoothStepPath to bypass pipeline CSS ── */
-function ConnectorEdge({
+/* ── Particle edge — flowing dots along the connection ── */
+
+function ParticleEdge({
   id,
   sourceX,
   sourceY,
@@ -973,16 +980,29 @@ function ConnectorEdge({
     targetPosition,
   })
 
+  const isDark = useTheme() === 'dark'
+
   return (
     <>
       <path
         id={id}
         d={edgePath}
         fill="none"
-        stroke="#888"
-        strokeWidth={1.5}
-        strokeDasharray="6 4"
-        opacity={0.7}
+        stroke={isDark ? '#555' : '#777'}
+        strokeWidth={1}
+        opacity={0.5}
+        style={style as React.CSSProperties}
+      />
+      <path
+        d={edgePath}
+        fill="none"
+        stroke={isDark ? '#8b949e' : '#7a828a'}
+        strokeWidth={2.5}
+        strokeLinecap="round"
+        strokeDasharray="3 21"
+        style={{
+          animation: 'particle-flow 1.8s linear infinite',
+        } as React.CSSProperties}
       />
     </>
   )
@@ -1317,11 +1337,7 @@ function PipelineDAGGraph({
         id: `edge-${srcId}-${tgtId}`,
         source: `job-${srcId}`,
         target: `job-${tgtId}`,
-        type: 'default',
-        style: {
-          stroke: 'color-mix(in srgb, var(--dashboard-text) 35%, var(--dashboard-border))',
-          strokeWidth: 2,
-        },
+        type: 'particle',
       })
     }
 
@@ -1392,6 +1408,7 @@ function PipelineDAGGraph({
         nodes={nodes}
         edges={edges}
         nodeTypes={{ pipelineJob: PipelineJobNode as import('reactflow').NodeTypes[keyof import('reactflow').NodeTypes] }}
+        edgeTypes={{ particle: ParticleEdge as import('reactflow').EdgeTypes[keyof import('reactflow').EdgeTypes] }}
         fitView
         fitViewOptions={{ padding: 0.05, includeHiddenNodes: false }}
         proOptions={{ hideAttribution: true }}
@@ -1401,13 +1418,6 @@ function PipelineDAGGraph({
         zoomOnScroll
         elementsSelectable={false}
         className="pipeline-dag-graph"
-        defaultEdgeOptions={{
-          type: 'default',
-          style: {
-            stroke: 'color-mix(in srgb, var(--dashboard-text) 35%, var(--dashboard-border))',
-            strokeWidth: 2,
-          } as React.CSSProperties,
-        }}
         style={{ background: 'var(--dashboard-surface)', color: 'var(--dashboard-text)' }}
       >
         <Background color="var(--dashboard-border)" gap={20} size={1} />

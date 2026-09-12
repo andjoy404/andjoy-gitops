@@ -25,11 +25,15 @@ public class ApiConfigResponse {
     @JsonProperty("page_size_options")
     private java.util.List<Integer> pageSizeOptions;
 
+    @JsonProperty("show_all_option")
+    private boolean showAllOption;
+
     public ApiConfigResponse() {}
 
     public ApiConfigResponse(String apiVersion, boolean readOnly, boolean hideWriteActions,
-                             int defaultPageSize, int pipelineHistoryDays,
-                             int analyticsRetentionDays, java.util.List<Integer> pageSizeOptions) {
+                              int defaultPageSize, int pipelineHistoryDays,
+                              int analyticsRetentionDays, java.util.List<Integer> pageSizeOptions,
+                              boolean showAllOption) {
         this.apiVersion = apiVersion;
         this.readOnly = readOnly;
         this.hideWriteActions = hideWriteActions;
@@ -37,6 +41,7 @@ public class ApiConfigResponse {
         this.pipelineHistoryDays = pipelineHistoryDays;
         this.analyticsRetentionDays = analyticsRetentionDays;
         this.pageSizeOptions = pageSizeOptions;
+        this.showAllOption = showAllOption;
     }
 
     public String getApiVersion() { return apiVersion; }
@@ -59,4 +64,7 @@ public class ApiConfigResponse {
 
     public java.util.List<Integer> getPageSizeOptions() { return pageSizeOptions; }
     public void setPageSizeOptions(java.util.List<Integer> pageSizeOptions) { this.pageSizeOptions = pageSizeOptions; }
+
+    public boolean isShowAllOption() { return showAllOption; }
+    public void setShowAllOption(boolean showAllOption) { this.showAllOption = showAllOption; }
 }

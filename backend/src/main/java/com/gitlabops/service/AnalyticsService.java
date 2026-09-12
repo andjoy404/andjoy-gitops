@@ -256,6 +256,10 @@ public class AnalyticsService {
             sortUsers(allUsers, sortBy, sortOrder);
             int total = allUsers.size();
 
+            if (pageSize <= 0) {
+                return new PaginatedUserActivity(allUsers, page, pageSize, total);
+            }
+
             int fromIndex = (page - 1) * pageSize;
             if (fromIndex >= total) {
                 return new PaginatedUserActivity(Collections.emptyList(), page, pageSize, total);
@@ -581,20 +585,23 @@ public class AnalyticsService {
     }
 
     private PaginatedPipelineResponse fetchGroupsWithPipelinesPaginated(String[] groupIds,
-                                                                         List<Long> projectFilter,
-                                                                         int hours,
-                                                                         String[] statusFilter,
-                                                                         List<String> topicFilter,
-                                                                         boolean latestOnly,
-                                                                         int page,
-                                                                         int pageSize) {
+                                                                          List<Long> projectFilter,
+                                                                          int hours,
+                                                                          String[] statusFilter,
+                                                                          List<String> topicFilter,
+                                                                          boolean latestOnly,
+                                                                          int page,
+                                                                          int pageSize) {
         try {
             // Count query first
             int totalCount = fetchProjectsCount(groupIds, projectFilter, topicFilter, hours);
 
+            int maxLimit = 1_000_000;
+            int effectiveLimit = (pageSize <= 0) ? maxLimit : pageSize;
+            int effectiveOffset = (pageSize <= 0) ? 0 : (page - 1) * pageSize;
+
             // Paginated projects query
-            int offset = (page - 1) * pageSize;
-            Map<Long, Map<String, Object>> projectMap = fetchProjectsPaginated(groupIds, projectFilter, topicFilter, pageSize, offset, hours);
+            Map<Long, Map<String, Object>> projectMap = fetchProjectsPaginated(groupIds, projectFilter, topicFilter, effectiveLimit, effectiveOffset, hours);
 
             if (projectMap.isEmpty()) {
                 return new PaginatedPipelineResponse(totalCount, page, pageSize, null, Collections.emptyList());
