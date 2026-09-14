@@ -183,7 +183,7 @@ export function orderJobsByStageSequence(jobs: JobInfo[]): JobInfo[] {
       return s || 'unknown'
     }
 
-    const jobs = orderJobsByStageSequence(rawJobs)
+    const jobs = dedupRetryJobs(rawJobs)
 
     const hasChildJobs = jobs.some(j => j.parent_job_id !== null)
     const firstChildIdx = jobs.findIndex(j => j.parent_job_id !== null)
@@ -227,6 +227,12 @@ export function orderJobsByStageSequence(jobs: JobInfo[]): JobInfo[] {
 
     if (s === 'created') {
       s = 'running'
+    }
+
+    const rawStatus = String(pipeline?.status || '').toLowerCase().trim()
+    const isTerminalRaw = rawStatus === 'success' || rawStatus === 'failed' || rawStatus === 'canceled' || rawStatus === 'skipped'
+    if (isTerminalRaw && (s === 'running' || s === 'pending' || s === 'preparing' || s === 'waiting_for_resource')) {
+      s = rawStatus as PipelineStatus
     }
 
     return s

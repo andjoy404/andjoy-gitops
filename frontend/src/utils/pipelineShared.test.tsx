@@ -184,4 +184,38 @@ describe('getPipelineEffectiveStatus', () => {
     )
     expect(effective).toBe('failed')
   })
+
+  it('does not allow stale running jobs to override a finished pipeline status', () => {
+    const staleRunningJob: JobInfo = {
+      id: 1, name: 'build', stage: 'build', status: 'running',
+      pipeline_id: 10587, project_id: 42, created_at: '2026-09-08T03:00:00Z',
+      parent_job_id: null,
+    }
+
+    const effective = getPipelineEffectiveStatus(
+      { ...mockPipeline, status: 'success' },
+      [staleRunningJob],
+    )
+    expect(effective).toBe('success')
+  })
+
+  it('correctly uses the latest retried job attempt instead of older retried attempt', () => {
+    const olderAttempt: JobInfo = {
+      id: 1, name: 'build', stage: 'build', status: 'running',
+      pipeline_id: 10587, project_id: 42, created_at: '2026-09-08T03:00:00Z',
+      parent_job_id: null,
+    }
+    const retriedAttempt: JobInfo = {
+      id: 2, name: 'build', stage: 'build', status: 'success',
+      pipeline_id: 10587, project_id: 42, created_at: '2026-09-08T03:05:00Z',
+      parent_job_id: null,
+    }
+
+    const effective = getPipelineEffectiveStatus(
+      { ...mockPipeline, status: 'running' },
+      [olderAttempt, retriedAttempt],
+    )
+    expect(effective).toBe('success')
+  })
 })
+

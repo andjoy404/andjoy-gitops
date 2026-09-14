@@ -251,7 +251,11 @@ public class AnalyticsSyncStorage {
             String sql = "SELECT p.gitlab_id FROM analytics_pipelines p " +
                          "WHERE p.project_id = ? " +
                          "  AND p.status IN ('success', 'failed', 'canceled', 'skipped') " +
-                         "  AND (EXISTS (SELECT 1 FROM analytics_jobs j WHERE j.pipeline_id = p.gitlab_id) " +
+                         "  AND (" +
+                         "       (EXISTS (SELECT 1 FROM analytics_jobs j WHERE j.pipeline_id = p.gitlab_id) " +
+                         "        AND NOT EXISTS (SELECT 1 FROM analytics_jobs j WHERE j.pipeline_id = p.gitlab_id " +
+                         "                        AND j.status IN ('running', 'pending', 'created', 'preparing', 'waiting_for_resource', 'scheduled'))" +
+                         "       ) " +
                          "       OR p.status = 'skipped')";
             List<Long> ids = jdbcTemplate.queryForList(sql, Long.class, projectId);
             return new HashSet<>(ids);
@@ -264,18 +268,22 @@ public class AnalyticsSyncStorage {
     public record ActivePipelineRef(long gitlabId, long projectId, String status) {}
 
     /**
-     * Returns actively running or pending pipelines in a group (created within the last 14 days)
-     * that need status checks.
+     * Returns actively running or pending pipelines in a group (created within the last 14 days),
+     * or pipelines whose jobs are still recorded as active in the database.
      */
     public List<ActivePipelineRef> getActivePipelines(long groupId) {
         try {
-            String sql = "SELECT p.gitlab_id, p.project_id, p.status " +
+            String sql = "SELECT DISTINCT p.gitlab_id, p.project_id, p.status " +
                          "FROM analytics_pipelines p " +
                          "JOIN analytics_projects pr ON pr.gitlab_id = p.project_id " +
                          "WHERE pr.group_id = ? " +
-                         "  AND p.status IN ('running', 'pending', 'created', 'preparing', 'waiting_for_resource', 'scheduled') " +
+                         "  AND (" +
+                         "       p.status IN ('running', 'pending', 'created', 'preparing', 'waiting_for_resource', 'scheduled') " +
+                         "       OR EXISTS (SELECT 1 FROM analytics_jobs j WHERE j.pipeline_id = p.gitlab_id " +
+                         "                  AND j.status IN ('running', 'pending', 'created', 'preparing', 'waiting_for_resource', 'scheduled'))" +
+                         "  ) " +
                          "  AND p.created_at >= NOW() - INTERVAL '14 days' " +
-                         "ORDER BY p.updated_at DESC";
+                         "ORDER BY p.gitlab_id DESC";
             return jdbcTemplate.query(sql, (rs, rowNum) -> new ActivePipelineRef(
                 rs.getLong("gitlab_id"),
                 rs.getLong("project_id"),
