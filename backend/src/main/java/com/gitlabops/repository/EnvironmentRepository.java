@@ -21,6 +21,8 @@ import javax.sql.DataSource;
 
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -29,6 +31,8 @@ import com.gitlabops.service.EncryptionService;
 
 @Repository
 public class EnvironmentRepository {
+
+    private static final Logger log = LoggerFactory.getLogger(EnvironmentRepository.class);
 
     @Autowired
     private EncryptionService encryptionService;
@@ -57,11 +61,28 @@ public class EnvironmentRepository {
     public List<EnvironmentClientConfig> getEnabledClients() {
         String sql = "SELECT id, namespace_id, name, base_url, token_ciphertext, group_ids, only_top_level, include_subgroups FROM gitlab_environments WHERE enabled = TRUE ORDER BY id";
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            long envId = rs.getLong("id");
             byte[] tokenCipher = rs.getBytes("token_ciphertext");
-            String decryptedToken = (tokenCipher != null) ? encryptionService.decrypt(tokenCipher) : null;
+            String decryptedToken = null;
+            if (tokenCipher != null) {
+                try {
+                    var result = encryptionService.decryptInternal(tokenCipher);
+                    decryptedToken = result.plaintext();
+                    if (result.usedLegacyFallback()) {
+                        byte[] upgradedCipher = encryptionService.encrypt(decryptedToken);
+                        jdbcTemplate.update("UPDATE gitlab_environments SET token_ciphertext = ? WHERE id = ?",
+                                upgradedCipher, envId);
+                        log.info("Automatically upgraded token encryption for environment id={} name='{}' to active key",
+                                envId, rs.getString("name"));
+                    }
+                } catch (Exception e) {
+                    log.error("Failed to decrypt token for environment id={} name='{}': {}. Re-save this environment's token in the Environments menu.",
+                            envId, rs.getString("name"), e.getMessage());
+                }
+            }
             Integer nsId = rs.getInt("namespace_id");
             return new EnvironmentClientConfig(
-                rs.getLong("id"),
+                envId,
                 (nsId != null) ? nsId : 0,
                 rs.getString("name"),
                 rs.getString("base_url"),

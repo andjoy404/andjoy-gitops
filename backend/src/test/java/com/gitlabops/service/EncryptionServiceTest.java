@@ -140,4 +140,19 @@ class EncryptionServiceTest {
         
         assertThrows(RuntimeException.class, () -> service.decrypt(rustFixture));
     }
+
+    @Test
+    void fallbackDecryptsLegacyZeroKeyWhenActiveKeyIsCustom() {
+        // Active key is custom, but fixture was encrypted with legacy zero key
+        var service = createService(TEST_KEY);
+        byte[] legacyFixture = Base64.getDecoder().decode(
+            "AAAAAAAAAAAAAAAAusIzSWAHAhprL6f+zpz2fRxNMvgEkh9nqTzxPHkwkDaonp8OlvWm"
+        );
+        var result = service.decryptInternal(legacyFixture);
+        assertEquals("test-gitlab-token-12345", result.plaintext());
+        assertTrue(result.usedLegacyFallback());
+
+        // Standard decrypt method also returns the plaintext cleanly
+        assertEquals("test-gitlab-token-12345", service.decrypt(legacyFixture));
+    }
 }
