@@ -180,4 +180,48 @@ class AnalyticsSyncServiceTest {
         awaitIdle(service, ENV_ID_NS1, FEDERATED_NS1);
         verify(syncStorage).markSyncCompleted(null);
     }
+
+    @Test
+    void skipsJobFetchForAlreadySettledPipelines() throws Exception {
+        long projectId = 101L;
+        java.util.Map<String, Object> project = java.util.Map.of(
+                "id", projectId,
+                "default_branch", "main",
+                "jobs_enabled", true
+        );
+        when(gitLabClient.getAllProjectsForGroup(eq(NATIVE_GROUP), eq(true), eq(1L)))
+                .thenReturn(List.of(project));
+
+        // DB already contains settled jobs for pipeline 1001
+        when(syncStorage.getSettledPipelineIds(projectId)).thenReturn(java.util.Set.of(1001L));
+
+        java.util.Map<String, Object> settledPipeline = java.util.Map.of(
+                "id", 1001L,
+                "status", "success"
+        );
+        java.util.Map<String, Object> runningPipeline = java.util.Map.of(
+                "id", 1002L,
+                "status", "running"
+        );
+        java.util.Map<String, Object> newCompletedPipeline = java.util.Map.of(
+                "id", 1003L,
+                "status", "success"
+        );
+
+        when(gitLabClient.getPipelinesForProject(eq(projectId), anyString(), eq(1L)))
+                .thenReturn(List.of(settledPipeline, runningPipeline, newCompletedPipeline));
+
+        String outcome = service.refreshScope(ENV_ID_NS1, FEDERATED_NS1);
+        assertEquals("accepted", outcome);
+        awaitIdle(service, ENV_ID_NS1, FEDERATED_NS1);
+
+        // Pipeline 1001 was already settled in DB -> must NOT fetch jobs
+        verify(gitLabClient, never()).getJobsForPipeline(eq(projectId), eq(1001L), anyLong());
+
+        // Pipeline 1002 is active ("running") -> MUST fetch jobs
+        verify(gitLabClient, times(1)).getJobsForPipeline(eq(projectId), eq(1002L), eq(1L));
+
+        // Pipeline 1003 was not in settled set (new) -> MUST fetch jobs
+        verify(gitLabClient, times(1)).getJobsForPipeline(eq(projectId), eq(1003L), eq(1L));
+    }
 }

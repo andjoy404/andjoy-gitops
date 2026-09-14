@@ -98,9 +98,7 @@ export default function Login({ onSuccessfulLogin }: {
 
   const ssoEnabled = authConfig?.sso_enabled ?? false
   const localLoginEnabled = authConfig?.local_login_enabled ?? true
-  const ssoProviderName = (!authConfig?.sso_provider_name || authConfig.sso_provider_name === 'https')
-    ? 'SSO'
-    : authConfig.sso_provider_name
+  const ssoProviderName = 'SSO'
 
   useEffect(() => {
     setShowSSOError(searchParams.get('error') === 'sso_failed')

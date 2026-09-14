@@ -9,9 +9,12 @@ import org.springframework.stereotype.Repository;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Database persistence layer for the sync engine.
@@ -235,6 +238,26 @@ public class AnalyticsSyncStorage {
             }
         }
         return count;
+    }
+
+    /**
+     * Returns the set of pipeline GitLab IDs for a given project that have already reached
+     * a terminal status and have their jobs recorded in the database (or are skipped).
+     * Used by {@link AnalyticsSyncService} to skip redundant /jobs and /bridges API fetches.
+     */
+    public Set<Long> getSettledPipelineIds(long projectId) {
+        try {
+            String sql = "SELECT p.gitlab_id FROM analytics_pipelines p " +
+                         "WHERE p.project_id = ? " +
+                         "  AND p.status IN ('success', 'failed', 'canceled', 'skipped') " +
+                         "  AND (EXISTS (SELECT 1 FROM analytics_jobs j WHERE j.pipeline_id = p.gitlab_id) " +
+                         "       OR p.status = 'skipped')";
+            List<Long> ids = jdbcTemplate.queryForList(sql, Long.class, projectId);
+            return new HashSet<>(ids);
+        } catch (Exception e) {
+            log.debug("Failed to query settled pipeline IDs for project {}: {}", projectId, e.getMessage());
+            return Collections.emptySet();
+        }
     }
 
     // ─── Jobs ──────────────────────────────────────────────────

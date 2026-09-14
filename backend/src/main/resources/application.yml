@@ -1,5 +1,5 @@
 server:
-  port: 8090
+  port: ${APP_PORT:8090}
   forward-headers-strategy: ${SERVER_FORWARD_HEADERS_STRATEGY:framework}
 
 cors:
@@ -21,39 +21,34 @@ spring:
 
 # Custom properties (mapped to @ConfigurationProperties beans)
 database:
-  max_connections: 10
+  max_connections: ${DATABASE_MAX_CONNECTIONS:10}
 
 security:
-  encryption-key: "0000000000000000000000000000000000000000000000000000000000000000"
+  encryption-key: "${ENVIRONMENT_TOKEN_ENCRYPTION_KEY:0000000000000000000000000000000000000000000000000000000000000000}"
 
 analytics:
-  enabled: true
-  sync-interval-seconds: 60
-  retention-days: 30
-  sync-users: true
-  pipeline-history-days: 30
+  enabled: ${ANALYTICS_ENABLED:true}
+  sync-interval-seconds: ${ANALYTICS_SYNC_INTERVAL_SECONDS:60}
+  retention-days: ${ANALYTICS_RETENTION_DAYS:30}
+  sync-users: ${ANALYTICS_SYNC_USERS:true}
+  pipeline-history-days: ${PIPELINE_HISTORY_DAYS:30}
 
 gitlab:
-  api-timeout-seconds: 30
-  max-concurrent-requests: 8
-  max-retries: 3
+  api-timeout-seconds: ${GITLAB_API_TIMEOUT_SECONDS:30}
+  max-concurrent-requests: ${GITLAB_MAX_CONCURRENT_REQUESTS:8}
+  max-retries: ${GITLAB_MAX_RETRIES:3}
 
 ui:
-  read-only: true
-  hide-write-actions: false
-  page-size-options:
-    - 10
-    - 20
-    - 30
-    - 40
-    - 50
-    - 100
-  default-page-size: 10
+  read-only: ${READ_ONLY:false}
+  hide-write-actions: ${HIDE_WRITE_ACTIONS:false}
+  page-size-options: ${UI_PAGE_SIZE_OPTIONS:10,20,30,40,50,100}
+  default-page-size: ${UI_DEFAULT_PAGE_SIZE:${DEFAULT_PAGE_SIZE:10}}
+  show-all-option: ${UI_SHOW_ALL_OPTION:${SHOW_ALL_OPTION:false}}
 
 logging:
   level:
-    com.gitlabops: DEBUG
-    org.springframework.security: WARN
+    com.gitlabops: ${LOG_LEVEL_GITOPS:DEBUG}
+    org.springframework.security: ${LOG_LEVEL_SECURITY:WARN}
 
 # SSO / OIDC configuration (environment variable fallbacks)
 sso:

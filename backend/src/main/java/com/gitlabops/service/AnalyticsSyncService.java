@@ -14,6 +14,7 @@ import jakarta.annotation.PreDestroy;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -347,12 +348,35 @@ public class AnalyticsSyncService {
                 if (defaultBranch == null || defaultBranch.isEmpty()) continue;
                 if (Boolean.FALSE.equals(proj.get("jobs_enabled"))) continue;
 
+                // Avoid re-fetching jobs for pipelines that already reached a terminal state with jobs in DB
+                Set<Long> settledPipelineIds = syncStorage.getSettledPipelineIds(projectId);
+                if (settledPipelineIds == null) {
+                    settledPipelineIds = Collections.emptySet();
+                }
+
                 List<Map<String, Object>> pipelines = gitLabClient.getPipelinesForProject(projectId, updatedAfter, namespaceId);
                 int pipelineCount = syncStorage.upsertPipelines(pipelines, projectId);
                 totalPipelines += pipelineCount;
 
                 for (Map<String, Object> pipeline : pipelines) {
                     long pipelineGitlabId = ((Number) pipeline.get("id")).longValue();
+                    String currentStatus = (String) pipeline.get("status");
+
+                    boolean isCurrentlyActive = currentStatus != null && (
+                            "running".equalsIgnoreCase(currentStatus)
+                            || "pending".equalsIgnoreCase(currentStatus)
+                            || "created".equalsIgnoreCase(currentStatus)
+                            || "preparing".equalsIgnoreCase(currentStatus)
+                            || "waiting_for_resource".equalsIgnoreCase(currentStatus)
+                            || "scheduled".equalsIgnoreCase(currentStatus)
+                    );
+
+                    if (!isCurrentlyActive && settledPipelineIds.contains(pipelineGitlabId)) {
+                        log.trace("Skipping job fetch for settled pipeline {} (status={})",
+                                pipelineGitlabId, currentStatus);
+                        continue;
+                    }
+
                     Object authorIdRaw = pipeline.get("author_id");
                     long pipelineAuthorId = authorIdRaw != null ? ((Number) authorIdRaw).longValue() : 0L;
                     String pipelineUsername = null;

@@ -50,13 +50,20 @@ public class ConfigController {
     @GetMapping("/config")
     public ApiConfigResponse getConfig() {
         String version = resolveVersion();
+        int pipelineHistoryDays = 30;
+        try {
+            if (analyticsProps.getPipelineHistoryDays() != null) {
+                pipelineHistoryDays = Integer.parseInt(analyticsProps.getPipelineHistoryDays().trim());
+            }
+        } catch (NumberFormatException ignored) {
+        }
 
         return new ApiConfigResponse(
                 version,
                 uiProps.isReadOnly(),
                 uiProps.isHideWriteActions(),
                 uiProps.getDefaultPageSize(),
-                90,
+                pipelineHistoryDays,
                 analyticsProps.getRetentionDays(),
                 uiProps.getPageSizeOptions(),
                 uiProps.isShowAllOption()
