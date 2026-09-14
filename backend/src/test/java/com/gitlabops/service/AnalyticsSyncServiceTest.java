@@ -108,8 +108,8 @@ class AnalyticsSyncServiceTest {
         // never the federated encoding.
         verify(gitLabClient).getAllProjectsForGroup(eq(NATIVE_GROUP), eq(true), eq(1L));
         InOrder inOrder = inOrder(syncStorage);
-        inOrder.verify(syncStorage).markSyncStarted();
-        inOrder.verify(syncStorage).markSyncCompleted(null);
+        inOrder.verify(syncStorage).markSyncStarted(eq("refresh:1:500"));
+        inOrder.verify(syncStorage).markSyncCompleted(eq("refresh:1:500"), isNull());
         assertFalse(service.isScopedRefreshInFlight(ENV_ID_NS1, FEDERATED_NS1));
     }
 
@@ -122,7 +122,7 @@ class AnalyticsSyncServiceTest {
         awaitIdle(service, ENV_ID_NS0, NATIVE_GROUP);
 
         verify(gitLabClient).getAllProjectsForGroup(eq(NATIVE_GROUP), eq(true), eq(0L));
-        verify(syncStorage).markSyncCompleted(null);
+        verify(syncStorage).markSyncCompleted(eq("refresh:0:500"), isNull());
     }
 
     @Test
@@ -149,7 +149,7 @@ class AnalyticsSyncServiceTest {
         fetchDone.countDown();
         awaitIdle(service, ENV_ID_NS1, FEDERATED_NS1);
         verify(gitLabClient, times(1)).getAllProjectsForGroup(NATIVE_GROUP, true, 1L);
-        verify(syncStorage, times(1)).markSyncStarted();
+        verify(syncStorage, times(1)).markSyncStarted(eq("refresh:1:500"));
     }
 
     @Test
@@ -162,23 +162,23 @@ class AnalyticsSyncServiceTest {
         awaitIdle(service, ENV_ID_NS1, FEDERATED_NS1);
 
         InOrder inOrder = inOrder(syncStorage);
-        inOrder.verify(syncStorage).markSyncStarted();
+        inOrder.verify(syncStorage).markSyncStarted(eq("refresh:1:500"));
         // A failed run must be recorded as completed-with-error so readiness
         // surfaces the failure instead of a clean completed sync, and the
         // exception message must not leak the token.
-        inOrder.verify(syncStorage).markSyncCompleted(argThat(
+        inOrder.verify(syncStorage).markSyncCompleted(eq("refresh:1:500"), argThat(
                 msg -> msg != null && msg.contains("[REDACTED]")
                         && msg.contains("boom") && !msg.contains("abcdef1234")));
     }
 
     @Test
-    void emptyGroupCompletionIsMarkedClean() throws Exception {
+    void emptyGroupCompletionIsClean() throws Exception {
         // A group with no projects is a legitimate success: completion is
         // recorded with no error and the in-flight flag clears.
         String outcome = service.refreshScope(ENV_ID_NS1, FEDERATED_NS1);
         assertEquals("accepted", outcome);
         awaitIdle(service, ENV_ID_NS1, FEDERATED_NS1);
-        verify(syncStorage).markSyncCompleted(null);
+        verify(syncStorage).markSyncCompleted(eq("refresh:1:500"), isNull());
     }
 
     @Test
@@ -223,5 +223,29 @@ class AnalyticsSyncServiceTest {
 
         // Pipeline 1003 was not in settled set (new) -> MUST fetch jobs
         verify(gitLabClient, times(1)).getJobsForPipeline(eq(projectId), eq(1003L), eq(1L));
+    }
+
+    @Test
+    void syncActivePipelinesUpdatesCompletedPipelineAndFetchesJobs() {
+        long projectId = 101L;
+        long pipelineId = 2001L;
+        var activeRef = new AnalyticsSyncStorage.ActivePipelineRef(pipelineId, projectId, "running");
+        when(syncStorage.getActivePipelines(NATIVE_GROUP)).thenReturn(List.of(activeRef));
+
+        java.util.Map<String, Object> finishedPipeline = java.util.Map.of(
+                "id", pipelineId,
+                "project_id", projectId,
+                "status", "success"
+        );
+        when(gitLabClient.getPipeline(projectId, pipelineId, 1L)).thenReturn(finishedPipeline);
+        when(gitLabClient.getJobsForPipeline(projectId, pipelineId, 1L)).thenReturn(List.of(
+                java.util.Map.of("id", 3001L, "status", "success")
+        ));
+
+        int updated = service.syncActivePipelines(NATIVE_GROUP, 1L);
+        assertEquals(1, updated);
+
+        verify(syncStorage).upsertPipelines(List.of(finishedPipeline), projectId);
+        verify(syncStorage).upsertJobs(anyList(), eq(pipelineId), eq(projectId), anyLong(), any());
     }
 }

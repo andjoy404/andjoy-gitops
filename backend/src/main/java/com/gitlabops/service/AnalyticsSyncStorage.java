@@ -261,6 +261,32 @@ public class AnalyticsSyncStorage {
         }
     }
 
+    public record ActivePipelineRef(long gitlabId, long projectId, String status) {}
+
+    /**
+     * Returns actively running or pending pipelines in a group (created within the last 14 days)
+     * that need status checks.
+     */
+    public List<ActivePipelineRef> getActivePipelines(long groupId) {
+        try {
+            String sql = "SELECT p.gitlab_id, p.project_id, p.status " +
+                         "FROM analytics_pipelines p " +
+                         "JOIN analytics_projects pr ON pr.gitlab_id = p.project_id " +
+                         "WHERE pr.group_id = ? " +
+                         "  AND p.status IN ('running', 'pending', 'created', 'preparing', 'waiting_for_resource', 'scheduled') " +
+                         "  AND p.created_at >= NOW() - INTERVAL '14 days' " +
+                         "ORDER BY p.updated_at DESC";
+            return jdbcTemplate.query(sql, (rs, rowNum) -> new ActivePipelineRef(
+                rs.getLong("gitlab_id"),
+                rs.getLong("project_id"),
+                rs.getString("status")
+            ), groupId);
+        } catch (Exception e) {
+            log.debug("Failed to query active pipelines for group {}: {}", groupId, e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
     // ─── Jobs ──────────────────────────────────────────────────
 
     /**

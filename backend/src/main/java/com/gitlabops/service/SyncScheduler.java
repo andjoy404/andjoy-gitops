@@ -82,4 +82,25 @@ public class SyncScheduler {
             }
         }
     }
+
+    /**
+     * Fast-interval sweep for active (running/pending) pipelines.
+     * Keeps UI pipeline status updated promptly without waiting for the full sync cycle.
+     */
+    @Scheduled(fixedDelay = 15000)
+    public void scheduledActivePipelinesSweep() {
+        synchronized (SYNC_MUTEX) {
+            if (!initialized || syncService.isSyncRunning()) {
+                return;
+            }
+            try {
+                int updated = syncService.sweepActivePipelines();
+                if (updated > 0) {
+                    log.info("Active pipelines sweep updated {} pipeline(s)", updated);
+                }
+            } catch (Exception e) {
+                log.debug("Active pipelines sweep failed: {}", e.getMessage());
+            }
+        }
+    }
 }

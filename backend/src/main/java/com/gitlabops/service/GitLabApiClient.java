@@ -165,6 +165,31 @@ public class GitLabApiClient {
         return fetchPage(rt, cfg.url(), path);
     }
 
+    /**
+     * Fetch a single pipeline by ID.
+     */
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> getPipeline(long projectId, long pipelineId, long namespaceId) {
+        List<EnvironmentClientConfig> clients = environmentRepository.getEnabledClients();
+        if (clients.isEmpty()) return null;
+        EnvironmentClientConfig cfg = clientForNamespace(clients, namespaceId);
+        RestTemplate rt = makeRt(cfg.url(), cfg.token());
+        String apiBase = cfg.url().endsWith("/api/v4") ? cfg.url() : cfg.url() + "/api/v4";
+        String url = apiBase + "/projects/" + projectId + "/pipelines/" + pipelineId;
+        try {
+            ResponseEntity<String> response = rt.getForEntity(url, String.class);
+            if (response.getBody() == null) return null;
+            Object parsed = objectMapper.readValue(response.getBody(), Object.class);
+            if (parsed instanceof Map<?, ?> map) {
+                return (Map<String, Object>) map;
+            }
+            return null;
+        } catch (Exception e) {
+            log.debug("Single pipeline fetch failed for project {} pipeline {}: {}", projectId, pipelineId, e.getMessage());
+            return null;
+        }
+    }
+
     // ─── Jobs ──────────────────────────────────────────────────
 
     @SuppressWarnings("unchecked")

@@ -313,29 +313,8 @@ public class AnalyticsSyncService {
         log.info("SYNC group nativeGroupId={} namespaceId={} state=projects_written written={}",
                 nativeGroupId, namespaceId, projectsSynced);
 
-        // Runner inventory is independent of the expensive per-project pipeline/job
-        // history. Persist it early so a large group cannot leave the Runners page
-        // waiting for the entire analytics cycle to finish.
-        try {
-            List<Map<String, Object>> runners = gitLabClient.getRunnersForGroup(nativeGroupId, namespaceId);
-            Map<String, Object> runnerPayload = new LinkedHashMap<>();
-            runnerPayload.put("payload", runners != null ? runners : new ArrayList<>());
-            syncStorage.upsertRunnerState(nativeGroupId, runnerPayload);
-            log.info("SYNC group nativeGroupId={} namespaceId={} state=runners_written runners={}",
-                    nativeGroupId, namespaceId, runners != null ? runners.size() : 0);
-        } catch (Exception e) {
-            log.warn("Runner sync failed for group {}: {}", nativeGroupId, getSafeMessage(e));
-        }
-
-        // Member discovery must not wait for hundreds of projects' pipeline/job histories.
-        // Populate the User Activity directory first, then continue the heavier analytics sync.
-        if (syncUsersEnabled) {
-            try {
-                syncUsersForGroup(nativeGroupId, gitlabProjects, namespaceId);
-            } catch (Exception e) {
-                log.warn("User sync failed for group {}: {}", nativeGroupId, getSafeMessage(e));
-            }
-        }
+        // Fast active pipeline sweep: immediately check and update pipelines that were running/pending
+        syncActivePipelines(nativeGroupId, namespaceId);
 
         int totalPipelines = 0, totalJobs = 0;
         String updatedAfter = calculateUpdatedAfter(pipelineHistoryDaysConfig);
@@ -395,11 +374,97 @@ public class AnalyticsSyncService {
             }
         }
 
+        // Runner inventory
+        try {
+            List<Map<String, Object>> runners = gitLabClient.getRunnersForGroup(nativeGroupId, namespaceId);
+            Map<String, Object> runnerPayload = new LinkedHashMap<>();
+            runnerPayload.put("payload", runners != null ? runners : new ArrayList<>());
+            syncStorage.upsertRunnerState(nativeGroupId, runnerPayload);
+            log.info("SYNC group nativeGroupId={} namespaceId={} state=runners_written runners={}",
+                    nativeGroupId, namespaceId, runners != null ? runners.size() : 0);
+        } catch (Exception e) {
+            log.warn("Runner sync failed for group {}: {}", nativeGroupId, getSafeMessage(e));
+        }
+
+        // Member discovery and user events/issues
+        if (syncUsersEnabled) {
+            try {
+                syncUsersForGroup(nativeGroupId, gitlabProjects, namespaceId);
+            } catch (Exception e) {
+                log.warn("User sync failed for group {}: {}", nativeGroupId, getSafeMessage(e));
+            }
+        }
+
         String msg = String.format("Synced %d projects, %d pipelines, %d jobs",
                 projectsSynced, totalPipelines, totalJobs);
         log.info("SYNC group nativeGroupId={} namespaceId={} state=completed projects={} pipelines={} jobs={}",
                 nativeGroupId, namespaceId, projectsSynced, totalPipelines, totalJobs);
         return new SyncResult(true, msg, projectsSynced, totalPipelines, totalJobs, 0);
+    }
+
+    /**
+     * Fast-path status check for actively running/pending pipelines in a specific group.
+     */
+    public int syncActivePipelines(long nativeGroupId, long namespaceId) {
+        List<AnalyticsSyncStorage.ActivePipelineRef> activePipelines = syncStorage.getActivePipelines(nativeGroupId);
+        if (activePipelines.isEmpty()) {
+            return 0;
+        }
+        log.debug("Checking status for {} active pipeline(s) in group {}", activePipelines.size(), nativeGroupId);
+        int updatedCount = 0;
+        for (var ref : activePipelines) {
+            try {
+                Map<String, Object> pipeline = gitLabClient.getPipeline(ref.projectId(), ref.gitlabId(), namespaceId);
+                if (pipeline == null || pipeline.isEmpty()) continue;
+                String newStatus = (String) pipeline.get("status");
+                if (newStatus == null) continue;
+
+                // Update pipeline status
+                syncStorage.upsertPipelines(List.of(pipeline), ref.projectId());
+
+                // Fetch jobs if status changed or completed
+                boolean isTerminal = "success".equalsIgnoreCase(newStatus)
+                        || "failed".equalsIgnoreCase(newStatus)
+                        || "canceled".equalsIgnoreCase(newStatus)
+                        || "skipped".equalsIgnoreCase(newStatus);
+
+                if (!newStatus.equalsIgnoreCase(ref.status()) || isTerminal) {
+                    Object authorIdRaw = pipeline.get("author_id");
+                    long pipelineAuthorId = authorIdRaw != null ? ((Number) authorIdRaw).longValue() : 0L;
+                    String pipelineUsername = null;
+                    if (pipeline.get("user") instanceof Map<?, ?> userMap) {
+                        Object un = userMap.get("username");
+                        if (un instanceof String s && !s.isBlank()) {
+                            pipelineUsername = s;
+                        }
+                    }
+                    List<Map<String, Object>> jobs = gitLabClient.getJobsForPipeline(ref.projectId(), ref.gitlabId(), namespaceId);
+                    syncStorage.upsertJobs(jobs, ref.gitlabId(), ref.projectId(), pipelineAuthorId, pipelineUsername);
+                    log.info("Updated active pipeline {} in project {}: {} -> {} (jobs={})",
+                            ref.gitlabId(), ref.projectId(), ref.status(), newStatus, jobs.size());
+                    updatedCount++;
+                }
+            } catch (Exception e) {
+                log.debug("Failed to check active pipeline {}: {}", ref.gitlabId(), getSafeMessage(e));
+            }
+        }
+        return updatedCount;
+    }
+
+    /**
+     * Periodic sweep across all enabled groups to update any active pipelines quickly.
+     */
+    public int sweepActivePipelines() {
+        List<EnvironmentClientConfig> clients = environmentRepository.getEnabledClients();
+        if (clients.isEmpty()) return 0;
+        int totalUpdated = 0;
+        for (EnvironmentClientConfig cfg : clients) {
+            long namespaceId = cfg.index();
+            for (long groupId : cfg.groupIds()) {
+                totalUpdated += syncActivePipelines(groupId, namespaceId);
+            }
+        }
+        return totalUpdated;
     }
 
     private String calculateUpdatedAfter(String pipelineHistoryDaysConfig) {
