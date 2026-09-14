@@ -794,3 +794,33 @@ html.dark-theme .ant-spin-text {
 html.dark-theme .job-detail-modal .ant-modal-body {
   color-scheme: dark;
 }
+
+/* Ant Design built-in gold tag — blend with theme warning color */
+.ant-tag.ant-tag-gold {
+  color: color-mix(in srgb, var(--dashboard-warning) 76%, var(--dashboard-text)) !important;
+  border-color: color-mix(in srgb, var(--dashboard-warning) 70%, var(--dashboard-border)) !important;
+  background: color-mix(in srgb, var(--dashboard-warning) 14%, var(--dashboard-surface)) !important;
+}
+
+/* Question-circle tooltip icons (superscript position like square/quarter symbol & compact size) */
+.ant-form-item-label .ant-form-item-tooltip,
+.ant-form-item-label .anticon-question-circle,
+.ant-form-item-tooltip,
+.anticon.anticon-question-circle {
+  display: inline-flex !important;
+  position: relative !important;
+  top: -0.32em !important;
+  margin-inline-start: 2px !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
+}
+
+.ant-form-item-label .ant-form-item-tooltip svg,
+.ant-form-item-label .anticon-question-circle svg,
+.ant-form-item-tooltip svg,
+.anticon.anticon-question-circle svg {
+  font-size: 10px !important;
+  width: 10px !important;
+  height: 10px !important;
+}
+

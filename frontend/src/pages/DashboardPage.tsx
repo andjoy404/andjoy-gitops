@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Select, Typography, Alert, Tabs as AntTabs, Spin } from 'antd'
 import { GroupContext, useGroupContext } from '../contexts/GroupContext'
+import { useTheme } from '../hooks/useTheme'
 import DashboardMark from '../components/DashboardMark'
 import AnalyticsLoadingGate, { datasetIsPending } from '../components/AnalyticsLoadingGate'
 import EChartsWrapper from '../components/EChartsWrapper'
@@ -314,7 +315,7 @@ function DeliveryActivityPanel({ summary }: { summary: AnalyticsSummary }) {
         </div>
         <div className="activity-row">
           <span>Canceled</span>
-          <span style={{ color: 'var(--dashboard-danger)' }}>{summary.canceled_count}</span>
+          <span style={{ color: 'var(--dashboard-muted)' }}>{summary.canceled_count}</span>
         </div>
       </div>
     </StatPanel>
@@ -322,6 +323,8 @@ function DeliveryActivityPanel({ summary }: { summary: AnalyticsSummary }) {
 }
 
 function DonutChartPanel({ summary }: { summary: AnalyticsSummary }) {
+  const theme = useTheme()
+  const canceledColor = theme === 'dark' ? '#92989f' : '#6b7280'
   const option = useMemo(() => ({
     tooltip: {
       trigger: 'item',
@@ -350,11 +353,11 @@ function DonutChartPanel({ summary }: { summary: AnalyticsSummary }) {
           { value: summary.manual_count, name: 'Manual', itemStyle: { color: 'var(--dashboard-warning)' } },
           { value: summary.failed_count, name: 'Failed', itemStyle: { color: 'var(--dashboard-danger)' } },
           { value: summary.active_count, name: 'Active', itemStyle: { color: 'var(--dashboard-info)' } },
-          { value: summary.canceled_count, name: 'Canceled', itemStyle: { color: 'var(--dashboard-muted)' } },
+          { value: summary.canceled_count, name: 'Canceled', itemStyle: { color: canceledColor } },
         ],
       },
     ],
-  }), [summary])
+  }), [summary, canceledColor])
 
   return (
     <StatPanel title="Pipeline status mix">
@@ -380,6 +383,8 @@ function ProjectInventoryPanel({ summary }: { summary: AnalyticsSummary }) {
 }
 
 function RunnerPanel({ summary }: { summary: AnalyticsSummary }) {
+  const theme = useTheme()
+  const offlineColor = theme === 'dark' ? '#92989f' : '#6b7280'
   const option = useMemo(() => ({
     grid: { left: 80, right: 40, top: 10, bottom: 10 },
     xAxis: { type: 'value', show: false },
@@ -395,7 +400,7 @@ function RunnerPanel({ summary }: { summary: AnalyticsSummary }) {
       {
         type: 'bar',
         data: [
-          { value: summary.runner_offline_count, itemStyle: { color: 'var(--dashboard-muted)', borderRadius: [0, 3, 3, 0] } },
+          { value: summary.runner_offline_count, itemStyle: { color: offlineColor, borderRadius: [0, 3, 3, 0] } },
           { value: summary.runner_idle_count, itemStyle: { color: 'var(--dashboard-warning)', borderRadius: [0, 3, 3, 0] } },
           { value: summary.runner_running_count, itemStyle: { color: 'var(--dashboard-success)', borderRadius: [0, 3, 3, 0] } },
         ],
@@ -409,7 +414,7 @@ function RunnerPanel({ summary }: { summary: AnalyticsSummary }) {
         },
       },
     ],
-  }), [summary])
+  }), [summary, offlineColor])
 
   return (
     <div className="dashboard-grid">
@@ -589,7 +594,7 @@ function PipelineAnalyticsDashboard({
               <PanelIcon icon={BranchesIcon} className="panel-title-icon" aria-hidden />
               Total Pipelines
             </strong>
-            <small>Runs captured in PostgreSQL</small>
+            <small>All captured pipeline runs</small>
           </div>
           <span className="panel-header-badge">History</span>
         </header>

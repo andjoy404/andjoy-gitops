@@ -437,6 +437,20 @@
 
 .groupIdsItem :global(.ant-form-item-tooltip) {
   color: color-mix(in srgb, var(--dashboard-accent) 72%, var(--dashboard-text)) !important;
+  display: inline-flex !important;
+  position: relative !important;
+  top: -0.32em !important;
+  margin-inline-start: 2px !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
+}
+
+.groupIdsItem :global(.ant-form-item-tooltip) :global(.anticon),
+.groupIdsItem :global(.ant-form-item-tooltip) :global(.anticon svg),
+.groupIdsItem :global(.ant-form-item-tooltip svg) {
+  font-size: 10px !important;
+  width: 10px !important;
+  height: 10px !important;
 }
 
 :global(.environment-help-tooltip) :global(.ant-tooltip-inner) {

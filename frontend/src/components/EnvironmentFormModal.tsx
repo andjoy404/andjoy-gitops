@@ -1,13 +1,14 @@
-import { useEffect, useState } from 'react'
-import { Button, Drawer, Form, Input, Tag, Switch, Select } from 'antd'
+import { useEffect, useState, useCallback, useRef } from 'react'
+import { Button, Drawer, Form, Input, Switch, Tag, Select } from 'antd'
 import {
   CloseOutlined,
   CloudServerOutlined,
   GlobalOutlined,
   KeyOutlined,
+  StarOutlined,
   SettingOutlined,
 } from '@ant-design/icons'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../services/api'
 import { useGroupContext } from '../contexts/GroupContext'
 import type { EnvironmentDTO } from '../types'
@@ -26,17 +27,36 @@ export default function EnvironmentFormModal({ open, onClose, editingEnv, onSave
   const { selectEnvironment } = useGroupContext()
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [isDefault, setIsDefault] = useState(false)
 
   const isEdit = !!editingEnv
   const isPending = saving
 
-  const createMutation = useMutation({
+  const setDefaultMutation = useMutation({
+    mutationFn: api.setDefaultEnvironment,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['environments'] })
+    },
+  })
+
+  /* ── Check whether any environment is already the default ── */
+  const { data: environments = [] } = useQuery<EnvironmentDTO[]>({
+    queryKey: ['environments'],
+    queryFn: api.getEnvironments,
+    staleTime: 10_000,
+  })
+  const hasDefaultEnv = environments.some((env) => env.is_default === true)
+
+   const createMutation = useMutation({
     mutationFn: api.createEnvironment,
     onSuccess: (created: { id: number } | undefined) => {
       queryClient.invalidateQueries({ queryKey: ['environments'] })
       void queryClient.invalidateQueries({ queryKey: ['groups'] })
       if (created && typeof created.id === 'number') {
         selectEnvironment?.(created.id)
+        if (isDefault) {
+          setDefaultMutation.mutate(created.id)
+        }
       }
       onSaved?.(form.getFieldValue('name') as string)
       onClose()
@@ -48,12 +68,15 @@ export default function EnvironmentFormModal({ open, onClose, editingEnv, onSave
     },
   })
 
-  const updateMutation = useMutation({
+   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: Record<string, any> }) =>
       api.updateEnvironment(id, data as any),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['environments'] })
       void queryClient.invalidateQueries({ queryKey: ['groups'] })
+      if (isEdit && isDefault && !editingEnv?.is_default) {
+        setDefaultMutation.mutate(editingEnv!.id)
+      }
       onSaved?.(form.getFieldValue('name') as string)
       onClose()
       setSaving(false)
@@ -71,6 +94,7 @@ export default function EnvironmentFormModal({ open, onClose, editingEnv, onSave
     setSaving(false)
 
     if (editingEnv) {
+      setIsDefault(editingEnv.is_default === true)
       form.setFieldsValue({
         name: editingEnv.name,
         base_url: editingEnv.base_url,
@@ -79,14 +103,17 @@ export default function EnvironmentFormModal({ open, onClose, editingEnv, onSave
         enabled: editingEnv.enabled,
         only_top_level: editingEnv.only_top_level,
         include_subgroups: editingEnv.include_subgroups,
+        is_default: editingEnv.is_default === true,
       })
     } else {
       form.resetFields()
+      setIsDefault(!hasDefaultEnv)
       form.setFieldsValue({
         base_url: 'https://gitlab.com',
         enabled: true,
         only_top_level: false,
         include_subgroups: false,
+        is_default: !hasDefaultEnv,
       })
     }
   }, [open, editingEnv, form])
@@ -117,6 +144,8 @@ export default function EnvironmentFormModal({ open, onClose, editingEnv, onSave
       }
     } catch {
       // validation error
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -282,6 +311,18 @@ export default function EnvironmentFormModal({ open, onClose, editingEnv, onSave
               </div>
               <Form.Item name="enabled" valuePropName="checked" noStyle>
                 <Switch size="small" aria-label="Enabled" />
+              </Form.Item>
+            </div>
+
+            <div className={styles.switchRow}>
+              <div className={styles.switchText}>
+                <span className={styles.switchLabel}>
+                  <StarOutlined style={{ fontSize: '0.85rem' }} /> Default
+                </span>
+                <span className={styles.switchDesc}>Primary environment for analytics display</span>
+              </div>
+              <Form.Item name="is_default" valuePropName="checked" noStyle>
+                <Switch size="small" aria-label="Default environment" />
               </Form.Item>
             </div>
 

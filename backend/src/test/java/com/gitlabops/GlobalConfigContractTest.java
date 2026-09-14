@@ -45,7 +45,7 @@ class GlobalConfigContractTest {
     private static DataSource getTestDataSource() throws Exception {
         if (testDataSource == null) {
             testDataSource = new HikariDataSource();
-            testDataSource.setJdbcUrl("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1");
+            testDataSource.setJdbcUrl("jdbc:h2:mem:testdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1");
             testDataSource.setDriverClassName("org.h2.Driver");
             testDataSource.setUsername("sa");
             testDataSource.setPassword("");
@@ -53,7 +53,7 @@ class GlobalConfigContractTest {
             try (Connection conn = testDataSource.getConnection();
                  Statement stmt = conn.createStatement()) {
                 stmt.execute("CREATE TABLE IF NOT EXISTS app_global_settings ("
-                    + "singleton BOOLEAN, company_name VARCHAR, company_logo VARCHAR, "
+                    + "singleton BOOLEAN PRIMARY KEY, company_name VARCHAR, company_logo VARCHAR, "
                     + "updated_at TIMESTAMP, pipeline_view VARCHAR, sso_enabled BOOLEAN, "
                     + "local_login_enabled BOOLEAN, oidc_issuer_uri VARCHAR, oidc_client_id VARCHAR, "
                     + "oidc_client_secret VARCHAR, oidc_admin_group_claim VARCHAR, oidc_admin_group_value VARCHAR)");
@@ -213,6 +213,70 @@ class GlobalConfigContractTest {
         } catch (Exception e) {
             fail("GlobalConfigDTO SSO serialization failed: " + e.getMessage());
         }
+    }
+
+    @Test
+    void updateGlobalConfigPreservesSsoWhenUpdatingCompanySettings() throws Exception {
+        EnvironmentRepository repo = new EnvironmentRepository(getTestDsl(), getTestDataSource());
+        EncryptionService encryptionService = new EncryptionService(testEnv);
+        var sessionStore = new com.gitlabops.service.SessionStore();
+        String adminToken = sessionStore.createSession(1L, "admin", "admin", false);
+        org.springframework.mock.web.MockHttpServletRequest request = new org.springframework.mock.web.MockHttpServletRequest();
+        request.setCookies(new jakarta.servlet.http.Cookie("gcd_session", adminToken));
+
+        var envService = new com.gitlabops.service.EnvironmentService(repo, encryptionService, sessionStore);
+
+        // Seed initial SSO configuration
+        repo.saveGlobalConfigSso("My Co", "data:image/png;base64,orig", "latest", true, false, "https://idp.com", "cid", "sec", "groups", "admin");
+
+        // Request updating only company name, logo, and pipeline view (as GlobalConfigPage does)
+        var updateReq = new GlobalConfigRequest();
+        updateReq.setCompanyName("Updated Co");
+        updateReq.setCompanyLogo("data:image/png;base64,newlogo");
+        updateReq.setPipelineView("all");
+
+        envService.updateGlobalConfig(request, updateReq);
+
+        var config = repo.getGlobalConfig().orElseThrow();
+        assertEquals("Updated Co", config.getCompanyName());
+        assertEquals("data:image/png;base64,newlogo", config.getCompanyLogo());
+        assertEquals("all", config.getPipelineView());
+        assertTrue(config.isSsoEnabled(), "SSO should remain enabled");
+        assertFalse(config.isLocalLoginEnabled(), "Local login should remain disabled");
+        assertEquals("https://idp.com", config.getOidcIssuerUri());
+        assertEquals("cid", config.getOidcClientId());
+    }
+
+    @Test
+    void updateGlobalConfigPreservesLogoWhenUpdatingAuthentications() throws Exception {
+        EnvironmentRepository repo = new EnvironmentRepository(getTestDsl(), getTestDataSource());
+        EncryptionService encryptionService = new EncryptionService(testEnv);
+        var sessionStore = new com.gitlabops.service.SessionStore();
+        String adminToken = sessionStore.createSession(1L, "admin", "admin", false);
+        org.springframework.mock.web.MockHttpServletRequest request = new org.springframework.mock.web.MockHttpServletRequest();
+        request.setCookies(new jakarta.servlet.http.Cookie("gcd_session", adminToken));
+
+        var envService = new com.gitlabops.service.EnvironmentService(repo, encryptionService, sessionStore);
+
+        // Seed existing company logo
+        repo.saveGlobalConfig("Logo Co", "data:image/png;base64,keepme", "latest");
+
+        // Request updating authentications without companyLogo (as AuthenticationsPage does)
+        var updateReq = new GlobalConfigRequest();
+        updateReq.setCompanyName("Logo Co");
+        updateReq.setSsoEnabled(true);
+        updateReq.setLocalLoginEnabled(false);
+        updateReq.setOidcIssuerUri("https://auth.company.com");
+        updateReq.setOidcClientId("client-123");
+
+        envService.updateGlobalConfig(request, updateReq);
+
+        var config = repo.getGlobalConfig().orElseThrow();
+        assertEquals("Logo Co", config.getCompanyName());
+        assertEquals("data:image/png;base64,keepme", config.getCompanyLogo(), "Company logo must be preserved");
+        assertTrue(config.isSsoEnabled());
+        assertFalse(config.isLocalLoginEnabled());
+        assertEquals("https://auth.company.com", config.getOidcIssuerUri());
     }
 
     private GroupService emptyGroupService() {

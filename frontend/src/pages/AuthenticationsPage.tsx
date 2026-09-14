@@ -93,7 +93,8 @@ export default function AuthenticationsPage() {
     setFormError('')
     try {
       await updateMutation.mutateAsync({
-        company_name: config?.company_name || '',
+        company_name: config?.company_name || 'AndJoy GitOps',
+        company_logo: config?.company_logo ?? '',
         pipeline_view: config?.pipeline_view || 'latest',
         sso_enabled: values.sso_enabled,
         local_login_enabled: values.local_login_enabled,

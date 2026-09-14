@@ -78,8 +78,6 @@ export default function GlobalConfigPage() {
   const updateMutation = useMutation({
     mutationFn: api.updateGlobalConfig,
     onSuccess: (_data, variables) => {
-      // Optimistic cache update so the header/sidebar logo refreshes
-      // immediately, then invalidate so the server value wins.
       queryClient.setQueryData<GlobalConfigDTO>(['global-config'], (current) => ({
         ...(current ?? {
           company_name: '',
@@ -96,8 +94,14 @@ export default function GlobalConfigPage() {
         company_name: variables.company_name ?? '',
         company_logo: variables.company_logo ?? '',
         pipeline_view: variables.pipeline_view ?? 'latest',
+        ...(variables.sso_enabled !== undefined ? { sso_enabled: variables.sso_enabled } : {}),
+        ...(variables.local_login_enabled !== undefined ? { local_login_enabled: variables.local_login_enabled } : {}),
+        ...(variables.oidc_issuer_uri !== undefined ? { oidc_issuer_uri: variables.oidc_issuer_uri } : {}),
+        ...(variables.oidc_client_id !== undefined ? { oidc_client_id: variables.oidc_client_id } : {}),
+        ...(variables.oidc_client_secret !== undefined ? { oidc_client_secret: variables.oidc_client_secret } : {}),
+        ...(variables.oidc_admin_group_claim !== undefined ? { oidc_admin_group_claim: variables.oidc_admin_group_claim } : {}),
+        ...(variables.oidc_admin_group_value !== undefined ? { oidc_admin_group_value: variables.oidc_admin_group_value } : {}),
       } as GlobalConfigDTO))
-      void queryClient.invalidateQueries({ queryKey: ['global-config'] })
       setFormError('')
       notify('success', 'Settings saved')
     },
@@ -169,6 +173,13 @@ export default function GlobalConfigPage() {
         company_name: values.company_name,
         company_logo: values.company_logo ?? '',
         pipeline_view: values.pipeline_view,
+        sso_enabled: config?.sso_enabled,
+        local_login_enabled: config?.local_login_enabled,
+        oidc_issuer_uri: config?.oidc_issuer_uri,
+        oidc_client_id: config?.oidc_client_id,
+        oidc_client_secret: config?.oidc_client_secret,
+        oidc_admin_group_claim: config?.oidc_admin_group_claim,
+        oidc_admin_group_value: config?.oidc_admin_group_value,
       })
       // Persist the previewed theme now that the save succeeded (no change =
       // no-op) and record it so an unmount doesn't revert it.

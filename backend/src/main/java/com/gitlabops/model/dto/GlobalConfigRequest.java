@@ -11,17 +11,17 @@ public class GlobalConfigRequest {
     private String companyName;
 
     @JsonProperty("company_logo")
-    private String companyLogo = "";
+    private String companyLogo;
 
     @JsonProperty("pipeline_view")
     @Pattern(regexp = "^(all|latest)$", message = "Pipeline view must be 'all' or 'latest'")
-    private String pipelineView = "latest";
+    private String pipelineView;
 
     @JsonProperty("sso_enabled")
-    private Boolean ssoEnabled = false;
+    private Boolean ssoEnabled;
 
     @JsonProperty("local_login_enabled")
-    private Boolean localLoginEnabled = true;
+    private Boolean localLoginEnabled;
 
     @JsonProperty("oidc_issuer_uri")
     private String oidcIssuerUri;
@@ -33,10 +33,10 @@ public class GlobalConfigRequest {
     private String oidcClientSecret;
 
     @JsonProperty("oidc_admin_group_claim")
-    private String oidcAdminGroupClaim = "groups";
+    private String oidcAdminGroupClaim;
 
     @JsonProperty("oidc_admin_group_value")
-    private String oidcAdminGroupValue = "admin";
+    private String oidcAdminGroupValue;
 
     public String getCompanyName() { return companyName; }
     public void setCompanyName(String companyName) { this.companyName = companyName; }
@@ -48,9 +48,11 @@ public class GlobalConfigRequest {
     public void setPipelineView(String pipelineView) { this.pipelineView = pipelineView; }
 
     public Boolean isSsoEnabled() { return ssoEnabled; }
+    public Boolean getSsoEnabled() { return ssoEnabled; }
     public void setSsoEnabled(Boolean ssoEnabled) { this.ssoEnabled = ssoEnabled; }
 
     public Boolean isLocalLoginEnabled() { return localLoginEnabled; }
+    public Boolean getLocalLoginEnabled() { return localLoginEnabled; }
     public void setLocalLoginEnabled(Boolean localLoginEnabled) { this.localLoginEnabled = localLoginEnabled; }
 
     public String getOidcIssuerUri() { return oidcIssuerUri; }

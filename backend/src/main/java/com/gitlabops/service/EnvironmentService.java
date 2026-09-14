@@ -154,38 +154,75 @@ public class EnvironmentService {
     public void updateGlobalConfig(HttpServletRequest request, GlobalConfigRequest req) {
         requireAdmin(request);
 
-        String companyName = req.getCompanyName().trim();
-        if (companyName.isEmpty()) {
+        GlobalConfigDTO current = environmentRepository.getGlobalConfig()
+            .orElse(new GlobalConfigDTO("AndJoy GitOps", "", "latest", false, true, null, null, null, "groups", "admin"));
+
+        String companyName;
+        if (req.getCompanyName() != null && !req.getCompanyName().trim().isEmpty()) {
+            companyName = req.getCompanyName().trim();
+        } else if (current.getCompanyName() != null && !current.getCompanyName().trim().isEmpty()) {
+            companyName = current.getCompanyName().trim();
+        } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Company name is required");
         }
 
-        String pipelineView = req.getPipelineView() != null ? req.getPipelineView().trim() : "latest";
-        if (!"all".equals(pipelineView) && !"latest".equals(pipelineView)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid pipeline view: must be 'all' or 'latest'");
+        String pipelineView;
+        if (req.getPipelineView() != null && !req.getPipelineView().trim().isEmpty()) {
+            pipelineView = req.getPipelineView().trim();
+            if (!"all".equals(pipelineView) && !"latest".equals(pipelineView)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid pipeline view: must be 'all' or 'latest'");
+            }
+        } else {
+            pipelineView = current.getPipelineView() != null && !current.getPipelineView().trim().isEmpty()
+                ? current.getPipelineView().trim() : "latest";
         }
 
-        if (req.isSsoEnabled() || req.getOidcIssuerUri() != null || req.getOidcClientId() != null
-                || req.getOidcClientSecret() != null || req.getOidcAdminGroupClaim() != null
-                || req.getOidcAdminGroupValue() != null) {
-            environmentRepository.saveGlobalConfigSso(
-                companyName,
-                req.getCompanyLogo() != null ? req.getCompanyLogo() : "",
-                pipelineView,
-                req.isSsoEnabled(),
-                req.isLocalLoginEnabled(),
-                req.getOidcIssuerUri(),
-                req.getOidcClientId(),
-                req.getOidcClientSecret(),
-                req.getOidcAdminGroupClaim(),
-                req.getOidcAdminGroupValue()
-            );
-        } else {
-            environmentRepository.saveGlobalConfig(
-                companyName,
-                req.getCompanyLogo() != null ? req.getCompanyLogo() : "",
-                pipelineView
-            );
-        }
+        // If companyLogo is provided in req (including empty string "" when explicitly cleared), use it.
+        // If companyLogo is null (omitted from payload like in AuthenticationsPage), preserve current DB value.
+        String companyLogo = req.getCompanyLogo() != null
+            ? req.getCompanyLogo()
+            : (current.getCompanyLogo() != null ? current.getCompanyLogo() : "");
+
+        // If ssoEnabled is provided in req, use it; otherwise preserve current DB value.
+        boolean ssoEnabled = req.isSsoEnabled() != null
+            ? req.isSsoEnabled()
+            : Boolean.TRUE.equals(current.isSsoEnabled());
+
+        // If localLoginEnabled is provided in req, use it; otherwise preserve current DB value.
+        boolean localLoginEnabled = req.isLocalLoginEnabled() != null
+            ? req.isLocalLoginEnabled()
+            : (current.isLocalLoginEnabled() == null || Boolean.TRUE.equals(current.isLocalLoginEnabled()));
+
+        // OIDC fields: if provided in req, use; otherwise preserve current DB value.
+        String oidcIssuerUri = req.getOidcIssuerUri() != null
+            ? req.getOidcIssuerUri()
+            : current.getOidcIssuerUri();
+        String oidcClientId = req.getOidcClientId() != null
+            ? req.getOidcClientId()
+            : current.getOidcClientId();
+        String oidcClientSecret = req.getOidcClientSecret() != null
+            ? req.getOidcClientSecret()
+            : current.getOidcClientSecret();
+        String oidcAdminGroupClaim = req.getOidcAdminGroupClaim() != null && !req.getOidcAdminGroupClaim().isBlank()
+            ? req.getOidcAdminGroupClaim()
+            : (current.getOidcAdminGroupClaim() != null ? current.getOidcAdminGroupClaim() : "groups");
+        String oidcAdminGroupValue = req.getOidcAdminGroupValue() != null && !req.getOidcAdminGroupValue().isBlank()
+            ? req.getOidcAdminGroupValue()
+            : (current.getOidcAdminGroupValue() != null ? current.getOidcAdminGroupValue() : "admin");
+
+        environmentRepository.saveGlobalConfigSso(
+            companyName,
+            companyLogo,
+            pipelineView,
+            ssoEnabled,
+            localLoginEnabled,
+            oidcIssuerUri,
+            oidcClientId,
+            oidcClientSecret,
+            oidcAdminGroupClaim,
+            oidcAdminGroupValue
+        );
+
         if (oidcRegistrationRepoProvider != null) {
             oidcRegistrationRepoProvider.ifAvailable(DynamicClientRegistrationRepository::bustCache);
         }

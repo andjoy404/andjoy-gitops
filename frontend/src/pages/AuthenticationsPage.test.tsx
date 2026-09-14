@@ -178,6 +178,7 @@ describe('AuthenticationsPage', () => {
     expect(updateGlobalConfig).toHaveBeenCalledTimes(1)
     expect(updateGlobalConfig).toHaveBeenCalledWith({
       company_name: 'Acme Corp',
+      company_logo: '',
       pipeline_view: 'latest',
       sso_enabled: false,
       local_login_enabled: true,
@@ -215,6 +216,7 @@ describe('AuthenticationsPage', () => {
     expect(await screen.findByText(/Authentication settings saved/i)).toBeTruthy()
     expect(updateGlobalConfig).toHaveBeenCalledWith({
       company_name: 'Acme Corp',
+      company_logo: '',
       pipeline_view: 'latest',
       sso_enabled: true,
       local_login_enabled: false,

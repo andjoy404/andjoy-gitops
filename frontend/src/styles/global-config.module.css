@@ -100,13 +100,20 @@
 
 .configCard :global(.ant-form-item-tooltip) {
   color: color-mix(in srgb, var(--dashboard-accent) 72%, var(--dashboard-text)) !important;
+  display: inline-flex !important;
+  position: relative !important;
+  top: -0.32em !important;
+  margin-inline-start: 2px !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
 }
 
 .configCard :global(.ant-form-item-tooltip) :global(.anticon),
-.configCard :global(.ant-form-item-tooltip) :global(.anticon svg) {
-  font-size: var(--gitops-table-header-font-size) !important;
-  width: 1em;
-  height: 1em;
+.configCard :global(.ant-form-item-tooltip) :global(.anticon svg),
+.configCard :global(.ant-form-item-tooltip svg) {
+  font-size: 10px !important;
+  width: 10px !important;
+  height: 10px !important;
 }
 
 .configCard :global(.ant-input),
@@ -141,6 +148,18 @@
   border-color: var(--dashboard-accent) !important;
   background: color-mix(in srgb, var(--dashboard-accent) 3%, var(--dashboard-surface-subtle)) !important;
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--dashboard-accent) 20%, transparent) !important;
+}
+
+/* Eye toggle button in Input.Password — respects light/dark theme */
+.configCard :global(.ant-input-password-icon),
+.configCard :global(.ant-input-clear-icon) {
+  color: var(--dashboard-muted) !important;
+  transition: color 150ms ease;
+}
+
+.configCard :global(.ant-input-password-icon:hover),
+.configCard :global(.ant-input-clear-icon:hover) {
+  color: var(--dashboard-text) !important;
 }
 
 /* Input prefix icons */
