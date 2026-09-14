@@ -419,16 +419,32 @@ public class AnalyticsSyncService {
                 String newStatus = (String) pipeline.get("status");
                 if (newStatus == null) continue;
 
+                boolean statusChanged = !newStatus.equalsIgnoreCase(ref.status());
+
+                // Check if pipeline was updated in GitLab (e.g. retried job or status transition)
+                String gitlabUpdatedAtStr = (String) pipeline.get("updated_at");
+                java.time.OffsetDateTime gitlabUpdatedAt = AnalyticsSyncStorage.toOffsetDateTime(gitlabUpdatedAtStr);
+                boolean updatedAtChanged = gitlabUpdatedAt != null && ref.updatedAt() != null
+                        && gitlabUpdatedAt.isAfter(ref.updatedAt());
+
+                boolean wasActive = "running".equalsIgnoreCase(ref.status())
+                        || "pending".equalsIgnoreCase(ref.status())
+                        || "created".equalsIgnoreCase(ref.status())
+                        || "preparing".equalsIgnoreCase(ref.status())
+                        || "waiting_for_resource".equalsIgnoreCase(ref.status())
+                        || "scheduled".equalsIgnoreCase(ref.status());
+
+                boolean hasUnresolved = syncStorage.hasUnresolvedFailedJob(ref.gitlabId());
+
+                // If neither status nor updated_at changed, pipeline was not active, and has no unresolved failed jobs, skip job fetch
+                if (!statusChanged && !updatedAtChanged && !wasActive && !hasUnresolved) {
+                    continue;
+                }
+
                 // Update pipeline status
                 syncStorage.upsertPipelines(List.of(pipeline), ref.projectId());
 
-                // Fetch jobs if status changed or completed
-                boolean isTerminal = "success".equalsIgnoreCase(newStatus)
-                        || "failed".equalsIgnoreCase(newStatus)
-                        || "canceled".equalsIgnoreCase(newStatus)
-                        || "skipped".equalsIgnoreCase(newStatus);
-
-                if (!newStatus.equalsIgnoreCase(ref.status()) || isTerminal) {
+                if (statusChanged || updatedAtChanged || wasActive || hasUnresolved) {
                     Object authorIdRaw = pipeline.get("author_id");
                     long pipelineAuthorId = authorIdRaw != null ? ((Number) authorIdRaw).longValue() : 0L;
                     String pipelineUsername = null;
@@ -440,7 +456,7 @@ public class AnalyticsSyncService {
                     }
                     List<Map<String, Object>> jobs = gitLabClient.getJobsForPipeline(ref.projectId(), ref.gitlabId(), namespaceId);
                     syncStorage.upsertJobs(jobs, ref.gitlabId(), ref.projectId(), pipelineAuthorId, pipelineUsername);
-                    log.info("Updated active pipeline {} in project {}: {} -> {} (jobs={})",
+                    log.info("Updated active/retried pipeline {} in project {}: {} -> {} (jobs={})",
                             ref.gitlabId(), ref.projectId(), ref.status(), newStatus, jobs.size());
                     updatedCount++;
                 }

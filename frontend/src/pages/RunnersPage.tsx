@@ -19,7 +19,7 @@ import '../styles/pipelines.css'
 import styles from '../styles/runners.module.css'
 
 const JOB_STATUS_COLORS: Record<string, string> = {
-  created: '#39A0FF',
+  created: '#9AA3AD',
   pending: '#9AA3AD',
   running: '#39A0FF',
   success: '#18D99A',

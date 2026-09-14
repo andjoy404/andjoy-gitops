@@ -481,6 +481,9 @@ table.gitops-data-table.runner-table,
   padding: 0 8px;
   line-height: 1.2;
 }
+.gitops-data-table td .pipeline-job-badge {
+  font-size: 0.85em;
+}
 
 /* Global uniform height for antd Buttons and action icons inside any data
    table cell.  Only caps the box height — text/icon still centers via

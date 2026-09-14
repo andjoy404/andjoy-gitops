@@ -1,5 +1,5 @@
 import { Tag, Tooltip, Space, Modal } from 'antd'
-import { LoadingOutlined, CloseOutlined, FullscreenOutlined, BranchesOutlined, ClockCircleOutlined, DashboardOutlined, UserOutlined, TagOutlined, CodeOutlined, EnvironmentOutlined, ReloadOutlined } from '@ant-design/icons'
+import { LoadingOutlined, CloseOutlined, FullscreenOutlined, BranchesOutlined, ClockCircleOutlined, DashboardOutlined, UserOutlined, TagOutlined, CodeOutlined, EnvironmentOutlined, ReloadOutlined, CaretRightOutlined, CheckOutlined, StepForwardOutlined, StopOutlined, FieldTimeOutlined } from '@ant-design/icons'
 import type { PipelineStatus, PipelineSource, JobStatus, JobInfo } from '../types'
 import type { PipelineInfo } from '../types'
 import React, {
@@ -55,9 +55,48 @@ export const PIPELINE_STATUSES: { label: string; value: PipelineStatus }[] = [
 ]
 
 const SPIN_JOB_STATUSES: ReadonlySet<JobStatus> = new Set([
-  'created', 'waiting_for_resource', 'preparing', 'pending',
-  'running', 'manual', 'scheduled',
+  'running', 'preparing',
 ] as JobStatus[])
+
+export function renderStatusIcon(
+  status?: string,
+  color?: string,
+  extraStyle?: React.CSSProperties
+): React.ReactElement {
+  const st = String(status || '').toLowerCase().trim()
+  const iconStyle: React.CSSProperties = {
+    fontSize: 10,
+    marginRight: 3,
+    ...(color ? { color } : {}),
+    ...extraStyle,
+  }
+
+  switch (st) {
+    case 'success':
+    case 'passed':
+      return <CheckOutlined style={iconStyle} />
+    case 'failed':
+      return <CloseOutlined style={iconStyle} />
+    case 'running':
+    case 'preparing':
+      return <LoadingOutlined style={{ ...iconStyle, fontSize: 11 }} />
+    case 'manual':
+    case 'approval':
+      return <CaretRightOutlined style={iconStyle} />
+    case 'skipped':
+      return <StepForwardOutlined style={iconStyle} />
+    case 'canceled':
+    case 'canceling':
+      return <StopOutlined style={iconStyle} />
+    case 'scheduled':
+      return <FieldTimeOutlined style={iconStyle} />
+    case 'created':
+    case 'pending':
+    case 'waiting_for_resource':
+    default:
+      return <ClockCircleOutlined style={iconStyle} />
+  }
+}
 
 export function formatRelative(dateStr: string): string {
   if (!dateStr) return '-'
@@ -160,17 +199,21 @@ export function orderJobsByStageSequence(jobs: JobInfo[]): JobInfo[] {
    return name.replace(RETRY_SUFFIX, '').trim()
  }
 
- export function dedupRetryJobs(jobs: JobInfo[]): JobInfo[] {
-   const latestByBaseName = new Map<string, JobInfo>()
-   for (const job of jobs) {
-     const baseName = stripRetrySuffix(job.name)
-     const existing = latestByBaseName.get(baseName)
-     if (!existing || (job.created_at ?? '') > (existing.created_at ?? '')) {
-       latestByBaseName.set(baseName, job)
-     }
-   }
-   return orderJobsByStageSequence(Array.from(latestByBaseName.values()))
- }
+  export function dedupRetryJobs(jobs: JobInfo[]): JobInfo[] {
+    const latestByBaseName = new Map<string, JobInfo>()
+    for (const job of jobs) {
+      const baseName = stripRetrySuffix(job.name)
+      const existing = latestByBaseName.get(baseName)
+      if (
+        !existing ||
+        (job.created_at ?? '') > (existing.created_at ?? '') ||
+        ((job.created_at ?? '') === (existing.created_at ?? '') && job.id > existing.id)
+      ) {
+        latestByBaseName.set(baseName, job)
+      }
+    }
+    return orderJobsByStageSequence(Array.from(latestByBaseName.values()))
+  }
 
  export function getPipelineEffectiveStatus(
     pipeline?: PipelineInfo | null,
@@ -185,22 +228,15 @@ export function orderJobsByStageSequence(jobs: JobInfo[]): JobInfo[] {
 
     const jobs = dedupRetryJobs(rawJobs)
 
-    const hasChildJobs = jobs.some(j => j.parent_job_id !== null)
-    const firstChildIdx = jobs.findIndex(j => j.parent_job_id !== null)
+    const hasChildJobs = jobs.some(j => j.parent_job_id != null && Number(j.parent_job_id) > 0)
+    const firstChildIdx = jobs.findIndex(j => j.parent_job_id != null && Number(j.parent_job_id) > 0)
     const arrowIndex = hasChildJobs && jobs.length > 1 ? (firstChildIdx > 0 ? firstChildIdx : 1) : -1
-    const parentJobs = hasChildJobs && arrowIndex >= 0 ? jobs.slice(0, arrowIndex) : (hasChildJobs ? jobs.filter(j => j.parent_job_id === null) : jobs)
-    const childJobs = hasChildJobs && arrowIndex >= 0 ? jobs.slice(arrowIndex) : jobs.filter(j => j.parent_job_id !== null)
+    const parentJobs = hasChildJobs && arrowIndex >= 0 ? jobs.slice(0, arrowIndex) : (hasChildJobs ? jobs.filter(j => j.parent_job_id == null || Number(j.parent_job_id) <= 0) : jobs)
+    const childJobs = hasChildJobs && arrowIndex >= 0 ? jobs.slice(arrowIndex) : jobs.filter(j => j.parent_job_id != null && Number(j.parent_job_id) > 0)
 
     const targetJob = childJobs.length > 0
       ? childJobs[childJobs.length - 1]
       : (parentJobs.length > 0 ? parentJobs[parentJobs.length - 1] : undefined)
-
-    const manualOrApprovalJob = jobs.find(
-      j => String(j.status || '').toLowerCase() === 'manual' ||
-           String(j.status || '').toLowerCase() === 'approval' ||
-           String(j.name || '').toLowerCase().trim() === 'approval' ||
-           String(j.name || '').toLowerCase().includes('approval')
-    )
 
     const isManualOrApproval = (j?: { status?: string; name?: string } | null) => {
       if (!j) return false
@@ -218,10 +254,29 @@ export function orderJobsByStageSequence(jobs: JobInfo[]): JobInfo[] {
         }
       }
     } else if (parentJobs.length > 0) {
-      if (isManualOrApproval(targetJob) || manualOrApprovalJob) {
+      if (isManualOrApproval(targetJob)) {
         s = 'manual'
       } else if (targetJob?.status) {
         s = String(targetJob.status).toLowerCase().trim() as PipelineStatus
+      }
+    }
+
+    // Check if there is an unexecuted manual job blocking subsequent jobs
+    const unexecutedManualJob = jobs.find(
+      j => isManualOrApproval(j) && String(j.status || '').toLowerCase().trim() !== 'success'
+    )
+    if (unexecutedManualJob) {
+      const manualIdx = jobs.indexOf(unexecutedManualJob)
+      const subsequentJobs = jobs.slice(manualIdx + 1)
+      const subsequentNotRun = subsequentJobs.length === 0 || subsequentJobs.every(j => {
+        const st = String(j.status || '').toLowerCase().trim()
+        return st === 'created' || st === 'pending' || st === 'waiting_for_resource' || st === 'manual' || st === 'approval'
+      })
+      const isRequiredManual = unexecutedManualJob.allow_failure !== true
+      const isRawManual = String(pipeline?.status || '').toLowerCase().trim() === 'manual'
+
+      if ((isRequiredManual && subsequentNotRun) || isRawManual) {
+        s = 'manual'
       }
     }
 
@@ -230,7 +285,7 @@ export function orderJobsByStageSequence(jobs: JobInfo[]): JobInfo[] {
     }
 
     const rawStatus = String(pipeline?.status || '').toLowerCase().trim()
-    const isTerminalRaw = rawStatus === 'success' || rawStatus === 'failed' || rawStatus === 'canceled' || rawStatus === 'skipped'
+    const isTerminalRaw = rawStatus === 'success' || rawStatus === 'failed' || rawStatus === 'canceled' || rawStatus === 'skipped' || rawStatus === 'manual'
     if (isTerminalRaw && (s === 'running' || s === 'pending' || s === 'preparing' || s === 'waiting_for_resource')) {
       s = rawStatus as PipelineStatus
     }
@@ -498,12 +553,19 @@ function JobDetailModalBase({
           {job && <BranchesOutlined style={{ color: COLORS[job.status === 'created' ? 'running' : job.status] || '#9AA3AD', fontSize: '1.1em' }} />}
           <span style={{ fontWeight: 600, fontSize: '1.05rem', color: 'var(--dashboard-text)' }}>{job?.name}</span>
           {job && (() => {
-            const st = job.status === 'created' ? 'running' : job.status
+            const rawStatus = String(job.status || '').toLowerCase().trim()
+            const isApproved = rawStatus === 'success' || rawStatus === 'passed'
+            const isFailed = rawStatus === 'failed'
+            const isMan = !isApproved && !isFailed && (
+              rawStatus === 'manual' || rawStatus === 'approval' || job.name.toLowerCase().includes('approval')
+            )
+            const st = isApproved ? 'success' : (isMan ? 'manual' : (rawStatus === 'created' ? 'created' : job.status))
             return (
               <Tag
                 className="job-status-badge"
                 style={{ '--job-status-color': COLORS[st] || '#9AA3AD' } as React.CSSProperties}
               >
+                {renderStatusIcon(st)}
                 {st?.charAt(0).toUpperCase() + (st || '').slice(1)}
               </Tag>
             )
@@ -684,8 +746,8 @@ export function PipelineJobBadges({
     waiting_for_resource: '#9AA3AD',
   }
 
-  const hasChildJobs = jobs.some(j => j.parent_job_id !== null)
-  const firstChildIdx = jobs.findIndex(j => j.parent_job_id !== null)
+  const hasChildJobs = jobs.some(j => j.parent_job_id != null && Number(j.parent_job_id) > 0)
+  const firstChildIdx = jobs.findIndex(j => j.parent_job_id != null && Number(j.parent_job_id) > 0)
   const arrowIndex = hasChildJobs && jobs.length > 1 ? (firstChildIdx > 0 ? firstChildIdx : 1) : -1
 
   const handleAfterClose = useCallback(() => {
@@ -704,11 +766,32 @@ export function PipelineJobBadges({
 
   const showJob = selectedJob !== null
 
+  const unexecutedManualIdx = jobs.findIndex(j => {
+    const st = String(j.status || '').toLowerCase().trim()
+    const nm = String(j.name || '').toLowerCase().trim()
+    return (st === 'manual' || st === 'approval' || nm === 'approval' || nm.includes('approval')) && st !== 'success'
+  })
+
   function renderBadge(job: JobInfo, jobIndex: number) {
-    const rawStatus = String(job.status || '').toLowerCase()
-    const status = (rawStatus === 'created' ? 'running' : job.status) as JobStatus
-    const isSpinJob = SPIN_JOB_STATUSES.has(status)
-    const effectiveJob = { ...job, status }
+    const rawStatus = String(job.status || '').toLowerCase().trim()
+    const isApproved = rawStatus === 'success' || rawStatus === 'passed'
+    const isFailed = rawStatus === 'failed'
+    const isManJob = !isApproved && !isFailed && (
+      rawStatus === 'manual' || rawStatus === 'approval' || job.name.toLowerCase().includes('approval')
+    )
+    const status = (isApproved ? 'success' : (isManJob ? 'manual' : (rawStatus === 'created' ? 'created' : job.status))) as JobStatus
+
+    const isBlockedByManual = unexecutedManualIdx >= 0 && jobIndex > unexecutedManualIdx && (
+      rawStatus === 'created' || rawStatus === 'pending' || rawStatus === 'waiting_for_resource'
+    )
+
+    const effectiveStatus = (isBlockedByManual ? 'created' : status) as JobStatus
+
+    const badgeColor = isBlockedByManual
+      ? '#9AA3AD'
+      : (JOB_STATUS_TEXT_COLORS[status] || '#9AA3AD')
+
+    const effectiveJob = { ...job, status: effectiveStatus }
     return (
       <Tooltip
         key={job.id}
@@ -716,19 +799,17 @@ export function PipelineJobBadges({
         title={
           <div>
             <div><strong>{job.name}</strong></div>
-            <div>Stage: {job.stage} · Status: {status}</div>
+            <div>Status: {effectiveStatus}</div>
           </div>
         }
       >
         <span
           className="pipeline-job-badge"
           onClick={(e) => { handleClick(jobIndex, effectiveJob, e.currentTarget) }}
-          style={{"--job-color": JOB_STATUS_TEXT_COLORS[status] || '#9AA3AD', cursor: 'pointer'} as React.CSSProperties}
+          style={{"--job-color": badgeColor, cursor: 'pointer'} as React.CSSProperties}
         >
-          {isSpinJob && (
-            <LoadingOutlined style={{ color: JOB_STATUS_TEXT_COLORS[status] || '#9AA3AD', fontSize: 11 }} />
-          )}
-          <span style={{ fontSize: '1em', whiteSpace: 'nowrap' }}>
+          {renderStatusIcon(effectiveStatus, badgeColor, { marginRight: 2 })}
+          <span style={{ whiteSpace: 'nowrap' }}>
             {job.name.length > 12 ? `${job.name.substring(0, 10)}…` : job.name}
           </span>
           {showJob && selectedJob && selectedJob.id === job.id && (
@@ -820,11 +901,13 @@ export function PipelineDetailModal({
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {pipeline && (() => {
             const st = pipeline.status === 'created' ? 'running' : pipeline.status
+            const isMan = st === 'manual' || st === 'approval'
             return (
               <Tag
                 className="job-status-badge"
                 style={{ '--job-status-color': COLORS[st] || '#9AA3AD' } as React.CSSProperties}
               >
+                {renderStatusIcon(st)}
                 {st?.charAt(0).toUpperCase() + (st || '').slice(1)}
               </Tag>
             )
@@ -952,7 +1035,7 @@ const PIPELINE_STATUS_GRADIENTS: Record<string, string> = {
   canceling: 'linear-gradient(135deg, #9aa3ad 0%, #6b7280 100%)',
   skipped: 'linear-gradient(135deg, #ff9f2f 0%, #f59e0b 100%)',
   manual: 'linear-gradient(135deg, #ffc21c 0%, #eab308 100%)',
-  created: 'linear-gradient(135deg, #39a0ff 0%, #0ea5e9 100%)',
+  created: 'linear-gradient(135deg, #9aa3ad 0%, #6b7280 100%)',
   pending: 'linear-gradient(135deg, #9aa3ad 0%, #6b7280 100%)',
   waiting_for_resource: 'linear-gradient(135deg, #9aa3ad 0%, #6b7280 100%)',
   scheduled: 'linear-gradient(135deg, #a970ff 0%, #8b5cf6 100%)',
@@ -961,7 +1044,7 @@ const PIPELINE_STATUS_GRADIENTS: Record<string, string> = {
 
 export function getAccentColor(status: string): string {
   const m: Record<string, string> = {
-    created: '#39A0FF',
+    created: '#9AA3AD',
     pending: '#9AA3AD',
     running: '#39A0FF',
     success: '#18D99A',
@@ -978,7 +1061,7 @@ export function getAccentColor(status: string): string {
 }
 
 const STATUS_GRADIENTS: Record<string, string> = {
-  created: 'linear-gradient(135deg, #39A0FF 0%, #2d7ed9 100%)',
+  created: 'linear-gradient(135deg, #9AA3AD 0%, #7a828a 100%)',
   pending: 'linear-gradient(135deg, #9AA3AD 0%, #7a828a 100%)',
   running: 'linear-gradient(135deg, #39A0FF 0%, #2d7ed9 100%)',
   success: 'linear-gradient(135deg, #18D99A 0%, #10b882 100%)',
@@ -1056,6 +1139,7 @@ function PipelineJobNode({
   const isRunning = status === 'running' || status === 'preparing' || status === 'waiting_for_resource'
   const isSuccess = status === 'success' || status === 'passed'
   const isFailed = status === 'failed'
+  const isManual = status === 'manual' || status === 'approval'
   const isDark = useTheme() === 'dark'
 
   const surfaceBg = isDark ? '#1c2128' : '#ffffff'
@@ -1098,18 +1182,18 @@ function PipelineJobNode({
         }}
       />
 
-      {/* Status icon circle like GitLab */}
+      {/* Status icon circle like GitLab (no circle outline for manual play action) */}
       <div style={{
         width: 22,
         height: 22,
-        borderRadius: '50%',
-        border: `2px solid ${accentColor}`,
+        borderRadius: isManual ? 0 : '50%',
+        border: isManual ? 'none' : `2px solid ${accentColor}`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         flexShrink: 0,
         color: accentColor,
-        fontSize: 12,
+        fontSize: isManual ? 14 : 12,
         fontWeight: 800,
         lineHeight: 1,
       }}>
@@ -1119,6 +1203,8 @@ function PipelineJobNode({
           '✓'
         ) : isFailed ? (
           '✕'
+        ) : isManual ? (
+          <CaretRightOutlined style={{ fontSize: 14, color: accentColor, marginLeft: 1 }} />
         ) : (
           '•'
         )}
@@ -1313,6 +1399,19 @@ function PipelineDAGGraph({
     return { positions, sortedStages, stageOrder }
   }, [jobs])
 
+  const getNodeStatus = (job: JobInfo): string => {
+    const rawStatus = String(job.status || '').toLowerCase().trim()
+    const isApproved = rawStatus === 'success' || rawStatus === 'passed'
+    const isFailed = rawStatus === 'failed'
+    const isMan = !isApproved && !isFailed && (
+      rawStatus === 'manual' || rawStatus === 'approval' || job.name.toLowerCase().includes('approval')
+    )
+    if (isApproved) return 'success'
+    if (isMan) return 'manual'
+    if (rawStatus === 'created') return 'created'
+    return job.status || 'created'
+  }
+
   const nodes = useMemo(() => {
     const n: import('reactflow').Node[] = []
     orderedJobs.forEach((job) => {
@@ -1326,7 +1425,7 @@ function PipelineDAGGraph({
           height: 52,
           data: {
             label: job.name,
-            status: job.status === 'created' ? 'running' : job.status,
+            status: getNodeStatus(job),
             isSelected: selectedJob ? selectedJob.id === job.id : false,
             stage: job.stage,
           },
@@ -1348,7 +1447,7 @@ function PipelineDAGGraph({
           height: 52,
           data: {
             label: job.name,
-            status: job.status === 'created' ? 'running' : job.status,
+            status: getNodeStatus(job),
             isSelected: selectedJob ? selectedJob.id === job.id : false,
             stage: job.stage,
           },

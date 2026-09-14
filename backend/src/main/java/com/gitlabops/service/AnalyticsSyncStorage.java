@@ -49,13 +49,18 @@ public class AnalyticsSyncStorage {
         }
     }
 
-    private OffsetDateTime toOffsetDateTime(String dateStr) {
-        if (dateStr == null || dateStr.isEmpty()) return OffsetDateTime.now();
+    public static OffsetDateTime toOffsetDateTime(String dateStr) {
+        if (dateStr == null || dateStr.isEmpty()) return null;
         try {
             return OffsetDateTime.parse(dateStr.replace("Z", "+00:00"));
         } catch (Exception e) {
-            return OffsetDateTime.now();
+            return null;
         }
+    }
+
+    public static OffsetDateTime toOffsetDateTimeOrNow(String dateStr) {
+        OffsetDateTime dt = toOffsetDateTime(dateStr);
+        return dt != null ? dt : OffsetDateTime.now();
     }
 
     // ─── Sync state ────────────────────────────────────────────
@@ -217,8 +222,8 @@ public class AnalyticsSyncStorage {
                 Long authorId = pipeline.get("author_id") != null ?
                         ((Number) pipeline.get("author_id")).longValue() : null;
 
-                OffsetDateTime createdAt = toOffsetDateTime(createdAtStr);
-                OffsetDateTime updatedAt = toOffsetDateTime(updatedAtStr);
+                OffsetDateTime createdAt = toOffsetDateTimeOrNow(createdAtStr);
+                OffsetDateTime updatedAt = toOffsetDateTimeOrNow(updatedAtStr);
 
                 String sql = "INSERT INTO analytics_pipelines(gitlab_id, iid, project_id, sha, branch, " +
                     "status, source, coverage, created_at, updated_at, web_url, author_id) " +
@@ -250,11 +255,16 @@ public class AnalyticsSyncStorage {
         try {
             String sql = "SELECT p.gitlab_id FROM analytics_pipelines p " +
                          "WHERE p.project_id = ? " +
-                         "  AND p.status IN ('success', 'failed', 'canceled', 'skipped') " +
+                         "  AND (p.status IN ('success', 'canceled', 'skipped') " +
+                         "       OR (p.status = 'failed' AND p.created_at < NOW() - INTERVAL '7 days')) " +
                          "  AND (" +
                          "       (EXISTS (SELECT 1 FROM analytics_jobs j WHERE j.pipeline_id = p.gitlab_id) " +
                          "        AND NOT EXISTS (SELECT 1 FROM analytics_jobs j WHERE j.pipeline_id = p.gitlab_id " +
                          "                        AND j.status IN ('running', 'pending', 'created', 'preparing', 'waiting_for_resource', 'scheduled'))" +
+                         "        AND NOT EXISTS (SELECT 1 FROM analytics_jobs j WHERE j.pipeline_id = p.gitlab_id " +
+                         "                        AND j.status = 'failed' AND j.allow_failure = false " +
+                         "                        AND NOT EXISTS (SELECT 1 FROM analytics_jobs j2 WHERE j2.pipeline_id = p.gitlab_id " +
+                         "                                        AND j2.name = j.name AND j2.status = 'success'))" +
                          "       ) " +
                          "       OR p.status = 'skipped')";
             List<Long> ids = jdbcTemplate.queryForList(sql, Long.class, projectId);
@@ -265,15 +275,32 @@ public class AnalyticsSyncStorage {
         }
     }
 
-    public record ActivePipelineRef(long gitlabId, long projectId, String status) {}
+    public boolean hasUnresolvedFailedJob(long pipelineGitlabId) {
+        try {
+            String sql = "SELECT EXISTS (SELECT 1 FROM analytics_jobs j WHERE j.pipeline_id = ? " +
+                         "AND j.status = 'failed' AND j.allow_failure = false " +
+                         "AND NOT EXISTS (SELECT 1 FROM analytics_jobs j2 WHERE j2.pipeline_id = ? " +
+                         "AND j2.name = j.name AND j2.status = 'success'))";
+            return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, Boolean.class, pipelineGitlabId, pipelineGitlabId));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public record ActivePipelineRef(long gitlabId, long projectId, String status, OffsetDateTime updatedAt) {
+        public ActivePipelineRef(long gitlabId, long projectId, String status) {
+            this(gitlabId, projectId, status, null);
+        }
+    }
 
     /**
      * Returns actively running or pending pipelines in a group (created within the last 14 days),
-     * or pipelines whose jobs are still recorded as active in the database.
+     * pipelines whose jobs are still recorded as active in the database, or recent failed pipelines (last 3 days)
+     * which may have retried jobs.
      */
     public List<ActivePipelineRef> getActivePipelines(long groupId) {
         try {
-            String sql = "SELECT DISTINCT p.gitlab_id, p.project_id, p.status " +
+            String sql = "SELECT DISTINCT p.gitlab_id, p.project_id, p.status, p.updated_at " +
                          "FROM analytics_pipelines p " +
                          "JOIN analytics_projects pr ON pr.gitlab_id = p.project_id " +
                          "WHERE pr.group_id = ? " +
@@ -281,13 +308,20 @@ public class AnalyticsSyncStorage {
                          "       p.status IN ('running', 'pending', 'created', 'preparing', 'waiting_for_resource', 'scheduled') " +
                          "       OR EXISTS (SELECT 1 FROM analytics_jobs j WHERE j.pipeline_id = p.gitlab_id " +
                          "                  AND j.status IN ('running', 'pending', 'created', 'preparing', 'waiting_for_resource', 'scheduled'))" +
+                         "       OR (p.status = 'failed' AND p.created_at >= NOW() - INTERVAL '3 days')" +
+                         "       OR (p.status = 'success' AND p.created_at >= NOW() - INTERVAL '14 days' AND EXISTS (" +
+                         "           SELECT 1 FROM analytics_jobs j WHERE j.pipeline_id = p.gitlab_id " +
+                         "           AND j.status = 'failed' AND j.allow_failure = false " +
+                         "           AND NOT EXISTS (SELECT 1 FROM analytics_jobs j2 WHERE j2.pipeline_id = p.gitlab_id " +
+                         "                           AND j2.name = j.name AND j2.status = 'success')))" +
                          "  ) " +
                          "  AND p.created_at >= NOW() - INTERVAL '14 days' " +
                          "ORDER BY p.gitlab_id DESC";
             return jdbcTemplate.query(sql, (rs, rowNum) -> new ActivePipelineRef(
                 rs.getLong("gitlab_id"),
                 rs.getLong("project_id"),
-                rs.getString("status")
+                rs.getString("status"),
+                rs.getObject("updated_at", OffsetDateTime.class)
             ), groupId);
         } catch (Exception e) {
             log.debug("Failed to query active pipelines for group {}: {}", groupId, e.getMessage());

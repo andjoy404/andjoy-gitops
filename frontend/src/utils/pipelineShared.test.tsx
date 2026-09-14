@@ -217,5 +217,48 @@ describe('getPipelineEffectiveStatus', () => {
     )
     expect(effective).toBe('success')
   })
+
+  it('derives manual status when a required manual job blocks subsequent created jobs', () => {
+    const manualJob: JobInfo = {
+      id: 1, name: 'approval', stage: 'approval', status: 'manual',
+      allow_failure: false,
+      pipeline_id: 10587, project_id: 42, created_at: '2026-09-08T03:00:00Z',
+    }
+    const subsequentJob1: JobInfo = {
+      id: 2, name: 'compile-lib', stage: 'compile', status: 'created',
+      allow_failure: false,
+      pipeline_id: 10587, project_id: 42, created_at: '2026-09-08T03:01:00Z',
+    }
+    const subsequentJob2: JobInfo = {
+      id: 3, name: 'scan', stage: 'scan', status: 'created',
+      allow_failure: true,
+      pipeline_id: 10587, project_id: 42, created_at: '2026-09-08T03:02:00Z',
+    }
+
+    const effective = getPipelineEffectiveStatus(
+      { ...mockPipeline, status: 'manual' },
+      [manualJob, subsequentJob1, subsequentJob2],
+    )
+    expect(effective).toBe('manual')
+  })
+
+  it('preserves success status when manual job is optional and subsequent jobs succeeded', () => {
+    const optionalManualJob: JobInfo = {
+      id: 1, name: 'build-base', stage: 'build-base', status: 'manual',
+      allow_failure: true,
+      pipeline_id: 10587, project_id: 42, created_at: '2026-09-08T03:00:00Z',
+    }
+    const deployJob: JobInfo = {
+      id: 2, name: 'deploy', stage: 'deploy', status: 'success',
+      allow_failure: false,
+      pipeline_id: 10587, project_id: 42, created_at: '2026-09-08T03:01:00Z',
+    }
+
+    const effective = getPipelineEffectiveStatus(
+      { ...mockPipeline, status: 'success' },
+      [optionalManualJob, deployJob],
+    )
+    expect(effective).toBe('success')
+  })
 })
 

@@ -690,7 +690,7 @@
   max-width: none !important;
   scrollbar-width: thin;
 }
-.pipeline-job-badge { flex-shrink: 0 !important; white-space: nowrap !important; font-size: inherit; }
+.pipeline-job-badge { flex-shrink: 0 !important; white-space: nowrap !important; font-size: 0.85em !important; }
 
 
  .pipeline-data-table .ant-table-thead > tr > th { color:var(--dashboard-muted); padding:0 12px; height:var(--gitops-table-row-min-height); vertical-align:middle; box-sizing:border-box; }

@@ -10,7 +10,7 @@ import {
   message as antdMessage,
 } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { CaretDownOutlined, CaretUpOutlined, ReloadOutlined, StarFilled, StarOutlined, MenuFoldOutlined, MenuUnfoldOutlined, InfoCircleOutlined } from '@ant-design/icons'
+import { CaretDownOutlined, CaretUpOutlined, CaretRightOutlined, ReloadOutlined, StarFilled, StarOutlined, MenuFoldOutlined, MenuUnfoldOutlined, InfoCircleOutlined } from '@ant-design/icons'
 import { api } from '../services/api'
 import { useFavorites } from '../services/favorites'
 import { useScopedRefresh } from '../hooks/useSyncRefresh'
@@ -40,6 +40,7 @@ import {
   PipelineDetailModal,
   orderJobsByStageSequence,
   getPipelineEffectiveStatus,
+  renderStatusIcon,
 } from '../utils/pipelineShared'
 import styles from '../styles/pipelines.module.css'
 import '../styles/pipelines.css'
@@ -716,6 +717,7 @@ export default function PipelinesPage() {
                 }
               }}
             >
+              {renderStatusIcon(s)}
               {s.replace(/_/g, ' ')}
             </Tag>
           </Tooltip>
