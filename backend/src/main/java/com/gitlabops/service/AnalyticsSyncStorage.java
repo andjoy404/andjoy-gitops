@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -641,20 +642,18 @@ public class AnalyticsSyncStorage {
     public void runRetentionCleanup(int retentionDays, long syncStartMs) {
         try {
             int days = Math.max(1, retentionDays);
-            String before = java.time.OffsetDateTime.ofInstant(
-                Instant.ofEpochMilli(syncStartMs), java.time.ZoneOffset.UTC)
-                .minusDays(days)
-                .toString();
+            OffsetDateTime before = OffsetDateTime.ofInstant(
+                Instant.ofEpochMilli(syncStartMs), ZoneOffset.UTC)
+                .minusDays(days);
             jdbcTemplate.update(
                 "DELETE FROM analytics_pipelines WHERE updated_at < ?", before);
             jdbcTemplate.update(
                 "DELETE FROM analytics_runner_snapshots WHERE captured_at < ?", before);
-            String summaryCutoff = java.time.OffsetDateTime.ofInstant(
-                Instant.ofEpochMilli(syncStartMs), java.time.ZoneOffset.UTC)
-                .minusDays(7)
-                .toString();
-            jdbcTemplate.execute(
-                "DELETE FROM analytics_summary_cache WHERE computed_at < '" + summaryCutoff + "'");
+            OffsetDateTime summaryCutoff = OffsetDateTime.ofInstant(
+                Instant.ofEpochMilli(syncStartMs), ZoneOffset.UTC)
+                .minusDays(7);
+            jdbcTemplate.update(
+                "DELETE FROM analytics_summary_cache WHERE computed_at < ?", summaryCutoff);
             jdbcTemplate.update(
                 "DELETE FROM analytics_user_events WHERE occurred_at < ?", before);
             jdbcTemplate.update(

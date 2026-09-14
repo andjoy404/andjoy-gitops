@@ -32,7 +32,6 @@ services:
       - "${APP_PORT:-8090}:8090"
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-production}
-      APP_PORT: ${APP_PORT:-8090}
       DB_HOST: ${DB_HOST:?DB_HOST is required}
       DB_PORT: ${DB_PORT:-5432}
       DB_NAME: ${DB_NAME:?DB_NAME is required}
