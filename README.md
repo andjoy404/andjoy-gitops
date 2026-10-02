@@ -26,6 +26,8 @@ If this project helps you, consider supporting my open-source work.
 
 Your support helps me maintain this project and build more open-source tools.
 
+---
+
 ## ✨ Key Features
 
 | Feature | Description |
