@@ -21,7 +21,7 @@
 
 If this project helps you, consider supporting my open-source work.
 
-[![Support me on Trakteer](https://img.shields.io/badge/Support%20me-Trakteer-orange?style=for-the-badge)](https://trakteer.id/andriyan_muhamad)
+[![Support me on Trakteer](https://img.shields.io/badge/Support%20me-Trakteer-orange?style=for-the-badge)](https://trakteer.id/andjoy)
 [![Support me on Saweria](https://img.shields.io/badge/Support%20me-Saweria-8B5CF6?style=for-the-badge)](https://saweria.co/andjoy)
 
 Your support helps me maintain this project and build more open-source tools.
